@@ -13,13 +13,16 @@ Desplegable de equipo.
 -Curacion y danos progresivos en la misma ventana que dano y curacion burst.
 
 ----CORRECCIONES----
-que pasa cuando cambia
-
+-Ira en los retrocesos desde el desplegable
 --Revisar alcance de efectos (mele/distancia)
 --conseguir ira en warrior con el 3
 --Revisar avance y retroceso del 6 cuando falla el efecto.
 --Incrementar vampirismo con equipo.
 --Modificar influencias de ataque y poder de habilidad en los distintos dados
+-Incrementar retrocesos con p de habilidad en todos los dados de retroceso (7 solo?);
+---Rate ataque p habilidad:
+-Rojas:
+-Violetas:
 ---CAMBIOS PERSONAJES EXISTENTES---
 -Al useefect de cambio de vida ponerle el cambio de personaje.
 
