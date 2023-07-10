@@ -1,0 +1,136 @@
+.desplegable-derecha {
+    height: 375px;
+    position: fixed;
+    top: 41%;
+    right: 0;
+    transform: translateY(-50%);
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 0px 0px 0px 10px;
+  }
+  .desplegable-toggle-open{
+    background-color: #ccc;
+    border: none;
+    cursor: pointer;
+width: 20px;
+
+  }
+  .btn-mod-desplegable{
+    min-height: 150px;
+    width: 130px;
+  }
+  .desplegable-toggle {
+    min-width: 100%;
+    background-color: #ccc;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .desplegable-contenido {
+    padding: 10px;
+    align-items: center;
+    transition: background-color 1s ease-in;
+    max-width: 152px;
+  }
+  .desplegable-contenido button{
+    align-items: center;
+    transition: background-color 0.3s ease-in, box-shadow 1s ease-in;
+    background-color: rgb(195, 197, 197);
+    border-radius: 15%;
+  }
+
+  .desplegable-contenido button:hover{
+    align-items: center;
+    transition: background-color 0.3s ease-in, box-shadow 1s ease-in;
+    border-radius: 15%;
+  }
+
+.div-desplegable-margen-inferior{
+max-height: 22px;
+}
+.btn-toggleMod {
+    position: absolute;
+    bottom: 1%;
+    height: 23px;
+    width: 65px;
+    
+}
+
+.btn-der{
+    right: 5%;
+}
+
+.btn-izq{
+    left: 17%;
+}
+.btn-dpsMod{
+  height: 40px;
+}
+
+.div-ticks{
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 20%;
+  color: white;
+}
+.div-ataque{
+  max-height: 50px;
+}
+.div-calculo-ataque{
+  justify-content:center;
+  max-height: 100px;
+}
+.btn-ticks{
+  width: 50px;
+}
+.p-ticks{
+  position: absolute;
+  top: 55%;
+  font-weight: 600;
+}
+.p-ticks-ataque{
+  position: absolute;
+  top: 1%;
+  font-weight: 600;
+
+}
+
+.p-valor-importante{
+  font-size: 30px;
+}
+
+.p-titulo-importante{
+  font-size: 17px;
+}
+.estado-violeta-shadow{
+    box-shadow: 0 0 5px 3px  rgb(162, 2, 255);
+}
+.estado-violeta-shadow:hover{
+    background-color:rgb(204, 115, 255) ;
+    box-shadow: 0 0 5px 5px  rgb(95, 0, 150);
+}
+.estado-rojo-shadow{
+    box-shadow: 0 0 5px 3px  rgb(230, 1, 1);
+}
+.estado-rojo-shadow:hover{
+    background-color:rgb(252, 104, 104);
+    box-shadow: 0 0 5px 5px  rgb(153, 0, 0);
+}
+
+.estado-verde-shadow{
+    box-shadow: 0 0 5px 3px  rgb(34, 170, 0);
+}
+.estado-verde-shadow:hover{
+    background-color:rgb(161, 255, 138);
+    box-shadow: 0 0 5px 5px  rgb(24, 119, 0);
+}
+
+.estado-celeste-shadow{
+    box-shadow: 0 0 5px 3px  rgb(0, 68, 170);
+    background-color:rgb(185, 210, 247);
+
+}
+.estado-celeste-shadow:hover{
+    background-color:rgb(148, 191, 255);
+    box-shadow: 0 0 5px 5px  rgb(0, 53, 133);
+}

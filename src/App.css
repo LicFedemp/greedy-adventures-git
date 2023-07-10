@@ -1,0 +1,79 @@
+body, html{
+    background-color: black;
+  }
+div{
+    display: flex;
+    align-items: stretch;
+    border: 1px dotted rgba(255, 255, 255, 0.342);
+    flex: 1;
+}
+button{
+    transition: background-color 0.3s, box-shadow 0.3 ;
+    cursor: pointer;
+}
+li{
+    transition: color 0.3s, font-weight 0.3s ;
+
+}
+select{
+    cursor: pointer;
+}
+
+.App{
+    flex-direction: column;
+    height: 200vh;
+    background-color: rgb(39, 39, 39);
+    
+
+}
+.background-red{
+    background-color: rgb(48, 8, 8);
+
+}
+.background-green{
+    background-color: rgb(8, 48, 17);
+
+}
+.background-blue{
+    background-color: rgb(8, 9, 48);
+
+}
+.background-purple{
+    background-color: rgb(45, 8, 48);
+
+}
+.App div button{
+margin: 5px;}
+p{
+    display: flex;
+    color: white;
+    font-size: 15px;
+    justify-content: center;
+}
+
+#div-titulo{
+    flex-direction: column;
+    height:30px;
+}
+
+.titulo{
+    position: relative;
+    top: -20px;
+    height:0px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.div-columna{
+    flex-direction: column;
+    flex: 1;
+}
+
+button p {
+    color: black;
+}
+
+.div-bajo{
+    max-height: 50px;
+    padding: 5px;
+}

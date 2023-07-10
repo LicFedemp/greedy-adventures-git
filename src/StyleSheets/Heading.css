@@ -1,0 +1,198 @@
+.btn-largo{
+  width: 60px;
+}
+.div-stats{
+    margin:0px 5px 0px 5px ;
+    justify-content: space-evenly;
+    min-width: 100px;
+}
+.div-stats-principal{
+  margin:0px 5px 0px 5px ;
+  justify-content: space-evenly;
+  min-width: 300px;
+}
+.div-stats-generales{
+  min-width: 300px;
+  color: white;
+  max-height: 100px;
+  align-items: center;
+}
+.btn-habilidad{
+  min-height: 80px;
+  font-size: 20px;
+  font-weight: 6  00;
+  transition: boxShadow 0.3 ;
+
+}
+.habilidad-mago{
+  background-color: rgb(61, 61, 255);
+}
+.habilidad-brujo{
+  background-color: rgb(170, 42, 255);
+}
+.life-bar {
+  position: relative;
+  left: 5%;
+  width: 265px;
+  max-height: 30px;
+  border: 3px solid #000;
+  border-radius: 15px;
+  overflow:visible;
+  background-color: rgb(75, 0, 0);
+  transition: box-shadow 0.3s ease;
+
+}
+.life-bar-animation{
+
+  animation: box-shadow-animation 4s infinite;
+}
+.life-bar-poisonAnimation{
+
+  animation: box-shadow-poisonAnimation 4s infinite;
+}
+
+@keyframes box-shadow-animation {
+  0% {
+    box-shadow: 0px 0px 30px 5px #b60000;
+  }
+  50% {
+    box-shadow: 0px 0px 5px 5px #b60000;
+  }
+  100% {
+    box-shadow: 0px 0px 30px 5px #b60000;
+  }
+}
+@keyframes box-shadow-poisonAnimation {
+  0% {
+    box-shadow: 0px 0px 30px 2px #7fb600;
+  }
+  50% {
+    box-shadow: 0px 0px 5px 5px #15b600;
+  }
+  100% {
+    box-shadow: 0px 0px 30px 2px #95b600;
+  }
+}
+
+
+.life-bar-fill {
+  position:absolute;
+  height: 90%;
+  background-color: red;
+  transition: width 0.5s ease-in-out;
+  border-radius: 15px;
+  align-items: center;
+  justify-content: center;
+  font-weight:500;
+  z-index: 0;
+  top: 1px;
+  left: 0px;
+
+}
+.p-life-bar{
+  position: relative;
+  top: -30%;
+  left: 38%;
+  z-index: 2;
+}
+.p-cambios-hp{
+  position: relative;
+  left: 15%;
+  z-index: 3;
+  font-weight: 800;
+  font-size: 20px;
+  transition: opacity 0.0s ease-in-out, top 0.9s ease-in-out, color 0.0s ease-in-out;
+}
+.p-invisible{
+  opacity: 0;
+  top: -30px;
+}
+.p-visible{
+  opacity: 1;
+  top:-60px;
+}
+.p-visible-verde{
+color: green;}
+.p-visible-rojo{
+  color: red;}
+
+.btn-mod{
+    min-height: 75px;
+}
+
+
+
+  .btn-mod-main{
+width: 50px;
+height: 40px;
+text-align:start;
+  }
+
+  .div-recurso-secundario{
+    position: relative;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: row;
+  }
+  .div-ira{
+    min-height: 30px;
+    width: 30px;
+    border-radius: 10px;
+    color: black;
+    font-weight: 500;
+    align-items: center;
+  }
+
+.ira-activa{
+    background-color: rgb(219, 3, 3);
+    box-shadow: 0px 0px 10px 5px rgba(255, 0, 0, 0.685);
+    color: white;
+}
+.mana-activa{
+  background-color: rgb(7, 3, 219);
+  box-shadow: 0px 0px 10px 5px rgba(0, 26, 255, 0.685);
+  color: white;
+}
+.combo-activo{
+  background-color: rgb(39, 219, 3);
+  box-shadow: 0px 0px 10px 5px rgba(21, 255, 0, 0.685);
+  color: rgb(0, 0, 0);
+}
+.p-recursoSec{
+  position: absolute;
+  top: -19%;
+}
+.div-energia{
+  min-height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  color: black;
+  font-weight: 500;
+  align-items: center;
+}
+.energia-activa{
+  background-color: yellow;
+  box-shadow: 0px 0px 10px 5px rgba(255, 255, 0, 0.664);
+  color: rgb(0, 0, 0);
+}
+
+.div-equipo{
+  max-height: 100px;
+justify-content: space-around;}
+
+.select-equipo{
+  min-height: 30px;
+  width: 150px;
+  border-radius: 5px;
+  text-align:center ;
+}
+.stat-potenciado{
+  color: rgb(0, 201, 0);
+  font-weight: 500;
+
+}
+.stat-disminuido{
+  color: rgb(212, 0, 0);
+  font-weight: 500;
+
+}
