@@ -1,6 +1,5 @@
 import { useReducer } from "react";
-import { stats, STATS_AUTOMATICO } from "./Objetos/Personajes";
-import { DADOS } from "./Objetos/Dados";
+import { STATS_AUTOMATICO } from "./Objetos/Personajes";
 import { efectosPSec } from "./Objetos/EfectosPS";
 import { EQUIPO, arrayEquipo } from "./Objetos/Equipo";
 
@@ -20,7 +19,11 @@ export const ACCIONES = {
   ROLL_ALL: " roll-all",
   ESPECIAL: "especial",
   LOCK: "lock",
-  STATS: { MOD_VIDA: "mod-vida", EXCESO_ENERGIA: "exceso-energia" },
+  STATS: {
+    MOD_VIDA: "mod-vida",
+    EXCESO_ENERGIA: "exceso-energia",
+    BONUS_VIDA: "bonus-vida",
+  },
   PORCENTAJE_VIDA: "porcentaje-vida",
   MOD_CASILLERO: "mod-casillero",
   MODO_DADO: "modo-dado",
@@ -34,6 +37,7 @@ export const ACCIONES = {
   MODIFICAR_EQUIPO: "modificar-equipo",
   ACTIVAR_SKILL: "activar-skill",
   EFECTOS_PS: "efectos-ps",
+  NEGATIVO: "negativo",
 };
 const convertirObjetoEnArray = (objeto) => {
   return Object.keys(objeto).map((clave) => {
@@ -56,7 +60,10 @@ const estadoInicial = {
   poderDado: 6,
   numDado: 5,
   dadoExtra: 0,
-  personaje: { ...STATS_AUTOMATICO.rogueMalabarista },
+  personaje: {
+    ...STATS_AUTOMATICO.rogueMalabarista,
+  },
+  bonus: { vida: 0 },
   porcentajeVida: 100,
   regeneracion: 0,
   automatico: false,
@@ -84,6 +91,7 @@ const estadoInicial = {
   efectosPorSec: { ...efectosPSec },
   cantidadPersonajes: 6,
   accion: false,
+  algunNegativo: false,
 };
 
 const reducer = (state, action) => {
@@ -193,10 +201,10 @@ const reducer = (state, action) => {
 
       if (state.estadoTurno) {
         const turnoHealing =
-          state.personaje.vida + state.personaje.vidaBase * 0.15;
+          state.personaje.vida + state.personaje.vidaMaxima * 0.15;
         const turnoFinalHealing =
-          turnoHealing > state.personaje.vidaBase
-            ? state.personaje.vidaBase
+          turnoHealing > state.personaje.vidaMaxima
+            ? state.personaje.vidaMaxima
             : turnoHealing;
         const fraccionTick = 4;
         const hemoTickTurno =
@@ -266,8 +274,8 @@ const reducer = (state, action) => {
             ...state.personaje,
             energia: state.personaje.energiaMax,
             vida:
-              cambioVidaInicioTurno > state.personaje.vidaBase
-                ? state.personaje.vidaBase
+              cambioVidaInicioTurno > state.personaje.vidaMaxima
+                ? state.personaje.vidaMaxima
                 : cambioVidaInicioTurno,
           },
 
@@ -329,6 +337,9 @@ const reducer = (state, action) => {
           },
         };
       }
+    case ACCIONES.NEGATIVO:
+      console.log("entra al negativo");
+      return { ...state, algunNegativo: algunNegativo };
     case ACCIONES.ROLL_ALL:
       let arrayNumero = [0, 0, 0, 0, 0];
       const arrayPrimera = [0, 1, 3, 7];
@@ -540,19 +551,19 @@ const reducer = (state, action) => {
     case ACCIONES.PORCENTAJE_VIDA:
       console.log(
         `Nuevo porcentaje = ${
-          (state.personaje.vida / state.personaje.vidaBase) * 100
+          (state.personaje.vida / state.personaje.vidaMaxima) * 100
         }% `
       );
       return {
         ...state,
         porcentajeVida: Math.floor(
-          (state.personaje.vida / state.personaje.vidaBase) * 100
+          (state.personaje.vida / state.personaje.vidaMaxima) * 100
         ),
         personaje: {
           ...state.personaje,
           vida:
-            state.personaje.vida > state.personaje.vidaBase
-              ? state.personaje.vidaBase
+            state.personaje.vida > state.personaje.vidaMaxima
+              ? state.personaje.vidaMaxima
               : state.personaje.vida,
         },
       };
@@ -568,8 +579,8 @@ const reducer = (state, action) => {
         personaje: {
           ...state.personaje,
           vida:
-            state.personaje.vida - danoFiltrado > state.personaje.vidaBase
-              ? state.personaje.vidaBase
+            state.personaje.vida - danoFiltrado > state.personaje.vidaMaxima
+              ? state.personaje.vidaMaxima
               : state.personaje.vida - danoFiltrado,
           ira:
             state.numeroClase == 100 &&
@@ -612,24 +623,24 @@ const reducer = (state, action) => {
             state.personaje.vida +
             Math.floor(state.personaje.mana * (state.personaje.curacion / 3));
           const overhealingBool =
-            healing > state.personaje.vidaBase ? true : false;
+            healing > state.personaje.vidaMaxima ? true : false;
+          const bonusVidaMaxima = overhealingBool
+            ? Math.floor((healing - state.personaje.vidaMaxima) / 10)
+            : 0;
           return {
             ...state,
             personaje: {
               ...state.personaje,
               mana: 0,
-              vida: overhealingBool ? state.personaje.vidaBase : healing,
-              vidaBase: overhealingBool
-                ? state.personaje.vidaBase +
-                  Math.floor((healing - state.personaje.vidaBase) / 10)
-                : state.personaje.vidaBase,
+              vida: overhealingBool ? state.personaje.vidaMaxima : healing,
+              vidaMaxima: state.personaje.vidaMaxima + bonusVidaMaxima,
             },
+            bonus: { ...state.bonus, vida: state.bonus.vida + bonusVidaMaxima },
           };
 
         default:
           return { ...state };
       }
-      return { ...state };
     case ACCIONES.IRA_DADOS:
       const totalDados = state.personaje.ira + state.dadoExtra + 2;
 
@@ -732,7 +743,9 @@ const reducer = (state, action) => {
         defMagicaFromDefensa;
       const regeneracionTotal =
         state.personaje.regeneracionBase + arrayStatsValores[8];
-      const vidaMaximaTotal = state.personaje.vidaMaxima + arrayStatsValores[9];
+      const vidaMaximaTotal =
+        state.personaje.vidaBase + arrayStatsValores[9] + state.bonus.vida;
+      console.log(`Bonus vida maxima = ${state.bonus.vida} `);
 
       return {
         ...state,
@@ -750,36 +763,6 @@ const reducer = (state, action) => {
           vidaMaxima: vidaMaximaTotal,
         },
       };
-
-    /*
-      const arrayEquipoDefensa = [
-        state.equipo.actual.arma[0]?.defensa,
-        state.equipo.actual.armadura[0]?.defensa,
-        state.equipo.actual.joya[0]?.defensa,
-      ];
-      let equipoDefensa = 0;
-      arrayEquipoDefensa.forEach((element) => {
-        if (typeof element === "number") {
-          equipoDefensa = equipoDefensa + element;
-        }
-      });
-      console.log(`La defensa del equipo = ${equipoDefensa}`);*/
-
-    //ATAQUE
-    /*const arrayEquipoAtaque = [
-        state.equipo.actual.arma[0]?.ataque,
-        state.equipo.actual.armadura[0]?.ataque,
-        state.equipo.actual.joya[0]?.ataque,
-      ];
-      let equipoAtaque = 0;
-      arrayEquipoAtaque.forEach((element) => {
-        if (typeof element === "number") {
-          equipoAtaque = equipoAtaque + element;
-        }
-      });
-      console.log(`El ataque del equipo = ${equipoAtaque}`);*/
-
-    //CRITICO
 
     case ACCIONES.MODIFICAR_EQUIPO:
       console.log(`Entra al reducer de modificacion de equipo`);
@@ -800,6 +783,10 @@ const reducer = (state, action) => {
                   },
                 ],
               },
+            },
+            personaje: {
+              ...state.personaje,
+              energia: state.personaje.energia - 1,
             },
           };
         case "armadura":
@@ -823,6 +810,10 @@ const reducer = (state, action) => {
                 ],
               },
             },
+            personaje: {
+              ...state.personaje,
+              energia: state.personaje.energia - 1,
+            },
           };
         case "joya":
           const nuevaJoya = { ...state.equipo.bolsa.joya[action.indice] };
@@ -839,11 +830,14 @@ const reducer = (state, action) => {
                 ],
               },
             },
+            personaje: {
+              ...state.personaje,
+              energia: state.personaje.energia - 1,
+            },
           };
         default:
           return { ...state };
       }
-
     case ACCIONES.ACTIVACION_DADO:
       if (!algunNegativo || state[action.dado].estado == 3) {
         if (state[action.dado].estado != 0 && state.estadoTurno) {
@@ -1094,6 +1088,8 @@ const reducer = (state, action) => {
                   };
                 }
                 return { ...state };
+              case 10:
+                return { ...state, [action.dado]: ESTADO_SHORTCOUT };
             }
           } else if (!action.modo && gastoEnergia <= state.personaje.energia) {
             let lvl = 1;
@@ -1230,7 +1226,6 @@ const reducer = (state, action) => {
               case 4:
               case 8:
                 console.clear();
-                console.log(`Entra al case 4`);
                 const numeroMaximo = state.cantidadPersonajes * 100;
                 let arrayProbabilidad = [0.65, 0.4, 0.2, 0.1, 0];
                 let arrayX = [0, 1, 2, 3, 4];
@@ -1241,15 +1236,12 @@ const reducer = (state, action) => {
                     case 0:
                       const accion = parseInt(action.n);
                       lvl = accion == 4 ? 1 : accion == 8 ? 2 : 3;
-                      console.log(
-                        `Entra al case 0 hijo, definicion de lvl = ${lvl}`
-                      );
                       break;
                     case 1:
                       numeroRandom =
                         Math.floor(Math.random() * numeroMaximo) + 1;
                       console.log(
-                        `Entra al case 1 hijo, definicion de spec, numeroRandom = ${numeroRandom}`
+                        `Definicion de spec, numeroRandom = ${numeroRandom}/${numeroMaximo}`
                       );
 
                       switch (
@@ -1263,9 +1255,6 @@ const reducer = (state, action) => {
                         case 201:
                         case 202:
                           arrayX = [2, 0, 1, 4, 3];
-                          console.log(
-                            `Entra al switch de clase rogue, arrayX = ${arrayX}`
-                          );
                           break;
                         case 301:
                         case 302:
@@ -1280,6 +1269,13 @@ const reducer = (state, action) => {
                         default:
                           break;
                       }
+                      console.log(
+                        `ClaseSpec = ${
+                          parseInt(state.numeroClase) +
+                          parseInt(state.numeroSpec)
+                        }, arrayX = ${arrayX}`
+                      );
+
                       bucleSelectorSpec: for (let x = 0; x < 5; x++) {
                         console.log(`Entra al bucle select spec`);
                         if (
@@ -1288,9 +1284,17 @@ const reducer = (state, action) => {
                         ) {
                           spec = arrayX[x];
                           console.log(
-                            `Encuentra valor en spec = ${
-                              arrayX[x]
-                            }, numeroRandom = ${numeroRandom / numeroMaximo}%`
+                            `Spec seleccionado = ${
+                              spec == 0
+                                ? `Ataque`
+                                : spec == 1
+                                ? `Defensa`
+                                : spec == 2
+                                ? `Agilidad`
+                                : spec == 3
+                                ? `Maleficio`
+                                : `Curacion`
+                            }`
                           );
                           break bucleSelectorSpec;
                         } else {
@@ -1304,9 +1308,6 @@ const reducer = (state, action) => {
                       numeroRandom =
                         Math.floor(Math.random() * numeroMaximo) + 1;
                       arrayProbabilidad = [0.6, 0.2, 0];
-                      console.log(
-                        `Entra a la seleccion de TIPO, numeroRandom = ${numeroRandom}`
-                      );
                       bucleSelectorSpec: for (let x = 0; x < 3; x++) {
                         if (
                           numeroRandom >=
@@ -1314,7 +1315,13 @@ const reducer = (state, action) => {
                         ) {
                           tipo = x;
                           console.log(
-                            `Encuentra valor de tipo = ${x} = ${tipo}?`
+                            `Tipo ${
+                              tipo == 0
+                                ? `Arma`
+                                : tipo == 1
+                                ? `Armadura`
+                                : `Accesorio`
+                            }`
                           );
 
                           break bucleSelectorSpec;
@@ -1328,16 +1335,9 @@ const reducer = (state, action) => {
                       //seleccion objeto
                       const longitudBusqueda =
                         arrayEquipo[lvl][spec][tipo].length;
-                      console.log(
-                        `Ultimo case del switch, objeto, longitudBusqueda = ${longitudBusqueda}`
-                      );
-
                       numeroRandom =
                         Math.floor(Math.random() * longitudBusqueda) + 1;
                       obj = numeroRandom - 1;
-                      console.log(
-                        `Encuentra valor de objeto = ${numeroRandom} = ${obj}?`
-                      );
 
                       break;
                     default:
@@ -1347,17 +1347,16 @@ const reducer = (state, action) => {
                 }
                 // comprobacion de drop repetido
                 let codigoString = [lvl, spec, tipo, obj];
-                console.log(`El codigo array = ${codigoString}`);
                 console.log(`El codigo string = ${codigoString.join("")}`);
 
-                console.log(
-                  `Checkeando acceso a caracteres: 0= ${codigoString[0]}, 2= ${codigoString[2]}`
-                );
                 let arrayCodigos = [...state.equipo.codigoDrop];
                 if (arrayCodigos.includes(codigoString.join(""))) {
+                  const accion = parseInt(action.n);
+                  const lvlRepetido =
+                    accion == 4 ? [1, 2] : accion == 8 ? [2, 3] : [3, 2];
                   console.log("objeto repetido");
                   const arrayLongitudes = [
-                    [1, 2],
+                    lvlRepetido,
                     arrayX,
                     [0, 1, 2],
                     state.arrayEquipo[lvl][spec][tipo].length,
@@ -1369,13 +1368,11 @@ const reducer = (state, action) => {
                     a++
                   ) {
                     //corrijo nivel
-                    console.log(`bucle nivel`);
 
                     codigoString[0] = `${arrayLongitudes[0][a]}`;
                     if (arrayCodigos.includes(codigoString.join(""))) {
                       for (let b = 0; b < arrayLongitudes[1].length; b++) {
                         //corrijo spec
-                        console.log(`bucle spec`);
 
                         z = 1;
                         codigoString[z] = `${arrayLongitudes[z][b]}`;
@@ -1383,23 +1380,38 @@ const reducer = (state, action) => {
                           for (let c = 0; c < arrayLongitudes[2].length; c++) {
                             z = 2;
                             //corrijo tipo
-                            console.log(`bucle tipo`);
 
                             codigoString[z] = `${arrayLongitudes[z][c]}`;
                             if (arrayCodigos.includes(codigoString.join(""))) {
-                              for (let d = 0; d < arrayLongitudes[3]; d++) {
+                              let longitudBusqueda =
+                                state.arrayEquipo[codigoString[0]][
+                                  codigoString[1]
+                                ][codigoString[2]].length;
+                              console.log(
+                                `Longitud de busqueda: ${longitudBusqueda} // Actual tipo de objeto = ${codigoString}`
+                              );
+
+                              for (let d = 0; d < longitudBusqueda; d++) {
                                 z = 3;
                                 //corrijo objeto
-                                console.log(`bucle final`);
 
                                 codigoString[z] = `${d}`;
-                                console.log(
-                                  `referencia para modificar ultimo char = ${arrayLongitudes[z][d]}`
-                                );
+                                let objeto = {
+                                  ...state.arrayEquipo[codigoString[0]][
+                                    codigoString[1]
+                                  ][codigoString[2]][codigoString[3]],
+                                };
 
                                 if (
-                                  arrayCodigos.includes(codigoString.join(""))
+                                  arrayCodigos.includes(
+                                    codigoString.join("")
+                                  ) ||
+                                  typeof objeto.nombre == "undefined"
+                                  //and is an object...
                                 ) {
+                                  console.log(`Objeto.nombre=${objeto.nombre}`);
+                                  codigoString[3] = 0;
+                                  continue;
                                 } else {
                                   break comparacionRepetido;
                                 }
@@ -1426,7 +1438,6 @@ const reducer = (state, action) => {
                   ][codigoString[3]],
                   clave: codigoString.join(""),
                 };
-                console.log(`Ataque del objeto = ${objeto.ataque}`);
                 window.alert(
                   `Has conseguido un nuevo objeto: ${objeto.nombre}`
                 );
@@ -1434,10 +1445,10 @@ const reducer = (state, action) => {
                   case 0:
                     return {
                       ...state,
-                      [action.dado]: ESTADO_SHORTCOUT,
+                      //[action.dado]: ESTADO_SHORTCOUT,
                       personaje: {
                         ...state.personaje,
-                        energia: state.personaje.energia - gastoEnergia,
+                        //energia: state.personaje.energia - gastoEnergia,
                       },
                       equipo: {
                         ...state.equipo,
@@ -1469,10 +1480,10 @@ const reducer = (state, action) => {
                   case 1:
                     return {
                       ...state,
-                      [action.dado]: ESTADO_SHORTCOUT,
+                      //[action.dado]: ESTADO_SHORTCOUT,
                       personaje: {
                         ...state.personaje,
-                        energia: state.personaje.energia - gastoEnergia,
+                        //energia: state.personaje.energia - gastoEnergia,
                       },
                       equipo: {
                         ...state.equipo,
@@ -1504,10 +1515,10 @@ const reducer = (state, action) => {
                   case 2:
                     return {
                       ...state,
-                      [action.dado]: ESTADO_SHORTCOUT,
+                      //[action.dado]: ESTADO_SHORTCOUT,
                       personaje: {
                         ...state.personaje,
-                        energia: state.personaje.energia - gastoEnergia,
+                        //energia: state.personaje.energia - gastoEnergia,
                       },
                       equipo: {
                         ...state.equipo,
@@ -1552,8 +1563,8 @@ const reducer = (state, action) => {
                   personaje: {
                     ...state.personaje,
                     vida:
-                      totalSanacion > state.personaje.vidaBase
-                        ? state.personaje.vidaBase
+                      totalSanacion > state.personaje.vidaMaxima
+                        ? state.personaje.vidaMaxima
                         : totalSanacion,
                     energia: state.personaje.energia - gastoEnergia,
                     mana:

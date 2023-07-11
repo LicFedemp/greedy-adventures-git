@@ -31,6 +31,7 @@ export const arrayEquipo = [
   [],
   [
     [
+      //ataque
       [
         {
           nombre: "Espada Maltrecha",
@@ -68,6 +69,7 @@ export const arrayEquipo = [
       ],
     ],
     [
+      //defensa
       [
         {
           nombre: "Espada Maltrecha",
@@ -104,6 +106,7 @@ export const arrayEquipo = [
       ],
     ],
     [
+      //agilidad
       [
         {
           nombre: "Daga Oxidada",
@@ -140,6 +143,7 @@ export const arrayEquipo = [
       ],
     ],
     [
+      //maleficio
       [
         {
           nombre: "Varita de Roble",
@@ -176,6 +180,7 @@ export const arrayEquipo = [
       ],
     ],
     [
+      // curacion
       [
         {
           nombre: "Baculo del Sanador",
@@ -208,6 +213,7 @@ export const arrayEquipo = [
   [
     //lvl2
     [
+      // ataque
       [
         {
           nombre: "Espadon Pesado",
@@ -275,6 +281,7 @@ export const arrayEquipo = [
       ],
     ],
     [
+      // defensa
       [
         {
           nombre: "Escudo afilado",

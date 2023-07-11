@@ -98,16 +98,16 @@ export function Desplegable() {
           localDispatch({
             type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
             variable,
-            valor: 5,
+            valor: 1,
           });
 
           intervalRef.current = setInterval(() => {
             localDispatch({
               type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
               variable,
-              valor: 5,
+              valor: 1,
             });
-          }, 150);
+          }, 50);
 
           break;
         case ataqueRef:
@@ -148,16 +148,16 @@ export function Desplegable() {
           localDispatch({
             type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
             variable,
-            valor: -5,
+            valor: -1,
           });
 
           intervalRef.current = setInterval(() => {
             localDispatch({
               type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
               variable,
-              valor: -5,
+              valor: -1,
             });
-          }, 150);
+          }, 50);
 
           break;
         case ataqueRef:

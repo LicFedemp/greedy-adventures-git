@@ -41,6 +41,7 @@ export function ContextProvider({ children }) {
       }
       console.log("El valor coincidente es: " + valorCoincidente);
       dispatch({ type: ACCIONES.ESPECIAL, arrayBase: array, valorCoincidente });
+      dispatch({ type: ACCIONES.NEGATIVO });
     }
   }, [state.rollFlag]);
 

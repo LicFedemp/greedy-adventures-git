@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import "../StyleSheets/Heading.css";
 export function Heading() {
   const { state, dispatch } = useGeneralContext();
-  const [vidaPrevia, setVidaPrevia] = useState(state.personaje.vidaBase);
+  const [vidaPrevia, setVidaPrevia] = useState(state.personaje.vidaMaxima);
   const [cambioVida, setCambioVida] = useState(0);
   const numDadoRef = useRef(null);
   const nivelDadoRef = useRef(null);
@@ -273,6 +273,7 @@ export function Heading() {
   };
 
   const modificarEquipo = (event, tipo) => {
+    if (state.personaje.energia == 0 || state.algunNegativo) return;
     const selectedOption = event.target.options[event.target.selectedIndex];
     const indice = selectedOption.getAttribute("indice");
     console.log("Valor del parámetro 'indice':", indice);
@@ -293,23 +294,18 @@ export function Heading() {
         state.personaje.ira > 0 &&
         stat == "defensa")
     ) {
-      console.log(`entra al condiiconal 1,stat= ${stat}`);
       return "stat-potenciado";
     } else if (
       state.equipo.actual.arma[0]?.[stat] < 0 ||
       state.equipo.actual.armadura[0]?.[stat] < 0 ||
       state.equipo.actual.joya[0]?.[stat] < 0
     ) {
-      console.log(`entra al condiiconal 2`);
-
       return "stat-disminuido";
     } else if (
       state.equipo.actual.arma[0]?.[stat] == 0 ||
       state.equipo.actual.armadura[0]?.[stat] == 0 ||
       state.equipo.actual.joya[0]?.[stat] == 0
     ) {
-      console.log(`entra al condiiconal 3`);
-
       return "";
     }
   };
@@ -369,7 +365,7 @@ export function Heading() {
         >
           <p className={`p-life-bar `}>
             {" "}
-            {state.personaje.vida}/{state.personaje.vidaBase}
+            {state.personaje.vida}/{state.personaje.vidaMaxima}
           </p>
           <p
             className={`p-cambios-hp ${
@@ -378,9 +374,10 @@ export function Heading() {
           >
             {cambioVida > 0 ? `+` : ``}
             {cambioVida}
-            {(cambioVida > 0 && cambioVida >= state.personaje.vidaBase * 0.3) ||
+            {(cambioVida > 0 &&
+              cambioVida >= state.personaje.vidaMaxima * 0.3) ||
             (cambioVida < 0 &&
-              cambioVida * -1 >= state.personaje.vidaBase * 0.3)
+              cambioVida * -1 >= state.personaje.vidaMaxima * 0.3)
               ? `!`
               : ``}
           </p>
