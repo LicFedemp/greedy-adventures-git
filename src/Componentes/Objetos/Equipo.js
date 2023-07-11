@@ -429,7 +429,7 @@ export const arrayEquipo = [
         {
           nombre: "Aura Oscura",
           ataque: 0,
-          defensa: 1,
+          defensa: -5,
           esquivar: 0,
           maleficio: 25,
           curacion: 0,

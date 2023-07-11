@@ -158,6 +158,16 @@ export function Heading() {
         state.personaje.mana * 2
       }px rgba(38, 202, 243,  ${0.685 + state.personaje.mana * 100})`,
     },
+    rogue: {
+      boxShadow: `0px 0px 10px 10px${
+        state.personaje.combo * 2
+      }px rgba(38, 202, 243,  ${0.685 + state.personaje.combo * 100})`,
+    },
+    warrior: {
+      boxShadow: `0px 0px 10px ${state.personaje.ira * 2}px rgba(153, 0, 0,  ${
+        0.685 + state.personaje.ira * 100
+      })`,
+    },
   };
   const activaMana = () => {
     const n = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
@@ -198,8 +208,10 @@ export function Heading() {
             style={{ boxShadow: `${buttonStyles.brujo.boxShadow}` }}
           >
             Haz retroceder a todos los jugadores{" "}
-            {(state.personaje.mana / 2) *
-              Math.floor(state.personaje.maleficio / 30)}{" "}
+            {Math.floor(
+              state.personaje.mana / 2 +
+                (state.personaje.mana * state.personaje.maleficio) / 50
+            )}{" "}
             casilleros.
           </button>
         );
@@ -210,12 +222,36 @@ export function Heading() {
             className={`btn-habilidad habilidad-brujo`}
             style={{ boxShadow: `${buttonStyles.brujo.boxShadow}` }}
           >
-            Haz retroceder al jugador mas cercano{" "}
-            {state.personaje.mana * Math.floor(state.personaje.maleficio / 30)}{" "}
+            Haz retroceder a cualquier jugador{" "}
+            {Math.floor(state.personaje.mana + state.personaje.maleficio / 30)}{" "}
             casilleros.
           </button>
         );
-
+      case 101:
+      case 102:
+        return (
+          <button
+            onClick={activarHabilidad}
+            className={`btn-habilidad habilidad-warr`}
+            style={{ boxShadow: `${buttonStyles.warrior.boxShadow}` }}
+          >
+            Consumes toda tu ira y regeneras{" "}
+            {Math.floor(state.personaje.ira * 10)} % del maxHP en 3 turnos.
+          </button>
+        );
+      case 201:
+      case 202:
+        return (
+          <button
+            onClick={activarHabilidad}
+            className={`btn-habilidad habilidad-rogue`}
+            style={{ boxShadow: `${buttonStyles.rogue.boxShadow}` }}
+          >
+            Consumes tus puntos de combo y recuperas{" "}
+            {Math.floor(state.personaje.combo / 2)} punto
+            {Math.floor(state.personaje.combo / 2) > 1 ? "s" : ""} de energia.
+          </button>
+        );
       default:
         return <p>Sin mana no hay habilidad</p>;
     }
@@ -273,7 +309,15 @@ export function Heading() {
   };
 
   const modificarEquipo = (event, tipo) => {
-    if (state.personaje.energia == 0 || state.algunNegativo) return;
+    let algunNegativo = false;
+    for (let x = 1; x < 6; x++) {
+      const dado = `roll${x}`;
+      if (state[dado].estado == 3) {
+        algunNegativo = true;
+      }
+    }
+
+    if (state.personaje.energia == 0 || algunNegativo) return;
     const selectedOption = event.target.options[event.target.selectedIndex];
     const indice = selectedOption.getAttribute("indice");
     console.log("Valor del parámetro 'indice':", indice);

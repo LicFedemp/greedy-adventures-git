@@ -16,6 +16,8 @@
   color: white;
   max-height: 100px;
   align-items: center;
+  font-size: 14px;
+  justify-content: space-around;
 }
 .btn-habilidad{
   min-height: 80px;
@@ -29,6 +31,12 @@
 }
 .habilidad-brujo{
   background-color: rgb(170, 42, 255);
+}
+.habilidad-warr{
+  background-color: rgb(250, 64, 31);
+}
+.habilidad-rogue{
+  background-color: rgb(76, 253, 32);
 }
 .life-bar {
   position: relative;

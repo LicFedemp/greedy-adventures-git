@@ -68,27 +68,47 @@ export function Rolleo(props) {
     if (state[props.dado].modo) {
       switch (n) {
         case 1:
-          return DADOS.D1.A.DECRIPCION;
+          const avanzarCasillero = 1 + Math.floor(state.personaje.ataque / 50);
+          return `Avanzas ${avanzarCasillero} ${
+            avanzarCasillero > 1 ? `casilleros` : `casillero`
+          }`;
         case 2:
           return DADOS.D2.A.DECRIPCION;
         case 3:
           return DADOS.D3.A.DECRIPCION;
         case 4:
-          return DADOS.D4.A.DECRIPCION;
+          return `Lanzas D${
+            state.automatico
+              ? 4 + Math.floor(state.personaje.ataque / 50)
+              : 4 + Math.floor(state.personaje.ataque / 100) * 2
+          }, avanza el resultado`;
         case 5:
           return `${state[props.dado].estado == 2 ? `+2` : `+1`} Energia`;
         case 6:
           return DADOS.D6.A.DECRIPCION;
         case 7:
-          return DADOS.D7.A.DECRIPCION;
+          const retrocesoPotenciado =
+            1 + Math.floor(state.personaje.maleficio / 50);
+          return `Haz retroceder ${retrocesoPotenciado} ${
+            retrocesoPotenciado > 1 ? `casilleros` : `casillero`
+          } a cualquier jugador.`;
         case 8:
-          return DADOS.D8.A.DECRIPCION;
+          return `${
+            state[props.dado].estado == 2 ? `+2` : `+1`
+          } Energia & +1 Dado`;
         case 9:
           return DADOS.D9.A.DECRIPCION;
         case 10:
           return DADOS.D10.A.DECRIPCION;
         case 11:
-          return DADOS.D11.A.DECRIPCION;
+          const clase = state.numeroClase;
+          return `+1  ${
+            clase == 100
+              ? `punto de ira`
+              : clase == 200
+              ? `punto de combo`
+              : `mana`
+          }`;
         case 12:
           return `Carta: ${cartaSkill()}`;
       }
@@ -120,7 +140,9 @@ export function Rolleo(props) {
             state.personaje.ataque * 2
           )} PD`;
         case 7:
-          return `Infliges ${state.personaje.ataque * 1.5} puntos de dano `;
+          const ataque7 = Math.floor(state.personaje.ataque * 0.5);
+          const maleficio7 = Math.floor(state.personaje.maleficio * 1);
+          return `Infliges ${Math.floor(ataque7 + maleficio7)} puntos de dano `;
         case 8:
           return DADOS.D8.B.DECRIPCION;
         case 9:
@@ -128,7 +150,12 @@ export function Rolleo(props) {
         case 10:
           return DADOS.D10.A.DECRIPCION;
         case 11:
-          return `Te curas ${state.personaje.curacion * 2}`;
+          const clase = state.numeroClase;
+          return `Te curas ${
+            clase == 100 || clase == 200
+              ? Math.floor(state.personaje.curacion * 4)
+              : Math.floor(state.personaje.curacion * 2)
+          }`;
         case 12:
           return `Carta: ${cartaSkill()}`;
       }

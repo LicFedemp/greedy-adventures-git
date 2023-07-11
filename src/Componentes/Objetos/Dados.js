@@ -44,13 +44,20 @@ export const DADOS = {
     B: { EFECTO: "DB8", DECRIPCION: "Drop lvl2" },
   },
   D9: {
-    A: { EFECTO: "DA9", DECRIPCION: "Lider: todos se te acercan 2 casilleros" },
-    B: { EFECTO: "DB9", DECRIPCION: "Hediondo: todos se alejan 2 casilleros " },
+    A: {
+      EFECTO: "DA9",
+      DECRIPCION: "Lider: todos se te acercan 2 casilleros. +1 ataque perma",
+    },
+    B: {
+      EFECTO: "DB9",
+      DECRIPCION:
+        "Hediondo: todos se alejan 2 casilleros. +1 p. Habilidad perma ",
+    },
   },
   D10: {
     A: {
       EFECTO: "DA10",
-      DECRIPCION: "Laberinto: avanzas/retrocedes 2 casilleros segun coinflip",
+      DECRIPCION: "Laberinto: +/- 2 casilleros segun coinflip (50/50)",
     },
     B: { EFECTO: "DB10", DECRIPCION: "Laberinto" },
   },

@@ -86,8 +86,9 @@ export function ContextProvider({ children }) {
     state.personaje.defensaBase,
     state.personaje.criticoBase,
     state.personaje.esquivarBase,
-    state.personaje.curacionInicial,
-    state.personaje.maleficioInicial,
+    state.personaje.curacionBase,
+    state.personaje.maleficioBase,
+    state.personaje.vampirismoBase,
     state.personaje.ira,
     state.personaje.combo,
 

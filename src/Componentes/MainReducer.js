@@ -11,6 +11,10 @@ const estadoRoll = {
   especial: false,
   estado: 1,
 };
+const FUNCIONES = {
+  OVERHEALING: "overhealing",
+  CURACION: "curacion",
+};
 export const ACCIONES = {
   SELECCION_PERSONAJE: "seleccion-personaje",
   PODER_DADO: "poder-dado",
@@ -63,7 +67,7 @@ const estadoInicial = {
   personaje: {
     ...STATS_AUTOMATICO.rogueMalabarista,
   },
-  bonus: { vida: 0 },
+  bonus: { vida: 0, dadosTemporales: 0, dadosPermanentes: 0 },
   porcentajeVida: 100,
   regeneracion: 0,
   automatico: false,
@@ -93,19 +97,61 @@ const estadoInicial = {
   accion: false,
   algunNegativo: false,
 };
-
+const randomNumber = (numeroMaximo) => {
+  const random = Math.floor(Math.random() * numeroMaximo) + 1;
+  return random;
+};
 const reducer = (state, action) => {
-  const randomEsquivar =
-    Math.floor(Math.random() * 100) + 1 <= state.personaje.esquivar
-      ? true
-      : false;
-  const randomCritico =
-    Math.floor(Math.random() * 100) + 1 <= state.personaje.critico
-      ? true
-      : false;
+  const P = {
+    vida: state.personaje.vida,
+    vidaMaxima: state.personaje.vidaMaxima,
+    regeneracion: state.personaje.regeneracion,
+    energia: state.personaje.energia,
+    reservaEnergia: 0,
+    ataque: state.personaje.ataque,
+    defensa: state.personaje.defensa,
+    defensaMagica: state.personaje.defensaMagica,
+    critico: state.personaje.critico,
+    esquivar: state.personaje.esquivar,
+    curacion: state.personaje.curacion,
+    maleficio: state.personaje.maleficio,
+    vampirismo: state.personaje.vampirismo,
+    vidaBase: state.personaje.vidaBase,
+    regeneracionBase: state.personaje.regeneracionBase,
+    energiaMax: state.personaje.energiaMax,
+    ataqueBase: state.personaje.ataqueBase,
+    defensaBase: state.personaje.defensaBase,
+    mana: state.personaje.mana,
+    manaMax: state.personaje.manaMax,
+    comboMax: state.personaje.comboMax,
+    combo: state.personaje.combo,
+    ira: state.personaje.ira,
+    iraMax: state.personaje.iraMax,
+    criticoBase: state.personaje.criticoBase,
+    esquivarBase: state.personaje.esquivarBase,
+    curacionBase: state.personaje.curacionBase,
+    maleficioBase: state.personaje.maleficioBase,
+    defensaMagicaBase: state.personaje.defensaMagicaBase,
+    vampirismoBase: state.personaje.vampirismoBase,
+  };
+
+  const randomEsquivar = randomNumber(100) <= P.esquivar ? true : false;
+  const randomCritico = randomNumber(100) <= P.critico ? true : false;
   console.log(
-    `Esquivar:(%${state.personaje.esquivar}) ${randomEsquivar}// Crit:(%${state.personaje.critico}) ${randomCritico}`
+    `Esquivar:(%${P.esquivar}) ${randomEsquivar}// Crit:(%${P.critico}) ${randomCritico}`
   );
+  const calcularHealing = (cambio, funcion) => {
+    const curacion = P.vida + cambio;
+    const overhealing = curacion > P.vidaMaxima ? true : false;
+    switch (funcion) {
+      case FUNCIONES.CURACION:
+        return curacion;
+      case FUNCIONES.OVERHEALING:
+        return overhealing;
+      default:
+        return;
+    }
+  };
 
   let algunNegativo = false;
   for (let x = 1; x < 6; x++) {
@@ -116,7 +162,7 @@ const reducer = (state, action) => {
   }
   console.log(algunNegativo);
   let danoInfligido = 0;
-  let vampirismo = danoInfligido * (state.personaje.vampirismo / 10);
+  let vampirismo = danoInfligido * (P.vampirismo / 10);
   switch (action.type) {
     case ACCIONES.SELECCION_PERSONAJE:
       if (action.caso === "clase") {
@@ -186,8 +232,7 @@ const reducer = (state, action) => {
       let arrayCritVeneno = [false, false];
       for (let i = 0; i < arrayCritVeneno.length; i++) {
         const critico =
-          Math.floor(state.efectosPorSec.veneno * 0.25) >=
-          Math.floor(Math.random() * 100) + 1
+          Math.floor(state.efectosPorSec.veneno * 0.25) >= randomNumber(100)
             ? true
             : false;
         arrayCritVeneno[i] = critico;
@@ -200,12 +245,9 @@ const reducer = (state, action) => {
         : venenoTickTurno;
 
       if (state.estadoTurno) {
-        const turnoHealing =
-          state.personaje.vida + state.personaje.vidaMaxima * 0.15;
+        const turnoHealing = P.vida + P.vidaMaxima * 0.15;
         const turnoFinalHealing =
-          turnoHealing > state.personaje.vidaMaxima
-            ? state.personaje.vidaMaxima
-            : turnoHealing;
+          turnoHealing > P.vidaMaxima ? P.vidaMaxima : turnoHealing;
         const fraccionTick = 4;
         const hemoTickTurno =
           state.efectosPorSec.hemo > 0 && state.efectosPorSec.tickHemo > 0
@@ -216,15 +258,16 @@ const reducer = (state, action) => {
             : 0;
 
         let cambioVidaFinalTurno =
-          state.personaje.energia == state.personaje.energiaMax && !state.accion
+          P.energia == P.energiaMax && !state.accion
             ? turnoFinalHealing
-            : state.personaje.vida;
+            : P.vida;
         cambioVidaFinalTurno =
           cambioVidaFinalTurno - hemoTickTurno - venenoFinal;
 
         return {
           ...state,
           estadoTurno: false,
+          bonus: { ...state.bonus, dadosTemporales: 0 },
           personaje: {
             ...state.personaje,
             combo: 0,
@@ -259,23 +302,19 @@ const reducer = (state, action) => {
             ? parseInt(state.efectosPorSec.reju / state.efectosPorSec.tickReju)
             : 0;
         let cambioVidaInicioTurno =
-          isFinite(state.personaje.regeneracion) &&
-          state.personaje.regeneracion > 0
-            ? state.personaje.vida -
-              venenoInicial +
-              rejuInicioTurno +
-              state.personaje.regeneracion
-            : state.personaje.vida - venenoInicial + rejuInicioTurno;
+          isFinite(P.regeneracion) && P.regeneracion > 0
+            ? P.vida - venenoInicial + rejuInicioTurno + P.regeneracion
+            : P.vida - venenoInicial + rejuInicioTurno;
         return {
           ...state,
           estadoTurno: true,
           accion: false,
           personaje: {
             ...state.personaje,
-            energia: state.personaje.energiaMax,
+            energia: P.energiaMax,
             vida:
-              cambioVidaInicioTurno > state.personaje.vidaMaxima
-                ? state.personaje.vidaMaxima
+              cambioVidaInicioTurno > P.vidaMaxima
+                ? P.vidaMaxima
                 : cambioVidaInicioTurno,
           },
 
@@ -346,8 +385,7 @@ const reducer = (state, action) => {
       let numModificadorFinal = 1;
 
       for (let i = 0; i < state.numDado; i++) {
-        const aleatorioPrimero =
-          Math.floor(Math.random() * arrayPrimera[state.nivelDado]) + 1;
+        const aleatorioPrimero = randomNumber(arrayPrimera[state.nivelDado]);
         if (aleatorioPrimero > arrayPrimera[2]) {
           numModificadorFinal = 13;
         } else if (aleatorioPrimero > 1) {
@@ -368,11 +406,22 @@ const reducer = (state, action) => {
         if (lockActual) {
           arrayNumero[i] = state[`roll${i + 1}`].numero;
         } else {
-          if (aleatorio == 3 && state.nivelDado == 1) {
-            const puerta = Math.floor(Math.random() * 2) + 1;
-            while (puerta == 2 && aleatorio == 3) {
-              console.log(`se evito el 3`);
-              aleatorio = Math.floor(Math.random() * 6) + 1;
+          if (
+            (aleatorio == 3 && state.nivelDado == 1) ||
+            (aleatorio == 10 && state.nivelDado == 2)
+          ) {
+            const puerta = randomNumber(2);
+            while (
+              (puerta == 2 && aleatorio == 3) ||
+              (puerta == 2 && aleatorio == 10)
+            ) {
+              if (state.nivelDado == 1) {
+                console.log(`se evito el 3`);
+                aleatorio = randomNumber(6) + 1;
+              } else if (state.nivelDado == 2) {
+                console.log(`se evito el 10`);
+                aleatorio = randomNumber(12) + 1;
+              }
             }
           }
           arrayNumero[i] = aleatorio;
@@ -391,7 +440,7 @@ const reducer = (state, action) => {
         roll5: { ...state.roll5, numero: arrayNumero[4] },
         personaje: {
           ...state.personaje,
-          energia: state.personaje.energia - 1,
+          energia: P.energia - 1,
         },
       };
     case ACCIONES.ESPECIAL:
@@ -467,9 +516,11 @@ const reducer = (state, action) => {
         personaje: {
           ...state.personaje,
           vida:
-            casillerosFinales < 0
-              ? state.personaje.vida - casillerosFinales * -10
-              : state.personaje.vida,
+            casillerosFinales < 0 ? P.vida - casillerosFinales * -10 : P.vida,
+          ira:
+            state.numeroClase == 100 && action.valor < 0 && P.ira < P.iraMax
+              ? P.ira + 1
+              : P.ira,
         },
       };
     case ACCIONES.MOD_DESPLEGABLE:
@@ -512,7 +563,7 @@ const reducer = (state, action) => {
             ...state,
             personaje: {
               ...state.personaje,
-              vida: state.personaje.vida - hemoTickRoll,
+              vida: P.vida - hemoTickRoll,
             },
           };
         case 2:
@@ -549,28 +600,19 @@ const reducer = (state, action) => {
       }
       return { ...state };
     case ACCIONES.PORCENTAJE_VIDA:
-      console.log(
-        `Nuevo porcentaje = ${
-          (state.personaje.vida / state.personaje.vidaMaxima) * 100
-        }% `
-      );
+      console.log(`Nuevo porcentaje = ${(P.vida / P.vidaMaxima) * 100}% `);
       return {
         ...state,
-        porcentajeVida: Math.floor(
-          (state.personaje.vida / state.personaje.vidaMaxima) * 100
-        ),
+        porcentajeVida: Math.floor((P.vida / P.vidaMaxima) * 100),
         personaje: {
           ...state.personaje,
-          vida:
-            state.personaje.vida > state.personaje.vidaMaxima
-              ? state.personaje.vidaMaxima
-              : state.personaje.vida,
+          vida: P.vida > P.vidaMaxima ? P.vidaMaxima : P.vida,
         },
       };
     case ACCIONES.STATS.MOD_VIDA:
       const danoFiltrado =
-        action.valor > state.personaje.defensa
-          ? action.valor - state.personaje.defensa
+        action.valor > P.defensa
+          ? action.valor - P.defensa
           : action.valor < 1
           ? action.valor
           : 0;
@@ -579,15 +621,13 @@ const reducer = (state, action) => {
         personaje: {
           ...state.personaje,
           vida:
-            state.personaje.vida - danoFiltrado > state.personaje.vidaMaxima
-              ? state.personaje.vidaMaxima
-              : state.personaje.vida - danoFiltrado,
+            P.vida - danoFiltrado > P.vidaMaxima
+              ? P.vidaMaxima
+              : P.vida - danoFiltrado,
           ira:
-            state.numeroClase == 100 &&
-            state.personaje.ira < state.personaje.iraMax &&
-            danoFiltrado > 0
-              ? state.personaje.ira + 1
-              : state.personaje.ira,
+            state.numeroClase == 100 && P.ira < P.iraMax && danoFiltrado > 0
+              ? P.ira + 1
+              : P.ira,
         },
       };
     case ACCIONES.STATS.EXCESO_ENERGIA:
@@ -597,7 +637,7 @@ const reducer = (state, action) => {
             ...state,
             personaje: {
               ...state.personaje,
-              energia: state.personaje.energiaMax,
+              energia: P.energiaMax,
               reservaEnergia: action.valor,
             },
           };
@@ -612,28 +652,28 @@ const reducer = (state, action) => {
             ...state,
             casillero:
               state.casillero +
-              Math.floor(
-                state.personaje.mana +
-                  state.personaje.mana * (state.personaje.maleficio / 200)
-              ),
+              Math.floor(P.mana + P.mana * (P.maleficio / 200)),
             personaje: { ...state.personaje, mana: 0 },
           };
         case 402:
-          const healing =
-            state.personaje.vida +
-            Math.floor(state.personaje.mana * (state.personaje.curacion / 3));
-          const overhealingBool =
-            healing > state.personaje.vidaMaxima ? true : false;
+          const healing = calcularHealing(
+            Math.floor(P.mana * (P.curacion / 3)),
+            FUNCIONES.CURACION
+          );
+          const overhealingBool = calcularHealing(
+            healing,
+            FUNCIONES.OVERHEALING
+          );
           const bonusVidaMaxima = overhealingBool
-            ? Math.floor((healing - state.personaje.vidaMaxima) / 10)
+            ? Math.floor((healing - P.vidaMaxima) / 10)
             : 0;
           return {
             ...state,
             personaje: {
               ...state.personaje,
               mana: 0,
-              vida: overhealingBool ? state.personaje.vidaMaxima : healing,
-              vidaMaxima: state.personaje.vidaMaxima + bonusVidaMaxima,
+              vida: overhealingBool ? P.vidaMaxima : healing,
+              vidaMaxima: P.vidaMaxima + bonusVidaMaxima,
             },
             bonus: { ...state.bonus, vida: state.bonus.vida + bonusVidaMaxima },
           };
@@ -642,7 +682,7 @@ const reducer = (state, action) => {
           return { ...state };
       }
     case ACCIONES.IRA_DADOS:
-      const totalDados = state.personaje.ira + state.dadoExtra + 2;
+      const totalDados = P.ira + state.dadoExtra + 2;
 
       if (state.numeroSpec == 2) {
         console.log(`Entra a ira y se ha seleciconado warrior protec`);
@@ -680,13 +720,9 @@ const reducer = (state, action) => {
     case ACCIONES.CALCULAR_STATS:
       //DEFENSA
       const comboCritico =
-        state.numeroClase == 200 && state.numeroSpec == 1
-          ? state.personaje.combo * 5
-          : 0;
+        state.numeroClase == 200 && state.numeroSpec == 1 ? P.combo * 5 : 0;
       const comboEsquivar =
-        state.numeroClase == 200 && state.numeroSpec == 2
-          ? state.personaje.combo * 5
-          : 0;
+        state.numeroClase == 200 && state.numeroSpec == 2 ? P.combo * 5 : 0;
 
       const arrayStats = [
         "defensa",
@@ -715,36 +751,32 @@ const reducer = (state, action) => {
       }
       const iraModDefensa =
         state.numeroSpec == 2 && state.numeroClase == 100
-          ? arrayStatsValores[0] * (state.personaje.ira * 0.1)
+          ? Math.floor((arrayStatsValores[0] + P.defensaBase) * (P.ira * 0.1))
           : 0;
       const iraModAtaque =
         state.numeroSpec == 1 && state.numeroClase == 100
-          ? arrayStatsValores[1] * (state.personaje.ira * 0.1)
+          ? Math.floor((arrayStatsValores[1] + P.ataqueBase) * (P.ira * 0.1))
           : 0;
 
       const totalDefensa = parseInt(
-        state.personaje.defensaBase + iraModDefensa + arrayStatsValores[0]
+        P.defensaBase + iraModDefensa + arrayStatsValores[0]
       );
       const totalAtaque = parseInt(
-        state.personaje.ataqueBase + iraModAtaque + arrayStatsValores[1]
+        P.ataqueBase + iraModAtaque + arrayStatsValores[1]
       );
-      const criticoTotal =
-        state.personaje.criticoBase + arrayStatsValores[2] + comboCritico;
+      const criticoTotal = P.criticoBase + arrayStatsValores[2] + comboCritico;
       const esquivarTotal =
-        state.personaje.esquivarBase + arrayStatsValores[3] + comboEsquivar;
-      const maleficioTotal =
-        state.personaje.maleficioBase + arrayStatsValores[4];
-      const curacionTotal = state.personaje.curacionBase + arrayStatsValores[5];
-      const vampirismoTotal = state.personaje.vampirismo + arrayStatsValores[6];
-      const defMagicaFromDefensa = Math.floor(totalDefensa / 50);
+        P.esquivarBase + arrayStatsValores[3] + comboEsquivar;
+      const maleficioTotal = P.maleficioBase + arrayStatsValores[4];
+      const curacionTotal = P.curacionBase + arrayStatsValores[5];
+      const vampirismoTotal = P.vampirismo + arrayStatsValores[6];
+      const defMagicaFromDefensa =
+        Math.floor(totalDefensa / 50) > 0 ? Math.floor(totalDefensa / 50) : 0;
       const defensaMagicaTotal =
-        state.personaje.defensaMagica +
-        arrayStatsValores[7] +
-        defMagicaFromDefensa;
-      const regeneracionTotal =
-        state.personaje.regeneracionBase + arrayStatsValores[8];
+        P.defensaMagica + arrayStatsValores[7] + defMagicaFromDefensa;
+      const regeneracionTotal = P.regeneracionBase + arrayStatsValores[8];
       const vidaMaximaTotal =
-        state.personaje.vidaBase + arrayStatsValores[9] + state.bonus.vida;
+        P.vidaBase + arrayStatsValores[9] + state.bonus.vida;
       console.log(`Bonus vida maxima = ${state.bonus.vida} `);
 
       return {
@@ -786,7 +818,7 @@ const reducer = (state, action) => {
             },
             personaje: {
               ...state.personaje,
-              energia: state.personaje.energia - 1,
+              energia: P.energia - 1,
             },
           };
         case "armadura":
@@ -812,7 +844,7 @@ const reducer = (state, action) => {
             },
             personaje: {
               ...state.personaje,
-              energia: state.personaje.energia - 1,
+              energia: P.energia - 1,
             },
           };
         case "joya":
@@ -832,7 +864,7 @@ const reducer = (state, action) => {
             },
             personaje: {
               ...state.personaje,
-              energia: state.personaje.energia - 1,
+              energia: P.energia - 1,
             },
           };
         default:
@@ -858,20 +890,18 @@ const reducer = (state, action) => {
               break;
           }
           console.log(`energia = ${gastoEnergia}`);
-          if (action.modo && gastoEnergia <= state.personaje.energia) {
+          if (action.modo && gastoEnergia <= P.energia) {
             switch (action.n) {
               case 1:
+                const avanzarCasillero = 1 + Math.floor(P.ataque / 50);
                 return {
                   ...state,
-                  casillero: state.casillero + 1,
+                  casillero: state.casillero + avanzarCasillero,
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: {
                     ...state.personaje,
-                    energia: state.personaje.energia - gastoEnergia,
-                    combo:
-                      state.personaje.combo < state.personaje.comboMax
-                        ? state.personaje.combo + 1
-                        : state.personaje.combo,
+                    energia: P.energia - gastoEnergia,
+                    combo: P.combo < P.comboMax ? P.combo + 1 : P.combo,
                   },
                 };
               case 2:
@@ -884,19 +914,14 @@ const reducer = (state, action) => {
                       personaje: {
                         ...state.personaje,
                         energia:
-                          state.personaje.energia < state.personaje.energiaMax
-                            ? state.personaje.energia + 1
-                            : state.personaje.energia,
+                          P.energia < P.energiaMax ? P.energia + 1 : P.energia,
                       },
                     };
                   } else if (state.numeroClase != 200) {
                     return { ...state, [action.dado]: ESTADO_SHORTCOUT };
                   }
                 } else {
-                  const vidaFinal =
-                    state.casillero > 0
-                      ? state.personaje.vida
-                      : state.personaje.vida - 10;
+                  const vidaFinal = state.casillero > 0 ? P.vida : P.vida - 10;
                   const casilleroFinal =
                     state.casillero > 0 ? state.casillero - 1 : 0;
                   return {
@@ -907,14 +932,13 @@ const reducer = (state, action) => {
                       ...state.personaje,
                       vida: vidaFinal,
                       ira:
-                        state.numeroClase == 100 && state.personaje.ira < 5
-                          ? state.personaje.ira + 1
-                          : state.personaje.ira,
+                        state.numeroClase == 100 && P.ira < 5
+                          ? P.ira + 1
+                          : P.ira,
                       mana:
-                        state.numeroClase == 300 &&
-                        state.personaje.mana < state.personaje.manaMax
-                          ? state.personaje.mana + 1
-                          : state.personaje.mana,
+                        state.numeroClase == 300 && P.mana < P.manaMax
+                          ? P.mana + 1
+                          : P.mana,
                     },
                   };
                 }
@@ -924,7 +948,8 @@ const reducer = (state, action) => {
                 return { ...state };
               case 4:
                 if (state.automatico) {
-                  const avanceRandom = Math.floor(Math.random() * 4) + 1;
+                  const avancePotenciado = 4 + Math.floor(P.ataque / 50);
+                  const avanceRandom = randomNumber(avancePotenciado);
                   window.alert(`Avanzas ${avanceRandom} casilleros.`);
                   return {
                     ...state,
@@ -934,12 +959,11 @@ const reducer = (state, action) => {
 
                     personaje: {
                       ...state.personaje,
-                      energia: state.personaje.energia - gastoEnergia,
+                      energia: P.energia - gastoEnergia,
                       combo:
-                        state.numeroClase == 200 &&
-                        state.personaje.combo < state.personaje.comboMax
-                          ? state.personaje.combo + 1
-                          : state.personaje.combo,
+                        state.numeroClase == 200 && P.combo < P.comboMax
+                          ? P.combo + 1
+                          : P.combo,
                     },
                   };
                 } else if (!state.autoatico) {
@@ -950,12 +974,11 @@ const reducer = (state, action) => {
 
                     personaje: {
                       ...state.personaje,
-                      energia: state.personaje.energia - gastoEnergia,
+                      energia: P.energia - gastoEnergia,
                       combo:
-                        state.numeroClase == 200 &&
-                        state.personaje.combo < state.personaje.comboMax
-                          ? state.personaje.combo + 1
-                          : state.personaje.combo,
+                        state.numeroClase == 200 && P.combo < P.comboMax
+                          ? P.combo + 1
+                          : P.combo,
                     },
                   };
                 }
@@ -967,9 +990,7 @@ const reducer = (state, action) => {
                   personaje: {
                     ...state.personaje,
                     energia:
-                      state.personaje.energia +
-                      state[action.dado].estado -
-                      gastoEnergia,
+                      P.energia + state[action.dado].estado - gastoEnergia,
                   },
                 };
               case 6:
@@ -980,7 +1001,7 @@ const reducer = (state, action) => {
                         `Deseas continuar y hacer uso de espada de doble filo? Avance acumulado = ${state.casillerosMovidos}`
                       )
                     ) {
-                      const randomFate = Math.floor(Math.random() * 6) + 1;
+                      const randomFate = randomNumber(6) + 1;
                       if (randomFate < 6) {
                         return {
                           ...state,
@@ -997,7 +1018,7 @@ const reducer = (state, action) => {
                               casillerosMovidos: 0,
                               personaje: {
                                 ...state.personaje,
-                                energia: state.personaje.energia + 1,
+                                energia: P.energia + 1,
                               },
                             };
                           } else {
@@ -1039,13 +1060,12 @@ const reducer = (state, action) => {
                           personaje: {
                             ...state.personaje,
                             vida: mayorCero
-                              ? state.personaje.vida
-                              : state.personaje.vida +
+                              ? P.vida
+                              : P.vida +
                                 (state.casillero +
                                   state.casillerosMovidos -
                                   6) *
                                   10,
-                            //energia: state.personaje.energia - gastoEnergia,
                           },
                         };
                       }
@@ -1063,12 +1083,11 @@ const reducer = (state, action) => {
                       [action.dado]: { ...state[action.dado], estado: 4 },
                       personaje: {
                         ...state.personaje,
-                        energia: state.personaje.energia - gastoEnergia,
+                        energia: P.energia - gastoEnergia,
                         combo:
-                          state.numeroClase == 200 &&
-                          state.personaje.combo < state.personaje.comboMax
-                            ? state.personaje.combo + 1
-                            : state.personaje.combo,
+                          state.numeroClase == 200 && P.combo < P.comboMax
+                            ? P.combo + 1
+                            : P.combo,
                       },
                     };
                   }
@@ -1079,19 +1098,94 @@ const reducer = (state, action) => {
                     [action.dado]: ESTADO_SHORTCOUT,
                     personaje: {
                       ...state.personaje,
-                      energia: state.personaje.energia - gastoEnergia,
-                      combo:
-                        state.personaje.combo < state.personaje.comboMax
-                          ? state.personaje.combo + 1
-                          : state.personaje.combo,
+                      energia: P.energia - gastoEnergia,
+                      combo: P.combo < P.comboMax ? P.combo + 1 : P.combo,
                     },
                   };
                 }
-                return { ...state };
+              case 7:
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                  },
+                };
+              case 8:
+                const cantidadTotalDados =
+                  state.numDado +
+                  state.bonus.dadosTemporales +
+                  state.bonus.dadosPermanentes;
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  bonus: {
+                    ...state.bonus,
+                    dadosTemporales:
+                      cantidadTotalDados < 5
+                        ? state.bonus.dadosTemporales + 1
+                        : state.bonus.dadosTemporales,
+                  },
+
+                  personaje: {
+                    ...state.personaje,
+                    energia:
+                      P.energia + state[action.dado].estado - gastoEnergia,
+                  },
+                };
+              case 9:
+                // lider, +1poder ataque base
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    ataqueBase: P.ataqueBase + 1,
+                    energia: P.energia - gastoEnergia,
+                  },
+                };
+
               case 10:
-                return { ...state, [action.dado]: ESTADO_SHORTCOUT };
+                const randomMovimiento = randomNumber(100) >= 50 ? 2 : -2;
+                const casilleroResultante =
+                  state.casillero + randomMovimiento < 0
+                    ? 0
+                    : state.casillero + randomMovimiento;
+                const vidaResultante =
+                  state.casillero + randomMovimiento < 0
+                    ? P.vida +
+                      Math.floor(10 * (state.casillero + randomMovimiento))
+                    : P.vida;
+
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  casillero: casilleroResultante,
+                  personaje: { ...state.personaje, vida: vidaResultante },
+                };
+              case 11:
+                const incrementoIra = P.ira < P.iraMax ? P.ira + 1 : P.ira;
+                const incrementoCombo =
+                  P.combo < P.comboMax ? P.combo + 1 : P.combo;
+                const incrementoMana = P.mana < P.manaMax ? P.mana + 1 : P.mana;
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    ira: incrementoIra,
+                    combo: incrementoCombo,
+                    mana: incrementoMana,
+                    energia: P.energia - gastoEnergia,
+                  },
+                };
+              case 12:
+                return { ...state };
+              default:
+                return { ...state };
             }
-          } else if (!action.modo && gastoEnergia <= state.personaje.energia) {
+          } else if (!action.modo && gastoEnergia <= P.energia) {
             let lvl = 1;
             let spec = 0;
             let tipo = 0;
@@ -1100,32 +1194,32 @@ const reducer = (state, action) => {
 
             switch (action.n) {
               case 1:
-                danoInfligido = state.personaje.ataque;
+                danoInfligido = P.ataque;
                 if (randomCritico) {
                   danoInfligido = Math.floor(danoInfligido * 2);
                   window.alert(
                     `Haz hecho un ataque critico, infliges ${danoInfligido}`
                   );
                 }
-                vampirismo = danoInfligido * (state.personaje.vampirismo / 100);
+                const vampirismo1 = Math.floor(
+                  danoInfligido * (P.vampirismo / 100)
+                );
 
-                console.log(`vampirismo = `, vampirismo);
+                console.log(`vampirismo = `, vampirismo1);
                 return {
                   ...state,
-                  casillero: state.casillero + 1,
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: {
                     ...state.personaje,
                     energia:
                       state.numeroClase == 200 && randomCritico
-                        ? state.personaje.energia - gastoEnergia + 1
-                        : state.personaje.energia - gastoEnergia,
+                        ? P.energia - gastoEnergia + 1
+                        : P.energia - gastoEnergia,
                     combo:
-                      state.numeroClase == 200 &&
-                      state.personaje.combo < state.personaje.comboMax
-                        ? state.personaje.combo + 1
-                        : state.personaje.combo,
-                    vida: state.personaje.vida + vampirismo,
+                      state.numeroClase == 200 && P.combo < P.comboMax
+                        ? P.combo + 1
+                        : P.combo,
+                    vida: P.vida + vampirismo1,
                   },
                 };
 
@@ -1139,9 +1233,7 @@ const reducer = (state, action) => {
                       personaje: {
                         ...state.personaje,
                         energia:
-                          state.personaje.energia < state.personaje.energiaMax
-                            ? state.personaje.energia + 1
-                            : state.personaje.energia,
+                          P.energia < P.energiaMax ? P.energia + 1 : P.energia,
                       },
                     };
                   } else if (state.numeroClase != 200) {
@@ -1151,10 +1243,9 @@ const reducer = (state, action) => {
                       personaje: {
                         ...state.personaje,
                         mana:
-                          state.numeroClase == 300 &&
-                          state.personaje.mana < state.personaje.manaMax
-                            ? state.personaje.mana + 1
-                            : state.personaje.mana,
+                          state.numeroClase == 300 && P.mana < P.manaMax
+                            ? P.mana + 1
+                            : P.mana,
                       },
                     };
                   }
@@ -1165,16 +1256,11 @@ const reducer = (state, action) => {
 
                     personaje: {
                       ...state.personaje,
-                      vida:
-                        state.personaje.defensa > 10
-                          ? state.personaje.vida
-                          : state.personaje.vida +
-                            (state.personaje.defensa - 10),
+                      vida: P.defensa > 10 ? P.vida : P.vida + (P.defensa - 10),
                       mana:
-                        state.numeroClase == 300 &&
-                        state.personaje.mana < state.personaje.manaMax
-                          ? state.personaje.mana + 1
-                          : state.personaje.mana,
+                        state.numeroClase == 300 && P.mana < P.manaMax
+                          ? P.mana + 1
+                          : P.mana,
                     },
                   };
                 }
@@ -1188,7 +1274,7 @@ const reducer = (state, action) => {
                       [action.dado]: ESTADO_SHORTCOUT,
                       personaje: {
                         ...state.personaje,
-                        energia: state.personaje.energia + 1,
+                        energia: P.energia + 1,
                       },
                     };
                   } else {
@@ -1198,10 +1284,9 @@ const reducer = (state, action) => {
                       personaje: {
                         ...state.personaje,
                         mana:
-                          state.numeroClase == 300 &&
-                          state.personaje.mana < state.personaje.manaMax
-                            ? state.personaje.mana + 1
-                            : state.personaje.mana,
+                          state.numeroClase == 300 && P.mana < P.manaMax
+                            ? P.mana + 1
+                            : P.mana,
                       },
                     };
                   }
@@ -1211,16 +1296,15 @@ const reducer = (state, action) => {
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: {
                     ...state.personaje,
-                    vida: state.personaje.vida - 30,
-                    vida:
-                      state.personaje.defensa < 50
-                        ? state.personaje.vida - 50 + state.personaje.defensa
-                        : state.personaje.vida,
+                    vida: P.defensa < 50 ? P.vida - 50 + P.defensa : P.vida,
                     mana:
-                      state.numeroClase == 300 &&
-                      state.personaje.mana < state.personaje.manaMax
-                        ? state.personaje.mana + 1
-                        : state.personaje.mana,
+                      state.numeroClase == 300 && P.mana < P.manaMax
+                        ? P.mana + 1
+                        : P.mana,
+                    ira:
+                      state.numeroClase == 100 && P.ira < P.iraMax
+                        ? P.ira + 1
+                        : P.ira,
                   },
                 };
               case 4:
@@ -1238,8 +1322,7 @@ const reducer = (state, action) => {
                       lvl = accion == 4 ? 1 : accion == 8 ? 2 : 3;
                       break;
                     case 1:
-                      numeroRandom =
-                        Math.floor(Math.random() * numeroMaximo) + 1;
+                      numeroRandom = randomNumber(numeroMaximo);
                       console.log(
                         `Definicion de spec, numeroRandom = ${numeroRandom}/${numeroMaximo}`
                       );
@@ -1305,8 +1388,7 @@ const reducer = (state, action) => {
                       break;
                     case 2:
                       //seleccion tipo: arma, armadura, joya
-                      numeroRandom =
-                        Math.floor(Math.random() * numeroMaximo) + 1;
+                      numeroRandom = randomNumber(numeroMaximo);
                       arrayProbabilidad = [0.6, 0.2, 0];
                       bucleSelectorSpec: for (let x = 0; x < 3; x++) {
                         if (
@@ -1335,8 +1417,7 @@ const reducer = (state, action) => {
                       //seleccion objeto
                       const longitudBusqueda =
                         arrayEquipo[lvl][spec][tipo].length;
-                      numeroRandom =
-                        Math.floor(Math.random() * longitudBusqueda) + 1;
+                      numeroRandom = randomNumber(longitudBusqueda);
                       obj = numeroRandom - 1;
 
                       break;
@@ -1445,10 +1526,10 @@ const reducer = (state, action) => {
                   case 0:
                     return {
                       ...state,
-                      //[action.dado]: ESTADO_SHORTCOUT,
+                      [action.dado]: ESTADO_SHORTCOUT,
                       personaje: {
                         ...state.personaje,
-                        //energia: state.personaje.energia - gastoEnergia,
+                        energia: P.energia - gastoEnergia,
                       },
                       equipo: {
                         ...state.equipo,
@@ -1480,10 +1561,10 @@ const reducer = (state, action) => {
                   case 1:
                     return {
                       ...state,
-                      //[action.dado]: ESTADO_SHORTCOUT,
+                      [action.dado]: ESTADO_SHORTCOUT,
                       personaje: {
                         ...state.personaje,
-                        //energia: state.personaje.energia - gastoEnergia,
+                        energia: P.energia - gastoEnergia,
                       },
                       equipo: {
                         ...state.equipo,
@@ -1515,10 +1596,10 @@ const reducer = (state, action) => {
                   case 2:
                     return {
                       ...state,
-                      //[action.dado]: ESTADO_SHORTCOUT,
+                      [action.dado]: ESTADO_SHORTCOUT,
                       personaje: {
                         ...state.personaje,
-                        //energia: state.personaje.energia - gastoEnergia,
+                        energia: P.energia - gastoEnergia,
                       },
                       equipo: {
                         ...state.equipo,
@@ -1554,8 +1635,7 @@ const reducer = (state, action) => {
               //Switch para ubicar el objeto en la bolsa segun tipo de item
 
               case 5:
-                const totalSanacion =
-                  state.personaje.vida + state.personaje.curacion;
+                const totalSanacion = P.vida + P.curacion;
 
                 return {
                   ...state,
@@ -1563,15 +1643,14 @@ const reducer = (state, action) => {
                   personaje: {
                     ...state.personaje,
                     vida:
-                      totalSanacion > state.personaje.vidaMaxima
-                        ? state.personaje.vidaMaxima
+                      totalSanacion > P.vidaMaxima
+                        ? P.vidaMaxima
                         : totalSanacion,
-                    energia: state.personaje.energia - gastoEnergia,
+                    energia: P.energia - gastoEnergia,
                     mana:
-                      state.numeroClase == 400 &&
-                      state.personaje.mana < state.personaje.manaMax
-                        ? state.personaje.mana + 1
-                        : state.personaje.mana,
+                      state.numeroClase == 400 && P.mana < P.manaMax
+                        ? P.mana + 1
+                        : P.mana,
                   },
                 };
               case 6:
@@ -1586,8 +1665,8 @@ const reducer = (state, action) => {
                         `Deseas continuar y hacer uso de espada de doble filo? Ataque acumulado = ${state.ataqueAcumulado}.`
                       )
                     ) {
-                      let carga = state.personaje.ataque / 2;
-                      const randomFate = Math.floor(Math.random() * 6) + 1;
+                      let carga = P.ataque / 2;
+                      const randomFate = randomNumber(6);
                       if (randomFate < 6) {
                         //ataque normal
                         return {
@@ -1607,7 +1686,7 @@ const reducer = (state, action) => {
 
                               personaje: {
                                 ...state.personaje,
-                                energia: state.personaje.energia + 1,
+                                energia: P.energia + 1,
                               },
                             };
                           } else {
@@ -1621,8 +1700,7 @@ const reducer = (state, action) => {
                           window.alert(
                             `Ouch! Te ha salido el tiro por la culata. Te infliges ${ataqueRedondeado} puntos de daño.`
                           );
-                          const tiroCulata =
-                            ataqueRedondeado - state.personaje.defensa;
+                          const tiroCulata = ataqueRedondeado - P.defensa;
                           const tiroCulataDefensa =
                             tiroCulata < 0 ? 0 : tiroCulata;
 
@@ -1633,8 +1711,8 @@ const reducer = (state, action) => {
 
                             personaje: {
                               ...state.personaje,
-                              vida: state.personaje.vida - tiroCulataDefensa,
-                              //energia: state.personaje.energia - gastoEnergia,
+                              vida: P.vida - tiroCulataDefensa,
+                              //energia: P.energia - gastoEnergia,
                             },
                           };
                         }
@@ -1644,10 +1722,8 @@ const reducer = (state, action) => {
                         `Atacas infligiendo ${ataqueRedondeado} puntos de dano.`
                       );
                       const vidaFinal =
-                        state.personaje.vida +
-                        Math.floor(
-                          (ataqueRedondeado * state.personaje.vampirismo) / 2
-                        );
+                        P.vida +
+                        Math.floor((ataqueRedondeado * P.vampirismo) / 2);
                       return {
                         ...state,
                         ataqueAcumulado: 0,
@@ -1655,9 +1731,7 @@ const reducer = (state, action) => {
                         personaje: {
                           ...state.personaje,
                           vida:
-                            vidaFinal > state.personaje.vidaMaxima
-                              ? state.personaje.vidaMaxima
-                              : vidaFinal,
+                            vidaFinal > P.vidaMaxima ? P.vidaMaxima : vidaFinal,
                         },
                       };
                     }
@@ -1667,12 +1741,11 @@ const reducer = (state, action) => {
                       [action.dado]: { ...state[action.dado], estado: 4 },
                       personaje: {
                         ...state.personaje,
-                        energia: state.personaje.energia - gastoEnergia,
+                        energia: P.energia - gastoEnergia,
                         combo:
-                          state.numeroClase == 200 &&
-                          state.personaje.combo < state.personaje.comboMax
-                            ? state.personaje.combo + 1
-                            : state.personaje.combo,
+                          state.numeroClase == 200 && P.combo < P.comboMax
+                            ? P.combo + 1
+                            : P.combo,
                       },
                     };
                   }
@@ -1685,14 +1758,80 @@ const reducer = (state, action) => {
                     [action.dado]: ESTADO_SHORTCOUT,
                     personaje: {
                       ...state.personaje,
-                      energia: state.personaje.energia - gastoEnergia,
-                      combo:
-                        state.personaje.combo < state.personaje.comboMax
-                          ? state.personaje.combo + 1
-                          : state.personaje.combo,
+                      energia: P.energia - gastoEnergia,
+                      combo: P.combo < P.comboMax ? P.combo + 1 : P.combo,
                     },
                   };
                 }
+              case 7:
+                const ataque7 = Math.floor(P.ataque * 0.5);
+                const maleficio7 = Math.floor(P.maleficio * 1);
+                const vampirismo = Math.floor(
+                  (ataque7 + maleficio7) * (P.vampirismo * 0.1) * 0.8
+                );
+                const cambioVida =
+                  P.vida + vampirismo > P.vidaMaxima
+                    ? P.vidaMaxima
+                    : P.vida + vampirismo;
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    vida: cambioVida,
+                    mana:
+                      state.numeroClase == 300 && P.mana < P.manaMax
+                        ? P.mana + 1
+                        : P.mana,
+                    energia: P.energia - gastoEnergia,
+                  },
+                };
+              case 9:
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    maleficioBase: P.maleficioBase + 1,
+                    energia: P.energia - gastoEnergia,
+                  },
+                };
+
+              case 10:
+                const randomMovimiento = randomNumber(100) >= 50 ? 2 : -2;
+                const casilleroResultante =
+                  state.casillero + randomMovimiento < 0
+                    ? 0
+                    : state.casillero + randomMovimiento;
+                const vidaResultante =
+                  state.casillero + randomMovimiento < 0
+                    ? P.vida +
+                      Math.floor(10 * (state.casillero + randomMovimiento))
+                    : P.vida;
+
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  casillero: casilleroResultante,
+                  personaje: { ...state.personaje, vida: vidaResultante },
+                };
+              case 11:
+                const curacion =
+                  state.numeroClase == 100 || state.numeroClase == 200
+                    ? Math.floor(P.curacion * 4)
+                    : Math.floor(P.curacion * 2);
+                const vidaFinal = P.vida + curacion;
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    vida: 1,
+                  },
+                };
+              case 12:
+                return { ...state };
             }
             return { ...state };
           }
