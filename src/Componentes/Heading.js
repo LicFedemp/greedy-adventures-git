@@ -42,6 +42,17 @@ export function Heading() {
 
   const activarHabilidad = () => {
     const personaje = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
+    if (personaje == 101 || personaje == 102) {
+      const totalRejuIra =
+        state.personaje.ira * 0.1 * state.personaje.vidaMaxima;
+
+      dispatch({
+        type: ACCIONES.EFECTOS_PS,
+        tipo: 3,
+        valor: -totalRejuIra,
+        ticks: 3,
+      });
+    }
     dispatch({ type: ACCIONES.ACTIVAR_SKILL, personaje });
   };
   const recursoSecundario = (recurso) => {

@@ -35,6 +35,18 @@ export function Rolleo(props) {
     if (n == 3 && modo) {
       dispatch({ type: ACCIONES.TOGGLE_TURNO });
     }
+    if (n == 6) {
+      let x = 0;
+      while (x < 6) {
+        dispatch({
+          type: ACCIONES.ACTIVACION_DADO,
+          n,
+          modo,
+          dado: [props.dado],
+        });
+        x++;
+      }
+    }
     // dispatch({ type: ACCIONES.EFECTOS_PS, tipo: "hemoAccion" });
   };
   const toggleDado = () => {

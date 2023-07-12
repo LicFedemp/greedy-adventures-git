@@ -1,5 +1,5 @@
 import { ACCIONES, useGeneralReducer } from "./MainReducer";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 const generalContext = React.createContext();
 
@@ -9,6 +9,7 @@ export function useGeneralContext() {
 export function ContextProvider({ children }) {
   const [state, dispatch] = useGeneralReducer();
   const [firstRender, setFirstRender] = useState(true);
+  const prevCasillero = useRef(0);
 
   useEffect(() => {
     if (firstRender) {
@@ -95,18 +96,19 @@ export function ContextProvider({ children }) {
     state.equipo.actual,
   ]);
 
-  /*useEffect(() => {
-    dispatch({ type: ACCIONES.CALCULAR_DEFENSA });
-  }, [state.personaje.ira, state.personaje.defensaBase, state.equipo.actual]);
-
   useEffect(() => {
-    if (state.numeroClase == 200 && state.numeroSpec == 2) {
-      dispatch({ type: ACCIONES.CALCULAR_ESQUIVAR });
-    }
-    if (state.numeroClase == 200 && state.numeroSpec == 1) {
-      dispatch({ type: ACCIONES.CALCULAR_CRITICO });
-    }
-  }, [state.personaje.combo, , state.equipo.actual]);*/
+    if (
+      prevCasillero.current <= state.casillero &&
+      state.efectosPorSec.tickPsicosis > 0
+    )
+      return;
+    dispatch({
+      type: ACCIONES.PSICOSIS,
+      fase: "golpe",
+      retroceso: prevCasillero.current - state.casillero,
+    });
+    prevCasillero.current = state.casillero;
+  }, [state.casillero]);
 
   return (
     <div className="div-columna">

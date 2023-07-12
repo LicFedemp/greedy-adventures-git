@@ -1,8 +1,6 @@
 import { useGeneralContext } from "./Provider";
 import { ACCIONES } from "./MainReducer";
 import { useRef, useState, useEffect, useReducer } from "react";
-import { efectosPSec } from "./Objetos/EfectosPS";
-import { clear } from "@testing-library/user-event/dist/clear";
 import "../StyleSheets/Heading.css";
 import "../StyleSheets/Desplegable.css";
 import "../StyleSheets/Rolleo.css";
@@ -15,6 +13,7 @@ const estadoLocal = {
   ataqueMult: 0.25,
   defensaEnemigo: 0,
   esquivarEnemigo: 0,
+  psicosis: 5,
   ataque: false,
   ataqueResultado: [false, 0, 0],
 };
@@ -65,10 +64,9 @@ export function Desplegable() {
   const vidaModRef = useRef(null);
   const ataqueRef = useRef(null);
   const defensaRef = useRef(null);
-  const esquivarRef = useRef(null);
+  const psicosisRef = useRef(null);
 
   const intervalRef = useRef(null);
-
   const handleClick = (event, ref, variable) => {
     const { top, height } = ref.current.getBoundingClientRect();
     const y = event.clientY - top;
@@ -78,6 +76,7 @@ export function Desplegable() {
     if (y <= height / 2) {
       switch (ref) {
         case casilleroModRef:
+        case psicosisRef:
           localDispatch({
             type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
             variable,
@@ -128,6 +127,8 @@ export function Desplegable() {
     } else {
       switch (ref) {
         case casilleroModRef:
+        case psicosisRef:
+          if (ref == psicosisRef && localState.psicosis < 6) return;
           localDispatch({
             type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
             variable,
@@ -211,18 +212,6 @@ export function Desplegable() {
     }
   };
 
-  const consoleLog = (texto) => {
-    console.log(texto);
-  };
-  /*const handleMouseDown = () => {
-    intervalRef.current = setInterval(() => {
-      setAtaqueMult(ataqueMult + 0.25);
-    }, 200);
-  };*/
-  const handleMouseUUUUUUUp = () => {
-    console.log("Se corta el intervalo");
-    clearInterval(intervalRef.current);
-  };
   const changeEffect = (modo) => {
     switch (modo) {
       case "click":
@@ -263,30 +252,35 @@ export function Desplegable() {
     dispatch({ type: ACCIONES.DESPLEGABLE });
   };
   const toggleMod = (direccion, modo) => {
+    const modosArray = ["Recibir", "DPS", "Ataque", "Psicosis", "Casillero"];
     if (modo == "descripcion") {
       if (direccion == "der") {
         switch (parseInt(state.modDesplegable)) {
           case 1:
-            return "Recibir";
+            return modosArray[0];
           case 2:
-            return "DPS";
+            return modosArray[1];
           case 3:
-            return "Ataque";
+            return modosArray[2];
           case 4:
-            return "Casillero";
+            return modosArray[3];
+          case 5:
+            return modosArray[4];
           default:
             break;
         }
       } else if (direccion == "izq") {
         switch (parseInt(state.modDesplegable)) {
           case 1:
-            return "Ataque";
+            return modosArray[3];
           case 2:
-            return "Casillero";
+            return modosArray[4];
           case 3:
-            return "Recibir";
+            return modosArray[0];
           case 4:
-            return "DPS";
+            return modosArray[1];
+          case 5:
+            return modosArray[2];
           default:
             break;
         }
@@ -296,24 +290,44 @@ export function Desplegable() {
     }
     //setMod(!mod);
   };
-
-  const activarCasilleroMod = () => {
-    dispatch({ type: ACCIONES.MOD_CASILLERO, valor: localState.casilleroMod });
-    dispatch({ type: ACCIONES.DESPLEGABLE });
-    localDispatch({
-      type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-      variable: "casilleroMod",
-      valor: -localState.casilleroMod,
-    });
+  const TIPO_DESPLEGABLE = {
+    CASILLERO_VIDA: "casillero",
+    VIDA: "vida",
+    DPS: "dps",
+    PSICOSIS: "psicosis",
   };
-  const activarVidaMod = () => {
-    dispatch({ type: ACCIONES.STATS.MOD_VIDA, valor: localState.vidaMod });
-    dispatch({ type: ACCIONES.DESPLEGABLE });
-    localDispatch({
-      type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-      variable: "vidaMod",
-      valor: -localState.vidaMod,
-    });
+
+  const activarDesplegable = (tipo, variable) => {
+    switch (tipo) {
+      case TIPO_DESPLEGABLE.CASILLERO_VIDA:
+        dispatch({
+          type:
+            variable == "casilleroMod"
+              ? ACCIONES.MOD_CASILLERO
+              : ACCIONES.STATS.MOD_VIDA,
+          valor: localState[variable],
+        });
+        localDispatch({
+          type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
+          variable,
+          valor: -localState.casilleroMod,
+        });
+
+        break;
+      case TIPO_DESPLEGABLE.VIDA:
+        break;
+      case TIPO_DESPLEGABLE.DPS:
+        break;
+      case TIPO_DESPLEGABLE.PSICOSIS:
+        dispatch({
+          type: ACCIONES.PSICOSIS,
+          fase: "carga",
+          poder: localState.psicosis,
+        });
+        break;
+      default:
+        break;
+    }
   };
 
   const activarDPS = () => {
@@ -325,15 +339,12 @@ export function Desplegable() {
     });
     for (let x = 0; x < 2; x++) {
       const variable = x == 0 ? "vidaMod" : "ticks";
-      // const valor = "- localState[variable]";
       localDispatch({
         type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
         variable,
         valor: -localState[variable],
       });
     }
-    // setVidaMod(0);
-    // setTicks(0);
   };
 
   const changeBackground = (target) => {
@@ -360,6 +371,11 @@ export function Desplegable() {
           } else {
             return "estado-celeste";
           }
+        case 4:
+          return "estado-rojo";
+        case 5:
+          return "estado-violeta";
+
         default:
           return "estado-gris";
       }
@@ -385,6 +401,11 @@ export function Desplegable() {
           } else {
             return "estado-celeste-shadow";
           }
+        case 4:
+          return "estado-rojo-shadow";
+        case 5:
+          return "estado-violeta-shadow";
+
         default:
           return "estado-gris-shadow";
       }
@@ -400,14 +421,6 @@ export function Desplegable() {
     });
   };
   const handleAtaqueDefensa = (accion) => {
-    /*const valor =
-      accion == "-"
-        ? localState.dpsMod > 1
-          ? -1
-          : 3 - localState.dpsMod
-        : localState.dpsMod < 3
-        ? 1
-        : -2;*/
     const valor = localState.dpsMod == 1 ? 1 : -1;
 
     localDispatch({
@@ -481,29 +494,6 @@ export function Desplegable() {
                 {botonVampirismo()}
               </div>
             );
-          /*${
-              localState.ataqueResultado[2] > 0
-              ? 
-              : ""
-          }*/
-          /*case 2:
-            //defensa
-            
-          case 3:
-            return (
-              <button
-                ref={ataqueRef}
-                onMouseUp={handleMouseUp}
-                onMouseDown={(event) =>
-                  handleClick(event, ataqueRef, "ataqueMult")
-                }
-                className={`btn-mod-desplegable ${changeBackground("button")}`}
-              >
-                <p className={`p-titulo-importante`}>
-                  repeticion {localState.ataqueMult}
-                </p>
-              </button>
-            );*/
         }
       case "botonInferior":
         switch (localState.ataque) {
@@ -533,121 +523,157 @@ export function Desplegable() {
     }
   }, [localState.vidaMod]);
   const buttonMods = () => {
-    if (state.modDesplegable == 1) {
-      return (
-        <div className={`div-columna div-stats`}>
-          <button
-            ref={casilleroModRef}
-            onMouseUp={handleMouseUp}
-            onMouseDown={(event) =>
-              handleClick(event, casilleroModRef, "casilleroMod")
-            }
-            className={`btn-mod-desplegable ${changeBackground("button")}`}
-          >{`${localState.casilleroMod >= 0 ? "Avanzo" : "Retrocedo"} ${
-            localState.casilleroMod < 0
-              ? localState.casilleroMod * -1
-              : localState.casilleroMod
-          } casilleros`}</button>
-          <button
-            className={`${changeBackground("button")}`}
-            onClick={activarCasilleroMod}
-          >
-            Mover!
-          </button>
-        </div>
-      );
-    } else if (state.modDesplegable == 2) {
-      return (
-        <div className={`div-columna div-stats`}>
-          <button
-            ref={vidaModRef}
-            onMouseUp={handleMouseUp}
-            onMouseDown={(event) => handleClick(event, vidaModRef, "vidaMod")}
-            className={`btn-mod-desplegable ${changeBackground("button")}`}
-          >{`${localState.vidaMod >= 0 ? "Recibo" : "Te curas"} ${
-            localState.vidaMod < 0
-              ? localState.vidaMod * -1
-              : localState.vidaMod
-          } ${localState.vidaMod >= 0 ? "puntos de daño" : "de vida"}`}</button>
-          <button
-            className={`btn-dpsMod ${changeBackground("button")}`}
-            onClick={activarVidaMod}
-          >
-            Ok
-          </button>
-        </div>
-      );
-    } else if (state.modDesplegable == 3) {
-      return (
-        <div className={`div-columna div-stats`}>
-          <button
-            className={`${changeBackground("button")} btn-dpsMod`}
-            onClick={() => changeEffect("click")}
-          >
-            {changeEffect("descripcion")}
-          </button>
+    const modDesplegable = parseInt(state.modDesplegable);
+    switch (modDesplegable) {
+      case 1:
+        return (
+          <div className={`div-columna div-stats`}>
+            <button
+              ref={casilleroModRef}
+              onMouseUp={handleMouseUp}
+              onMouseDown={(event) =>
+                handleClick(event, casilleroModRef, "casilleroMod")
+              }
+              className={`btn-mod-desplegable ${changeBackground("button")}`}
+            >{`${localState.casilleroMod >= 0 ? "Avanzo" : "Retrocedo"} ${
+              localState.casilleroMod < 0
+                ? localState.casilleroMod * -1
+                : localState.casilleroMod
+            } casilleros`}</button>
+            <button
+              className={`${changeBackground("button")}`}
+              onClick={() =>
+                activarDesplegable(
+                  TIPO_DESPLEGABLE.CASILLERO_VIDA,
+                  "casilleroMod"
+                )
+              }
+            >
+              Mover!
+            </button>
+          </div>
+        );
+      case 2:
+        return (
+          <div className={`div-columna div-stats`}>
+            <button
+              ref={vidaModRef}
+              onMouseUp={handleMouseUp}
+              onMouseDown={(event) => handleClick(event, vidaModRef, "vidaMod")}
+              className={`btn-mod-desplegable ${changeBackground("button")}`}
+            >{`${localState.vidaMod >= 0 ? "Recibo" : "Te curas"} ${
+              localState.vidaMod < 0
+                ? localState.vidaMod * -1
+                : localState.vidaMod
+            } ${
+              localState.vidaMod >= 0 ? "puntos de daño" : "de vida"
+            }`}</button>
+            <button
+              className={`btn-dpsMod ${changeBackground("button")}`}
+              onClick={() =>
+                activarDesplegable(TIPO_DESPLEGABLE.CASILLERO_VIDA, "vidaMod")
+              }
+            >
+              Ok
+            </button>
+          </div>
+        );
+      case 3:
+        return (
+          <div className={`div-columna div-stats`}>
+            <button
+              className={`${changeBackground("button")} btn-dpsMod`}
+              onClick={() => changeEffect("click")}
+            >
+              {changeEffect("descripcion")}
+            </button>
 
-          <button
-            ref={vidaModRef}
-            onMouseUp={handleMouseUp}
-            onMouseDown={(event) => handleClick(event, vidaModRef, "vidaMod")}
-            className={`btn-mod-desplegable ${changeBackground("button")}`}
-          >{`${localState.vidaMod >= 0 ? "Recibo" : "Te curas"} ${
-            localState.vidaMod < 0
-              ? localState.vidaMod * -1
-              : localState.vidaMod
-          } ${localState.vidaMod >= 0 ? "puntos de daño" : "de vida"}`}</button>
-          <div className={`div-ticks  `}>
-            <p className={`p-ticks`}>Ticks</p>
             <button
-              onClick={() => handleTicks("-")}
-              className={`${changeBackground("button")} btn-ticks`}
-            >
-              -
-            </button>
-            {localState.ticks}
+              ref={vidaModRef}
+              onMouseUp={handleMouseUp}
+              onMouseDown={(event) => handleClick(event, vidaModRef, "vidaMod")}
+              className={`btn-mod-desplegable ${changeBackground("button")}`}
+            >{`${localState.vidaMod >= 0 ? "Recibo" : "Te curas"} ${
+              localState.vidaMod < 0
+                ? localState.vidaMod * -1
+                : localState.vidaMod
+            } ${
+              localState.vidaMod >= 0 ? "puntos de daño" : "de vida"
+            }`}</button>
+            <div className={`div-ticks  `}>
+              <p className={`p-ticks`}>Ticks</p>
+              <button
+                onClick={() => handleTicks("-")}
+                className={`${changeBackground("button")} btn-ticks`}
+              >
+                -
+              </button>
+              {localState.ticks}
+              <button
+                onClick={() => handleTicks("+")}
+                className={`${changeBackground("button")} btn-ticks`}
+              >
+                +
+              </button>
+            </div>
             <button
-              onClick={() => handleTicks("+")}
-              className={`${changeBackground("button")} btn-ticks`}
+              className={`${changeBackground("button")} btn-dpsMod`}
+              onClick={activarDPS}
             >
-              +
-            </button>
-          </div>
-          <button
-            className={`${changeBackground("button")} btn-dpsMod`}
-            onClick={activarDPS}
-          >
-            Ok
-          </button>
-        </div>
-      );
-    } else if (state.modDesplegable == 4) {
-      return (
-        <div className={`div-columna div-stats`}>
-          <div className={`div-ticks div-ataque  `}>
-            <p className={`p-ticks-ataque`}>Variables</p>
-            <button
-              onClick={() => handleAtaqueDefensa("-")}
-              className={`${changeBackground("button")} btn-ticks`}
-            >
-              Prev
-            </button>
-            <button
-              onClick={() => handleAtaqueDefensa("+")}
-              className={`${changeBackground("button")} btn-ticks`}
-            >
-              Next
+              Ok
             </button>
           </div>
-          {changeAtaqueDefensa("botonCentral")}
-          <button
-            className={`btn-dpsMod ${changeBackground("button")}`}
-            onClick={atacar}
-          >
-            {changeAtaqueDefensa("botonInferior")}
-          </button>
-        </div>
-      );
+        );
+      case 4:
+        return (
+          <div className={`div-columna div-stats`}>
+            <div className={`div-ticks div-ataque  `}>
+              <p className={`p-ticks-ataque`}>Variables</p>
+              <button
+                onClick={() => handleAtaqueDefensa("-")}
+                className={`${changeBackground("button")} btn-ticks`}
+              >
+                Prev
+              </button>
+              <button
+                onClick={() => handleAtaqueDefensa("+")}
+                className={`${changeBackground("button")} btn-ticks`}
+              >
+                Next
+              </button>
+            </div>
+            {changeAtaqueDefensa("botonCentral")}
+            <button
+              className={`btn-dpsMod ${changeBackground("button")}`}
+              onClick={atacar}
+            >
+              {changeAtaqueDefensa("botonInferior")}
+            </button>
+          </div>
+        );
+      case 5:
+        //psicosis
+        return (
+          <div className={`div-columna div-stats`}>
+            <button
+              ref={psicosisRef}
+              onMouseUp={handleMouseUp}
+              onMouseDown={(event) =>
+                handleClick(event, psicosisRef, "psicosis")
+              }
+              className={`btn-mod-desplegable ${changeBackground("button")}`}
+            >{`Poder de Psicosis = ${localState.psicosis}%`}</button>
+            <button
+              className={`${changeBackground("button")}`}
+              onClick={() => activarDesplegable(TIPO_DESPLEGABLE.PSICOSIS)}
+            >
+              Sufre!
+            </button>
+          </div>
+        );
+
+      default:
+        return;
     }
   };
 

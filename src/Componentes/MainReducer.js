@@ -37,6 +37,7 @@ export const ACCIONES = {
   AUTOMATICO: "automatico",
   DESPLEGABLE: "desplegable",
   MOD_DESPLEGABLE: "mod-desplegable",
+  PSICOSIS: "psicosis",
   CALCULAR_STATS: "calcular-stats",
   MODIFICAR_EQUIPO: "modificar-equipo",
   ACTIVAR_SKILL: "activar-skill",
@@ -70,7 +71,7 @@ const estadoInicial = {
   bonus: { vida: 0, dadosTemporales: 0, dadosPermanentes: 0 },
   porcentajeVida: 100,
   regeneracion: 0,
-  automatico: false,
+  automatico: true,
   mostrarDesplegable: false,
   modDesplegable: 1,
   ataqueAcumulado: 0,
@@ -289,6 +290,10 @@ const reducer = (state, action) => {
               state.efectosPorSec.tickVeneno > 0
                 ? state.efectosPorSec.tickVeneno - 1
                 : 0,
+            tickPsicosis:
+              state.efectosPorSec.tickPsicosis > 0
+                ? state.efectosPorSec.tickPsicosis - 1
+                : state.efectosPorSec.tickPsicosis,
           },
           roll1: { ...state.roll1, numero: 0, estado: 1, lock: false },
           roll2: { ...state.roll2, numero: 0, estado: 1, lock: false },
@@ -526,14 +531,36 @@ const reducer = (state, action) => {
     case ACCIONES.MOD_DESPLEGABLE:
       const cambio = action.direccion == "der" ? 1 : -1;
       let nuevoModo = state.modDesplegable + cambio;
-      if (nuevoModo > 4) {
+      const numeroMaxModos = 5;
+      if (nuevoModo > numeroMaxModos) {
         nuevoModo = 1;
       } else if (nuevoModo < 1) {
-        nuevoModo = 4;
+        nuevoModo = numeroMaxModos;
       }
 
       return { ...state, modDesplegable: nuevoModo };
-
+    case ACCIONES.PSICOSIS:
+      if (action.fase == "carga") {
+        const danoPsicosis = Math.floor(action.poder * P.vidaMaxima * 0.1);
+        return {
+          ...state,
+          efectosPorSec: {
+            ...state.efectosPorSec,
+            psicosis: danoPsicosis,
+            tickPsicosis: 3,
+          },
+        };
+      } else if (action.fase == "golpe") {
+        const vidaFinalPsicosis = calcularHealing(
+          -action.retroceso * 0.1 * state.efectosPorSec.psicosis,
+          FUNCIONES.CURACION
+        );
+        return {
+          ...state,
+          personaje: { ...state.personaje, vida: vidaFinalPsicosis },
+        };
+      }
+      return { ...state };
     case ACCIONES.EFECTOS_PS:
       const tipo = isNaN(action.tipo) ? action.tipo : parseInt(action.tipo);
       switch (tipo) {
@@ -644,6 +671,25 @@ const reducer = (state, action) => {
       }
     case ACCIONES.ACTIVAR_SKILL:
       switch (action.personaje) {
+        case 101:
+        case 102:
+          return {
+            ...state,
+            personaje: { ...state.personaje, ira: 0 },
+          };
+        case 201:
+        case 202:
+          const energiaCombo = P.energia + Math.floor(P.combo / 2);
+          const energiaComboFinal =
+            energiaCombo < P.energiaMax ? energiaCombo : P.energiaMax;
+          return {
+            ...state,
+            personaje: {
+              ...state.personaje,
+              combo: 0,
+              energia: energiaComboFinal,
+            },
+          };
         case 301:
         case 302:
           return { ...state, personaje: { ...state.personaje, mana: 0 } };
@@ -1001,70 +1047,51 @@ const reducer = (state, action) => {
                         `Deseas continuar y hacer uso de espada de doble filo? Avance acumulado = ${state.casillerosMovidos}`
                       )
                     ) {
-                      const randomFate = randomNumber(6) + 1;
+                      const randomFate = randomNumber(6);
+                      console.log(`Random fate D6=${randomFate}`);
                       if (randomFate < 6) {
                         return {
                           ...state,
                           casillerosMovidos: state.casillerosMovidos + 1,
                         };
                       } else if (randomFate == 6) {
-                        if (randomEsquivar) {
-                          if (state.numeroClase == 200) {
-                            return {
-                              ...state,
-                              [action.dado]: ESTADO_SHORTCOUT,
-                              casillero:
-                                state.casillero + state.casillerosMovidos,
-                              casillerosMovidos: 0,
-                              personaje: {
-                                ...state.personaje,
-                                energia: P.energia + 1,
-                              },
-                            };
-                          } else {
-                            return {
-                              ...state,
-                              [action.dado]: ESTADO_SHORTCOUT,
-                              casillero:
-                                state.casillero + state.casillerosMovidos,
-                              casillerosMovidos: 0,
-                            };
-                          }
-                        }
+                        const malabarismo =
+                          (state.casillerosMovidos - state.casillero) * 10;
                         window.alert(
-                          `Ouch! ${
-                            state.casillero + state.casillerosMovidos - 6 > 0
-                              ? `Retrocedes 6 casilleros.`
-                              : `Retrocedes ${
-                                  state.casillero
-                                } casilleros y pierdes ${
-                                  (state.casillero +
-                                    state.casillerosMovidos -
-                                    6) *
-                                  -10
-                                } puntos de vida`
-                          } `
+                          `Ouch! Retrocedes ${
+                            state.casillerosMovidos > state.casillero
+                              ? `${state.casillero} ${
+                                  state.casillero > 1
+                                    ? `casilleros`
+                                    : `casillero`
+                                } y recibes ${malabarismo} puntos de daño.`
+                              : `${state.casillerosMovidos} ${
+                                  state.casillerosMovidos > 1
+                                    ? `casilleros`
+                                    : `casillero`
+                                }.`
+                          }`
                         );
                         const mayorCero =
-                          state.casillero + state.casillerosMovidos - 6 > 0
+                          state.casillero - state.casillerosMovidos > 0
                             ? true
                             : false;
-
+                        const danoPsicosis =
+                          state.efectosPorSec.tickPsicosis > 0 ? 0 : 0;
                         return {
                           ...state,
                           [action.dado]: ESTADO_SHORTCOUT,
                           casillero: mayorCero
-                            ? state.casillero + state.casillerosMovidos - 6
+                            ? state.casillero - state.casillerosMovidos
                             : 0,
                           casillerosMovidos: 0,
                           personaje: {
                             ...state.personaje,
                             vida: mayorCero
-                              ? P.vida
-                              : P.vida +
-                                (state.casillero +
-                                  state.casillerosMovidos -
-                                  6) *
+                              ? P.vida - danoPsicosis
+                              : P.vida -
+                                danoPsicosis +
+                                (state.casillero - state.casillerosMovidos) *
                                   10,
                           },
                         };

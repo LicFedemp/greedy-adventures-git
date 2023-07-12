@@ -13,6 +13,7 @@ Desplegable de equipo.
 -Curacion y danos progresivos en la misma ventana que dano y curacion burst.
 
 ----CORRECCIONES----
+-El 6 en modo casillero se corta antes y queda pendiente el avance.
 --La adicion del dado hacerlo permanente? hacer un dado extra temp y 1 dado perma (D20).
 --Revisar alcance de efectos (mele/distancia)
 --Revisar avance y retroceso del 6 cuando falla el efecto.
