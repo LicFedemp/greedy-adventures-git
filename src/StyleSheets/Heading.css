@@ -199,6 +199,12 @@ justify-content: space-around;}
   font-weight: 500;
 
 }
+.stat-potenciado-extra{
+  color: rgb(255, 251, 0);
+  font-weight: 500;
+
+}
+
 .stat-disminuido{
   color: rgb(212, 0, 0);
   font-weight: 500;

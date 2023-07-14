@@ -31,48 +31,91 @@ export function Rolleo(props) {
   const ejecutarAccion = () => {
     const n = parseInt(state[props.dado].numero);
     const modo = state[props.dado].modo;
-    dispatch({ type: ACCIONES.ACTIVACION_DADO, n, modo, dado: [props.dado] });
+    let gastoEnergia = 0;
+    const estadoActual = parseInt(state[props.dado].estado);
+    switch (estadoActual) {
+      case 1:
+        gastoEnergia = 1;
+        break;
+      case 2:
+      case 3:
+        gastoEnergia = 0;
+        break;
+    }
+
+    dispatch({
+      type: ACCIONES.ACTIVACION_DADO,
+      n,
+      modo,
+      dado: [props.dado],
+      gastoEnergia,
+    });
     if (n == 3 && modo) {
       dispatch({ type: ACCIONES.TOGGLE_TURNO });
     }
-    if (n == 6) {
-      let x = 0;
-      while (x < 6) {
-        dispatch({
-          type: ACCIONES.ACTIVACION_DADO,
-          n,
-          modo,
-          dado: [props.dado],
-        });
-        x++;
-      }
+    const obligados = state.dadosObligados.includes(n);
+    if (
+      state.efectosPorSec.tickHemo > 0 &&
+      !obligados &&
+      estadoActual != 0 &&
+      gastoEnergia <= state.personaje.energia
+    ) {
+      dispatch({ type: ACCIONES.EFECTOS_PS, tipo: "hemoAccion" });
     }
-    // dispatch({ type: ACCIONES.EFECTOS_PS, tipo: "hemoAccion" });
   };
   const toggleDado = () => {
     dispatch({ type: ACCIONES.MODO_DADO, dado: [props.dado] });
   };
-  const cartaSkill = () => {
-    const personaje = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
-    switch (personaje) {
-      case 101:
-        return `Torbellino`;
-      case 102:
-        return `Blindado`;
-      case 201:
-        return `Golpe en los riñones`;
-      case 202:
-        return `Bomba de humo`;
-      case 301:
-        return `Control Mental`;
-      case 302:
-        return `Beso Dementoriano`;
-      case 401:
-        return `Transposicion`;
-      case 402:
-        return `Clarividencia`;
+  const calcularNuevoClari = (variable) => {
+    const chanceClari = state.efectosPorSec.chanceClari;
+    const clarividencia = state.efectosPorSec.clarividencia;
+    let nuevaChanceClari;
+    let nuevaClari;
+    switch (chanceClari) {
+      case 15:
+      case 30:
+        nuevaChanceClari = chanceClari + 15;
+        nuevaClari = clarividencia;
+
+        break;
+      case 45:
+      case 0:
+        nuevaChanceClari = 15;
+        nuevaClari = clarividencia + 1;
+        break;
+
       default:
         break;
+    }
+    if (variable == "clari") {
+      return nuevaClari;
+    } else {
+      return nuevaChanceClari;
+    }
+  };
+  const cartaSkill = (tier) => {
+    const personaje = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
+    if (tier == 1) {
+      switch (personaje) {
+        case 101:
+          return `Cargar`;
+        case 102:
+          return `Blindado`;
+        case 201:
+          return `Golpe en los riñones`;
+        case 202:
+          return `Esfumarse`;
+        case 301:
+        case 302:
+          return `Psicosis`;
+        case 401:
+        case 402:
+          return `Clarividencia: ${calcularNuevoClari(
+            "chance"
+          )}% +${calcularNuevoClari("clari")} Mana x turno`;
+        default:
+          break;
+      }
     }
   };
   const descripcion = () => {
@@ -122,7 +165,7 @@ export function Rolleo(props) {
               : `mana`
           }`;
         case 12:
-          return `Carta: ${cartaSkill()}`;
+          return ` ${cartaSkill(1)}`;
       }
     } else if (!state[props.dado].modo) {
       switch (n) {
@@ -169,7 +212,7 @@ export function Rolleo(props) {
               : Math.floor(state.personaje.curacion * 2)
           }`;
         case 12:
-          return `Carta: ${cartaSkill()}`;
+          return ` ${cartaSkill(1)}`;
       }
     }
   };

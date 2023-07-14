@@ -9,7 +9,8 @@ export function useGeneralContext() {
 export function ContextProvider({ children }) {
   const [state, dispatch] = useGeneralReducer();
   const [firstRender, setFirstRender] = useState(true);
-  const prevCasillero = useRef(0);
+  const prevCasillero = useRef(state.casillero);
+  const prevVida = useRef(state.personaje.vidaBase);
 
   useEffect(() => {
     if (firstRender) {
@@ -53,11 +54,6 @@ export function ContextProvider({ children }) {
       valor: state.numeroClase + state.numeroSpec,
     });
   }, [state.numeroClase, state.numeroSpec]);
-  useEffect(() => {
-    dispatch({
-      type: ACCIONES.PORCENTAJE_VIDA,
-    });
-  }, [state.personaje.vida, state.personaje.vidaBase]);
 
   useEffect(() => {
     if (state.personaje.energia > state.personaje.energiaMax) {
@@ -76,9 +72,6 @@ export function ContextProvider({ children }) {
       dispatch({ type: ACCIONES.IRA_DADOS });
     }
   }, [state.personaje.ira]);
-  useEffect(() => {
-    dispatch({ type: ACCIONES.PODER_DADO_CASILLERO });
-  }, [state.casillero]);
 
   useEffect(() => {
     dispatch({ type: ACCIONES.CALCULAR_STATS });
@@ -94,21 +87,39 @@ export function ContextProvider({ children }) {
     state.personaje.combo,
 
     state.equipo.actual,
+    state.bonus,
   ]);
 
   useEffect(() => {
-    if (
-      prevCasillero.current <= state.casillero &&
-      state.efectosPorSec.tickPsicosis > 0
-    )
-      return;
     dispatch({
-      type: ACCIONES.PSICOSIS,
-      fase: "golpe",
-      retroceso: prevCasillero.current - state.casillero,
+      type: ACCIONES.PORCENTAJE_VIDA,
     });
+
+    if (
+      prevCasillero.current > state.casillero &&
+      state.efectosPorSec.tickPsicosis > 0
+    ) {
+      dispatch({
+        type: ACCIONES.PSICOSIS,
+        fase: "golpe",
+        retroceso: prevCasillero.current - state.casillero,
+      });
+    } else if (
+      (prevVida.current > state.personaje.vida &&
+        state.personaje.vida != state.personaje.vidaMaxima) ||
+      prevCasillero.current > state.casillero
+    ) {
+      console.log(`entra al condicional de casillero previo mayor`);
+      dispatch({
+        type: ACCIONES.HANDLE_IRA,
+      });
+    }
     prevCasillero.current = state.casillero;
-  }, [state.casillero]);
+    prevVida.current = state.personaje.vida;
+    dispatch({ type: ACCIONES.PODER_DADO_CASILLERO });
+  }, [state.personaje.vida, state.personaje.vidaBase, state.casillero]);
+
+  useEffect(() => {}, [state.casillero]);
 
   return (
     <div className="div-columna">

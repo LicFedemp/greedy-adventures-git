@@ -190,12 +190,14 @@ export function Heading() {
             className={`btn-habilidad habilidad-mago`}
             style={{ boxShadow: `${buttonStyles.mago.boxShadow}` }}
           >
-            Avanzas{" "}
-            {Math.floor(
+            {`Avanzas 
+            ${Math.floor(
               state.personaje.mana +
-                state.personaje.mana * (state.personaje.maleficio / 200)
-            )}{" "}
-            casilleros
+                Math.floor(
+                  state.personaje.mana * (state.personaje.maleficio / 200)
+                )
+            )}
+             casilleros`}
           </button>
         );
       case 402:
@@ -221,7 +223,8 @@ export function Heading() {
             Haz retroceder a todos los jugadores{" "}
             {Math.floor(
               state.personaje.mana / 2 +
-                (state.personaje.mana * state.personaje.maleficio) / 50
+                (state.personaje.mana / 2) *
+                  Math.floor(state.personaje.maleficio / 100)
             )}{" "}
             casilleros.
           </button>
@@ -234,7 +237,11 @@ export function Heading() {
             style={{ boxShadow: `${buttonStyles.brujo.boxShadow}` }}
           >
             Haz retroceder a cualquier jugador{" "}
-            {Math.floor(state.personaje.mana + state.personaje.maleficio / 30)}{" "}
+            {Math.floor(
+              state.personaje.mana / 2 +
+                (state.personaje.mana / 2) *
+                  Math.floor(state.personaje.maleficio / 50)
+            )}{" "}
             casilleros.
           </button>
         );
@@ -337,6 +344,14 @@ export function Heading() {
 
   const pintarStats = (stat) => {
     if (
+      (state.bonus.blindado &&
+        state.numeroClase == 100 &&
+        state.numeroSpec == 2 &&
+        stat == "defensa") ||
+      (state.bonus.esfumarse && state.numeroClase == 200 && stat == "esquivar")
+    ) {
+      return "stat-potenciado-extra";
+    } else if (
       state.equipo.actual.arma[0]?.[stat] > 0 ||
       state.equipo.actual.armadura[0]?.[stat] > 0 ||
       state.equipo.actual.joya[0]?.[stat] > 0 ||

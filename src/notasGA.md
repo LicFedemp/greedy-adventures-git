@@ -7,26 +7,22 @@ Druida: transformaciones.
 Monje: ying yang, las curaciones progresivas dan unos stats y los danos progresivos dan otros, se puede autinfligir ambos.
 
 ---INTERFACE---
-Desplegables de stats secundarios (ataque/defensa siempre visibles)
-Puede ser un boton con atq y def, que al click abre todo el resto de stats
 Desplegable de equipo.
--Curacion y danos progresivos en la misma ventana que dano y curacion burst.
 
 ----CORRECCIONES----
--El 6 en modo casillero se corta antes y queda pendiente el avance.
 --La adicion del dado hacerlo permanente? hacer un dado extra temp y 1 dado perma (D20).
 --Revisar alcance de efectos (mele/distancia)
---Revisar avance y retroceso del 6 cuando falla el efecto.
 --Revisar retroceso de habilidad de warlok
 ---CAMBIOS PERSONAJES EXISTENTES---
 
 ---AGREGAR---
-Al lado de casillero poner debufs activos
+-Cambiar numero de dados maximo: casillero>20 limite=10:limite=5
 -Panel inferior con descripcion de equipo:
 --Ordenar stats de mayor bonus a menor.
 
 ---Formula poder warlock---
-Destruccion: retroceso= (maleficio/30) \* mana
+Destruccion: retroceso= 1cada 2 mana+1 cada 2 mana cada 50maleficio
+Masas: same pero incrementa con 100maleficio
 
 ---formula poder avance--- +1 casillero \*mana con 200p habilidad
 mana
