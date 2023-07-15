@@ -1,5 +1,5 @@
 import { useGeneralContext } from "./Provider";
-import { ACCIONES } from "./MainReducer";
+import { ACCIONES, A } from "./Objetos/Acciones";
 import { useRef, useState, useEffect } from "react";
 import "../StyleSheets/Heading.css";
 export function Heading() {
@@ -21,7 +21,7 @@ export function Heading() {
     if (y <= height / 2) {
       switch (ref) {
         case numDadoRef:
-          if (variable < 5) {
+          if (state.dados.dadosTotales < state.numDadoMaximo) {
             dispatch({ type: ACCIONES.NUM_DADO, valor: 1 });
           }
           break;
@@ -29,7 +29,7 @@ export function Heading() {
     } else {
       switch (ref) {
         case numDadoRef:
-          if (variable > 1) {
+          if (variable > 0) {
             dispatch({ type: ACCIONES.NUM_DADO, valor: -1 });
           }
           break;
@@ -37,6 +37,7 @@ export function Heading() {
     }
   };
   const handleNivelDado = () => {
+    if (state.estadoTurno) return;
     dispatch({ type: ACCIONES.PODER_DADO });
   };
 
@@ -420,10 +421,16 @@ export function Heading() {
       <button
         className={`btn-largo`}
         ref={numDadoRef}
-        onClick={(event) => handleClick(event, numDadoRef, state.numDado)}
+        onClick={(event) =>
+          handleClick(event, numDadoRef, state.dados.dadosAdd)
+        }
       >
         <p>#Dados</p>
-        <p>{state.numDado}</p>
+        <p>
+          {state.dados.dadosTotales > state.numDadoMaximo
+            ? state.numDadoMaximo
+            : state.dados.dadosTotales}
+        </p>
       </button>
       <div className={`div-columna div-stats-principal `}>
         <div

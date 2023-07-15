@@ -1,5 +1,5 @@
 import { useGeneralContext } from "./Provider";
-import { ACCIONES } from "./MainReducer";
+import { ACCIONES, A } from "./Objetos/Acciones";
 import { useRef, useState, useEffect } from "react";
 import "../StyleSheets/SeleccionPersonaje.css";
 import { BsFillDropletFill } from "react-icons/bs";

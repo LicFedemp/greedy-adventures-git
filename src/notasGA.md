@@ -5,6 +5,7 @@ Paladin: escudo antimagia, hechizos alcance mele
 Vampiro: mucha vida, acciones con costo de vida, burst sacrificado, vampirismo.
 Druida: transformaciones.
 Monje: ying yang, las curaciones progresivas dan unos stats y los danos progresivos dan otros, se puede autinfligir ambos.
+---Tareas hasta D20---
 
 ---INTERFACE---
 Desplegable de equipo.
@@ -16,9 +17,10 @@ Desplegable de equipo.
 ---CAMBIOS PERSONAJES EXISTENTES---
 
 ---AGREGAR---
--Cambiar numero de dados maximo: casillero>20 limite=10:limite=5
 -Panel inferior con descripcion de equipo:
 --Ordenar stats de mayor bonus a menor.
+
+- Peste y corrupcion.
 
 ---Formula poder warlock---
 Destruccion: retroceso= 1cada 2 mana+1 cada 2 mana cada 50maleficio
@@ -80,3 +82,11 @@ ataqueAcumulado: [],
                           };
                         }
                       }
+
+<button
+onClick={handleLock}
+className={`btn-superiores ${
+            state[props.dado].lock ? "estado-naranja" : "estado-gris"
+          }`} >
+Lock
+</button>

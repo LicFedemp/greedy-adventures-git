@@ -1,6 +1,6 @@
-import { ACCIONES, useGeneralReducer } from "./MainReducer";
+import { useGeneralReducer } from "./MainReducer";
 import React, { useContext, useEffect, useRef, useState } from "react";
-
+import { ACCIONES, A } from "./Objetos/Acciones";
 const generalContext = React.createContext();
 
 export function useGeneralContext() {
@@ -11,24 +11,38 @@ export function ContextProvider({ children }) {
   const [firstRender, setFirstRender] = useState(true);
   const prevCasillero = useRef(state.casillero);
   const prevVida = useRef(state.personaje.vidaBase);
+  const prevDados = useRef(state.dados.dadosTotales);
 
   useEffect(() => {
     if (firstRender) {
       setFirstRender(false);
+      dispatch({ type: ACCIONES.HANDLE_NUMERO_DADOS });
     }
   }, [firstRender]);
+
+  useEffect(() => {
+    dispatch({ type: ACCIONES.HANDLE_NUMERO_DADOS, tipo: "normal" });
+    console.log(`activa el use effect dados`);
+  }, [
+    state.dados.dadosBase,
+    state.dados.dadoIra,
+    state.dados.dadosAdd,
+    state.dados.dadosTemporales,
+    state.dados.dadosPermanentes,
+  ]);
+
   useEffect(() => {
     if (!firstRender) {
       const array = [];
-      for (let i = 0; i < state.numDado; i++) {
+      for (let i = 0; i < state.dados.dadosTotales; i++) {
         array.push(state[`roll${i + 1}`].numero);
       }
 
       let tempArray = [...array];
       let valorCoincidente = [];
-      for (let i = 0; i < state.numDado; i++) {
+      for (let i = 0; i < state.dados.dadosTotales; i++) {
         let coincidencias = 0;
-        for (let j = 0; j < state.numDado; j++) {
+        for (let j = 0; j < state.dados.dadosTotales; j++) {
           if (array[i] === tempArray[j]) {
             coincidencias++;
 
@@ -72,7 +86,15 @@ export function ContextProvider({ children }) {
       dispatch({ type: ACCIONES.IRA_DADOS });
     }
   }, [state.personaje.ira]);
-
+  useEffect(() => {
+    dispatch({ type: ACCIONES.HANDLE_NUMERO_DADOS });
+  }, [
+    state.dados.dadoIra,
+    state.dados.dadosAdd,
+    state.dados.dadosTemporales,
+    state.dados.dadosPermanentes,
+    state.casillero,
+  ]);
   useEffect(() => {
     dispatch({ type: ACCIONES.CALCULAR_STATS });
   }, [
@@ -118,8 +140,6 @@ export function ContextProvider({ children }) {
     prevVida.current = state.personaje.vida;
     dispatch({ type: ACCIONES.PODER_DADO_CASILLERO });
   }, [state.personaje.vida, state.personaje.vidaBase, state.casillero]);
-
-  useEffect(() => {}, [state.casillero]);
 
   return (
     <div className="div-columna">

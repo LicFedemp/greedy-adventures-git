@@ -1,5 +1,5 @@
 import { useGeneralContext } from "./Provider";
-import { ACCIONES } from "./MainReducer";
+import { ACCIONES, A } from "./Objetos/Acciones";
 import { DADOS } from "./Objetos/Dados";
 import "../StyleSheets/Rolleo.css";
 import { useEffect } from "react";
@@ -41,6 +41,9 @@ export function Rolleo(props) {
       case 3:
         gastoEnergia = 0;
         break;
+    }
+    if (state[props.dado].peste[1] > 0) {
+      dispatch({ type: ACCIONES.CONTAGIO_PESTE, dado: [props.dado] });
     }
 
     dispatch({
@@ -166,6 +169,8 @@ export function Rolleo(props) {
           }`;
         case 12:
           return ` ${cartaSkill(1)}`;
+        case 13:
+          return `Peste`;
       }
     } else if (!state[props.dado].modo) {
       switch (n) {
@@ -294,22 +299,27 @@ export function Rolleo(props) {
   };
 
   return (
-    <div className="div-columna div-roll">
+    <div
+      className={`div-columna div-roll ${
+        state[props.dado].peste[0] ? `roll-poisonAnimation` : ``
+      }`}
+    >
       <div className={`div-dado-superior`}>
+        <p className={`p-dado-superior`}>
+          {" "}
+          {state[props.dado].peste[1] > 0 ? state[props.dado].peste[1] : " "}
+        </p>
+        {}
         <button
           className={`btn-superiores ${estadosActivar()}`}
           onClick={ejecutarAccion}
         >
           Activar
         </button>
-        <button
-          onClick={handleLock}
-          className={`btn-superiores ${
-            state[props.dado].lock ? "estado-naranja" : "estado-gris"
-          }`}
-        >
-          Lock
-        </button>
+        <p className={`p-dado-superior`}>
+          {" "}
+          {state[props.dado].peste[1] > 0 ? state[props.dado].peste[1] : " "}
+        </p>
       </div>
       <button className={`btn-dado ${colorDado()}`} onClick={toggleDado}>
         {state[props.dado].numero}

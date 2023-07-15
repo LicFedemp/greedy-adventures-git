@@ -1,4 +1,7 @@
 .div-roll-zone{
     max-width: 905px;
-    justify-content: space-evenly;
+    max-height: 450px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
 }

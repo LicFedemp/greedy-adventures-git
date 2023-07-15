@@ -1,19 +1,30 @@
 .div-roll{
     max-height: 200px;
-    max-width: 200px;
+    max-width: 165px;
     margin-right: 10px;
+    transition: box-shadow 0.3s ease;
+
 }
 .div-descripcion{
     min-height: 75px;
     text-align: center;
+    justify-content: center;
 }
 .div-dado-superior{
     justify-content: space-evenly;
     max-height: 40px;
+    align-items: center;
 }
 .btn-superiores{
+    position:relative;
     height: 30px;
-    min-width: 75px;
+    min-width: 120px;
+}
+.p-dado-superior{
+    position:relative;
+    color: rgb(15, 212, 15);
+    text-align: center;
+
 }
 
 .btn-dado{
@@ -24,6 +35,11 @@
     align-self: center;
     
 }
+.roll-poisonAnimation{
+
+    animation: box-shadow-poisonAnimation 4s infinite;
+  }
+  
 
 .estado-amarillo{
     background-color: yellow;

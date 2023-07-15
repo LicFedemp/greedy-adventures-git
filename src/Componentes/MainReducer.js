@@ -2,7 +2,7 @@ import { useReducer } from "react";
 import { STATS_AUTOMATICO } from "./Objetos/Personajes";
 import { efectosPSec } from "./Objetos/EfectosPS";
 import { EQUIPO, arrayEquipo } from "./Objetos/Equipo";
-
+import { ACCIONES, A } from "./Objetos/Acciones";
 const estadoRoll = {
   numero: 0,
   modo: true,
@@ -10,40 +10,11 @@ const estadoRoll = {
   activo: false,
   especial: false,
   estado: 1,
+  peste: [false, 0],
 };
 const FUNCIONES = {
   OVERHEALING: "overhealing",
   CURACION: "curacion",
-};
-export const ACCIONES = {
-  SELECCION_PERSONAJE: "seleccion-personaje",
-  PODER_DADO: "poder-dado",
-  NUM_DADO: "num-dado",
-  PODER_DADO_CASILLERO: "poder-dado-casillero",
-  ROLL_ALL: " roll-all",
-  ESPECIAL: "especial",
-  LOCK: "lock",
-  STATS: {
-    MOD_VIDA: "mod-vida",
-    EXCESO_ENERGIA: "exceso-energia",
-    BONUS_VIDA: "bonus-vida",
-  },
-  PORCENTAJE_VIDA: "porcentaje-vida",
-  HANDLE_IRA: "handle-ira",
-  MOD_CASILLERO: "mod-casillero",
-  MODO_DADO: "modo-dado",
-  ACTIVACION_DADO: "activacion-dado",
-  TOGGLE_TURNO: "toggle-turno",
-  IRA_DADOS: "ira-dados",
-  AUTOMATICO: "automatico",
-  DESPLEGABLE: "desplegable",
-  MOD_DESPLEGABLE: "mod-desplegable",
-  PSICOSIS: "psicosis",
-  CALCULAR_STATS: "calcular-stats",
-  MODIFICAR_EQUIPO: "modificar-equipo",
-  ACTIVAR_SKILL: "activar-skill",
-  EFECTOS_PS: "efectos-ps",
-  NEGATIVO: "negativo",
 };
 const convertirObjetoEnArray = (objeto) => {
   return Object.keys(objeto).map((clave) => {
@@ -58,14 +29,22 @@ const estadoInicial = {
   numeroClase: 200,
   numeroSpec: 2,
   estadoTurno: true,
-  casillero: 13,
-  casilleroPrevio: 13,
+  casillero: 23,
+  casilleroPrevio: 23,
   casillerosMovidos: 0,
-  nivelDado: 2,
-  poderDado: 12,
+  nivelDado: 3,
+  poderDado: 20,
   numDado: 5,
   numDadoMaximo: 5,
   dadoExtra: 0,
+  dados: {
+    dadosTotales: 5,
+    dadosBase: 2,
+    dadoIra: 0,
+    dadosAdd: 3,
+    dadosTemporales: 0,
+    dadosPermanentes: 0,
+  },
   personaje: {
     ...STATS_AUTOMATICO.rogueMalabarista,
   },
@@ -88,6 +67,11 @@ const estadoInicial = {
   roll3: { ...estadoRoll },
   roll4: { ...estadoRoll },
   roll5: { ...estadoRoll },
+  roll6: { ...estadoRoll },
+  roll7: { ...estadoRoll },
+  roll8: { ...estadoRoll },
+  roll9: { ...estadoRoll },
+  roll10: { ...estadoRoll },
   rollFlag: false,
   dadosObligados: [2, 3, 10, 13, 17],
   equipo: {
@@ -105,6 +89,7 @@ const estadoInicial = {
   accion: false,
   algunNegativo: false,
   uniMod: [12, 10, 14, 15, 17, 20],
+  pesteIntensidad: 1,
 };
 const randomNumber = (numeroMaximo) => {
   const random = Math.floor(Math.random() * numeroMaximo) + 1;
@@ -147,9 +132,10 @@ const reducer = (state, action) => {
   const claseSpec = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
   const randomEsquivar = randomNumber(100) <= P.esquivar ? true : false;
   const randomCritico = randomNumber(100) <= P.critico ? true : false;
-  console.log(
-    `Esquivar:(%${P.esquivar}) ${randomEsquivar}// Crit:(%${P.critico}) ${randomCritico}`
-  );
+  const numDadosValido =
+    state.dados.dadosTotales > state.numDadoMaximo
+      ? state.numDadoMaximo
+      : state.dados.dadosTotales;
   const calcularHealing = (cambio, funcion) => {
     const curacion = P.vida + cambio;
     const overhealing = curacion > P.vidaMaxima ? true : false;
@@ -170,9 +156,7 @@ const reducer = (state, action) => {
       algunNegativo = true;
     }
   }
-  console.log(algunNegativo);
   let danoInfligido = 0;
-  let vampirismo = danoInfligido * (P.vampirismo / 10);
   switch (action.type) {
     case ACCIONES.SELECCION_PERSONAJE:
       if (action.caso === "clase") {
@@ -226,10 +210,44 @@ const reducer = (state, action) => {
       return { ...state, automatico: !state.automatico };
     case ACCIONES.DESPLEGABLE:
       return { ...state, mostrarDesplegable: !state.mostrarDesplegable };
+    case ACCIONES.CONTAGIO_PESTE:
+      const danoPeste = Math.floor(P.vidaMaxima * 0.05 * state.pesteIntensidad);
+      let objetivo = null;
+      for (let x = 1; x <= state.dados.dadosTotales; x++) {
+        if (
+          ![action.dado] == `roll${x}` ||
+          ([action.dado] == `roll${x}` &&
+            state[`roll${x - 1}`]?.peste[0] &&
+            state[`roll${x + 1}`]?.peste[0])
+        )
+          //si el dado con peste no es el dado actual, o si lo fuera, que los adyacentes no tengan peste ambos
+          continue;
+        if (!state[`roll${x - 1}`]?.peste[0]) {
+          objetivo = `roll${x - 1}`;
+          break;
+        } else if (!state[`roll${x + 1}`]?.peste[0]) {
+          objetivo = `roll${x + 1}`;
+          break;
+        } else {
+          objetivo = `roll${x}`;
+        }
+      }
+
+      return {
+        ...state,
+        pesteIntensidad: state.pesteIntensidad + 1,
+        [action.dado]: { ...state[action.dado], peste: [true, 3] },
+        [objetivo]: { ...state[objetivo], peste: [true, 3] },
+        efectosPorSec: {
+          ...state.efectosPorSec,
+          veneno: state.efectosPorSec.veneno + danoPeste,
+          tickVeneno:
+            state.efectosPorSec.tickVeneno > 0
+              ? Math.floor(state.efectosPorSec.tickVeneno + 3 / 2)
+              : 3,
+        },
+      };
     case ACCIONES.TOGGLE_TURNO:
-      console.log(STATS_AUTOMATICO);
-      console.log(`length de actual arma: ${state.equipo.actual.arma.length}`);
-      console.log(`length de bolsa arma: ${state.equipo.bolsa.arma.length}`);
       const venenoTickTurno =
         state.efectosPorSec.veneno > 0 && state.efectosPorSec.tickVeneno > 0
           ? parseInt(
@@ -278,7 +296,7 @@ const reducer = (state, action) => {
         return {
           ...state,
           estadoTurno: false,
-          bonus: { ...state.bonus, dadosTemporales: 0 },
+          dados: { ...state.dados, dadosTemporales: 0 },
           personaje: {
             ...state.personaje,
             combo: 0,
@@ -308,11 +326,17 @@ const reducer = (state, action) => {
                 ? state.efectosPorSec.tickPsicosis - 1
                 : state.efectosPorSec.tickPsicosis,
           },
+          pesteIntensidad: 1,
           roll1: { ...state.roll1, numero: 0, estado: 1, lock: false },
           roll2: { ...state.roll2, numero: 0, estado: 1, lock: false },
           roll3: { ...state.roll3, numero: 0, estado: 1, lock: false },
           roll4: { ...state.roll4, numero: 0, estado: 1, lock: false },
           roll5: { ...state.roll5, numero: 0, estado: 1, lock: false },
+          roll6: { ...state.roll6, numero: 0, estado: 1, lock: false },
+          roll7: { ...state.roll7, numero: 0, estado: 1, lock: false },
+          roll8: { ...state.roll8, numero: 0, estado: 1, lock: false },
+          roll9: { ...state.roll9, numero: 0, estado: 1, lock: false },
+          roll10: { ...state.roll10, numero: 0, estado: 1, lock: false },
         };
       } else if (!state.estadoTurno) {
         const rejuInicioTurno =
@@ -362,8 +386,12 @@ const reducer = (state, action) => {
       }
     case ACCIONES.NUM_DADO:
       const valor = parseInt(action.valor);
-      return { ...state, numDado: state.numDado + valor };
+      return {
+        ...state,
+        dados: { ...state.dados, dadosAdd: state.dados.dadosAdd + valor },
+      };
     case ACCIONES.PODER_DADO:
+      if (state.casillero < 20) return { ...state };
       const nivel = state.nivelDado < 3 ? state.nivelDado + 1 : 1;
       let poder = 6;
       switch (nivel) {
@@ -380,12 +408,74 @@ const reducer = (state, action) => {
           break;
       }
       return { ...state, nivelDado: nivel, poderDado: poder };
+    case ACCIONES.HANDLE_NUMERO_DADOS:
+      const totalCantidadDados =
+        state.dados.dadosBase +
+        state.dados.dadoIra +
+        state.dados.dadosAdd +
+        state.dados.dadosTemporales +
+        state.dados.dadosPermanentes;
+
+      console.log(`se mete en el calculo de dados`);
+
+      return {
+        ...state,
+        dados: { ...state.dados, dadosTotales: totalCantidadDados },
+      };
+    /*case "correccion":
+          if (totalCantidadDados <= limite) return { ...state };
+
+          const secuenciaCorrectora = [
+            "dadosAdd",
+            "dadosTemporales",
+            "dadoIra",
+            "dadosPermanentes",
+          ];
+          let arrayValores = secuenciaCorrectora.map(
+            (elemento) => state.dados[elemento]
+          );
+
+          let diferencia = totalCantidadDados - limite;
+          //bucle corrector
+          for (let x = 0; x < secuenciaCorrectora.length; x++) {
+            if (arrayValores[x] < diferencia) {
+              diferencia = diferencia - arrayValores[x];
+              arrayValores[x] = 0;
+            } else {
+              arrayValores[x] = arrayValores[x] - diferencia;
+              break;
+            }
+          }
+          return {
+            ...state,
+            dados: {
+              ...state.dados,
+              [secuenciaCorrectora[0]]: arrayValores[0],
+              [secuenciaCorrectora[1]]: arrayValores[1],
+              [secuenciaCorrectora[2]]: arrayValores[2],
+              [secuenciaCorrectora[3]]: arrayValores[3],
+            },
+          };*/
+
+    //   default:
+    //     return { ...state };
+    // }
+
     case ACCIONES.PODER_DADO_CASILLERO:
+      //regula nivel, poder
       const casillero = state.casillero;
+      return {
+        ...state,
+        poderDado: casillero > 19 ? state.poderDado : casillero > 9 ? 12 : 6,
+        nivelDado: casillero > 19 ? state.nivelDado : casillero > 9 ? 2 : 1,
+        numDadoMaximo: casillero > 19 ? 10 : 5,
+      };
+
       return {
         ...state,
         poderDado: casillero > 19 ? 12 : casillero > 9 ? 12 : 6,
         nivelDado: casillero > 19 ? 2 : casillero > 9 ? 2 : 1,
+        numDadoMaximo: casillero > 19 ? 10 : 5,
       };
     case ACCIONES.LOCK:
       return { ...state };
@@ -407,14 +497,14 @@ const reducer = (state, action) => {
         };
       }
     case ACCIONES.NEGATIVO:
-      console.log("entra al negativo");
       return { ...state, algunNegativo: algunNegativo };
     case ACCIONES.ROLL_ALL:
-      let arrayNumero = [0, 0, 0, 0, 0];
+      let arrayNumero = [];
       const arrayPrimera = [0, 1, 3, 7];
       let numModificadorFinal = 1;
+      const numDado = numDadosValido;
 
-      for (let i = 0; i < state.numDado; i++) {
+      for (let i = 0; i < numDado; i++) {
         const aleatorioPrimero = randomNumber(arrayPrimera[state.nivelDado]);
         if (aleatorioPrimero > arrayPrimera[2]) {
           numModificadorFinal = 13;
@@ -423,11 +513,7 @@ const reducer = (state, action) => {
         } else {
           numModificadorFinal = 1;
         }
-        console.log(
-          `El primer aleatorio es ${aleatorioPrimero}, con base en ${
-            arrayPrimera[state.nivelDado]
-          }, numModificadorFinal = ${numModificadorFinal}`
-        );
+
         const primerModificador = aleatorioPrimero > 3 ? 8 : 6;
         let aleatorio =
           Math.floor(Math.random() * primerModificador) + numModificadorFinal;
@@ -457,17 +543,40 @@ const reducer = (state, action) => {
           arrayNumero[i] = aleatorio;
         }
       }
-      //console.clear();
+      //Peste
+      let arrayRollX = [];
+      let arrayPeste = [];
+
+      for (let x = 0; x < 10; x++) {
+        arrayRollX.push(`roll${x + 1}`);
+        const peste = state[arrayRollX[x]].peste[0];
+        const cargas = state[arrayRollX[x]].peste[1];
+        //podria prescindirse del boolean peste
+        if (peste && cargas > 1) {
+          arrayPeste.push([true, cargas - 1]);
+        } else {
+          arrayPeste.push([false, 0]);
+        }
+      }
 
       return {
         ...state,
         rollFlag: !state.rollFlag,
         accion: true,
-        roll1: { ...state.roll1, numero: arrayNumero[0] },
-        roll2: { ...state.roll2, numero: arrayNumero[1] },
-        roll3: { ...state.roll3, numero: arrayNumero[2] },
-        roll4: { ...state.roll4, numero: arrayNumero[3] },
-        roll5: { ...state.roll5, numero: arrayNumero[4] },
+        roll1: { ...state.roll1, numero: arrayNumero[0], peste: arrayPeste[0] },
+        roll2: { ...state.roll2, numero: arrayNumero[1], peste: arrayPeste[1] },
+        roll3: { ...state.roll3, numero: arrayNumero[2], peste: arrayPeste[2] },
+        roll4: { ...state.roll4, numero: arrayNumero[3], peste: arrayPeste[3] },
+        roll5: { ...state.roll5, numero: arrayNumero[4], peste: arrayPeste[4] },
+        roll6: { ...state.roll6, numero: arrayNumero[5], peste: arrayPeste[5] },
+        roll7: { ...state.roll7, numero: arrayNumero[6], peste: arrayPeste[6] },
+        roll8: { ...state.roll8, numero: arrayNumero[7], peste: arrayPeste[7] },
+        roll9: { ...state.roll9, numero: arrayNumero[8], peste: arrayPeste[8] },
+        roll10: {
+          ...state.roll10,
+          numero: arrayNumero[9],
+          peste: arrayPeste[9],
+        },
         personaje: {
           ...state.personaje,
           energia: P.energia - 1,
@@ -528,6 +637,11 @@ const reducer = (state, action) => {
         roll3: { ...state.roll3, estado: arrayEspecial[2] },
         roll4: { ...state.roll4, estado: arrayEspecial[3] },
         roll5: { ...state.roll5, estado: arrayEspecial[4] },
+        roll6: { ...state.roll6, estado: arrayEspecial[5] },
+        roll7: { ...state.roll7, estado: arrayEspecial[6] },
+        roll8: { ...state.roll8, estado: arrayEspecial[7] },
+        roll9: { ...state.roll9, estado: arrayEspecial[8] },
+        roll10: { ...state.roll10, estado: arrayEspecial[9] },
       };
     case ACCIONES.MODO_DADO:
       return {
@@ -578,7 +692,6 @@ const reducer = (state, action) => {
           },
         };
       } else if (action.fase == "golpe") {
-        console.log(`entra a psicosis sin que se lo pidan`);
         const vidaFinalPsicosis = calcularHealing(
           -action.retroceso * state.efectosPorSec.psicosis,
           FUNCIONES.CURACION
@@ -594,7 +707,6 @@ const reducer = (state, action) => {
       switch (tipo) {
         case 1:
           //hemo
-          console.log(`recibido hemo`);
           return {
             ...state,
             efectosPorSec: {
@@ -636,7 +748,6 @@ const reducer = (state, action) => {
             },
           };
         case 3:
-          console.log(`recibido rej`);
           //rej
           return {
             ...state,
@@ -655,7 +766,6 @@ const reducer = (state, action) => {
       }
       return { ...state };
     case ACCIONES.PORCENTAJE_VIDA:
-      console.log(`Nuevo porcentaje = ${(P.vida / P.vidaMaxima) * 100}% `);
       return {
         ...state,
         porcentajeVida: Math.floor((P.vida / P.vidaMaxima) * 100),
@@ -773,14 +883,11 @@ const reducer = (state, action) => {
         },
       };
     case ACCIONES.IRA_DADOS:
-      const totalDados = P.ira + state.dadoExtra + 2;
+      const totalDadosIra = P.ira;
 
-      if (state.numeroSpec == 2) {
-        console.log(`Entra a ira y se ha seleciconado warrior protec`);
-      }
       return {
         ...state,
-        numDado: totalDados > 5 ? 5 : totalDados,
+        dados: { ...state.dados, dadoIra: totalDadosIra },
       };
     case ACCIONES.CALCULAR_STATS:
       //DEFENSA
@@ -1169,19 +1276,17 @@ const reducer = (state, action) => {
                   },
                 };
               case 8:
-                const cantidadTotalDados =
-                  state.numDado +
-                  state.bonus.dadosTemporales +
-                  state.bonus.dadosPermanentes;
+                const cantidadTotalDados = state.dados.dadosTotales;
+                console.log(`Se mete en el 8`);
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
-                  bonus: {
-                    ...state.bonus,
+                  dados: {
+                    ...state.dados,
                     dadosTemporales:
-                      cantidadTotalDados < 5
-                        ? state.bonus.dadosTemporales + 1
-                        : state.bonus.dadosTemporales,
+                      cantidadTotalDados < state.numDadoMaximo
+                        ? state.dados.dadosTemporales + 1
+                        : state.dados.dadosTemporales,
                   },
 
                   personaje: {
@@ -1344,6 +1449,17 @@ const reducer = (state, action) => {
                   default:
                     return { ...state };
                 }
+              case 13:
+                //peste
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  [action.dado]: {
+                    ...state[action.dado],
+                    estado: 0,
+                    peste: [true, 3],
+                  },
+                };
               default:
                 return { ...state };
             }

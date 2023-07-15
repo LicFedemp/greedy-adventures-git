@@ -1,5 +1,5 @@
 import { useGeneralContext } from "./Provider";
-import { ACCIONES } from "./MainReducer";
+import { ACCIONES, A } from "./Objetos/Acciones";
 import { useRef, useState, useEffect, useReducer } from "react";
 import "../StyleSheets/Heading.css";
 import "../StyleSheets/Desplegable.css";

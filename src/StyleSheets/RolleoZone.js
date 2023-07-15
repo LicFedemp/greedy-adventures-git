@@ -6,9 +6,9 @@ export function RolleoZone() {
   const { state, dispatch } = useGeneralContext();
   const renderRolleo = () => {
     const numRolleos =
-      state.numDado +
-      state.bonus.dadosTemporales +
-      state.bonus.dadosPermanentes;
+      state.dados.dadosTotales > state.numDadoMaximo
+        ? state.numDadoMaximo
+        : state.dados.dadosTotales;
     const rolleos = Array.from({ length: numRolleos }, (_, index) => (
       <Rolleo key={index} dado={`roll${index + 1}`} />
     ));
