@@ -1,3 +1,13 @@
+.div-center-main{
+  border-bottom: 3px groove black;
+  max-height: 200px;
+padding-top: 5px;
+max-width: 890px;
+box-shadow: 0px 0px 5px 3px black;
+}
+.div-seccion-izq{
+  border-right: 2px groove black;
+}
 .btn-largo{
   width: 60px;
 }
@@ -10,8 +20,12 @@
   margin:0px 5px 0px 5px ;
   justify-content: space-evenly;
   min-width: 300px;
+  border-right: 2px groove black;
+
 }
 .div-stats-generales{
+  position: relative;
+  right: 25px;
   min-width: 300px;
   color: white;
   max-height: 100px;
@@ -19,7 +33,12 @@
   font-size: 14px;
   justify-content: space-around;
 }
+.div-habilidad{
+  border-top: 2px groove black;
+
+}
 .btn-habilidad{
+  border-radius: 13px;
   min-height: 80px;
   font-size: 20px;
   font-weight: 6  00;
@@ -41,6 +60,7 @@
 .life-bar {
   position: relative;
   left: 5%;
+  top:5px;
   width: 265px;
   max-height: 30px;
   border: 3px solid #000;
@@ -127,6 +147,24 @@ color: green;}
 .btn-mod{
     min-height: 75px;
 }
+.btn-roll{
+  position: relative;
+  top: 5px;
+  min-height: 60px;
+  border-radius: 50%;
+  background-color: white;
+  color: #e20303;
+  font-weight: 800;
+  transition: background-color 0.3s ease-in, color 0.3s ease-in;
+  
+}
+
+.btn-roll:hover{
+  transition: background-color 0.3s ease, box-shadow 0.3 ease,color 0,3s ease ;
+  background-color: #b60000;
+  color: white;
+
+}
 
 
 
@@ -138,10 +176,20 @@ text-align:start;
 
   .div-recurso-secundario{
     position: relative;
+    top: 10px;
     justify-content: space-evenly;
     align-items: center;
     flex-direction: row;
   }
+  .div-contenedor-energia{
+    position: relative;
+    
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: row;
+  }
+
+  
   .div-ira{
     min-height: 30px;
     width: 30px;
@@ -190,7 +238,7 @@ justify-content: space-around;}
 
 .select-equipo{
   min-height: 30px;
-  width: 150px;
+  width: 130px;
   border-radius: 5px;
   text-align:center ;
 }

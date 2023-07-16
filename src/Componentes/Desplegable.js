@@ -198,7 +198,7 @@ export function Desplegable() {
   };
   const vampirismoClick = () => {
     dispatch({
-      type: ACCIONES.STATS.MOD_VIDA,
+      type: A.STATS.MOD_VIDA,
       valor: -localState.ataqueResultado[2],
     });
   };
@@ -249,7 +249,7 @@ export function Desplegable() {
     }
   };
   const toggleDesplegable = () => {
-    dispatch({ type: ACCIONES.DESPLEGABLE });
+    dispatch({ type: A.GRAL.DESPLEGABLE });
   };
   const toggleMod = (direccion, modo) => {
     const modosArray = ["Recibir", "DPS", "Ataque", "Psicosis", "Casillero"];
@@ -286,7 +286,7 @@ export function Desplegable() {
         }
       }
     } else {
-      dispatch({ type: ACCIONES.MOD_DESPLEGABLE, direccion });
+      dispatch({ type: A.GRAL.MOD_DESPLEGABLE, direccion });
     }
     //setMod(!mod);
   };
@@ -303,8 +303,8 @@ export function Desplegable() {
         dispatch({
           type:
             variable == "casilleroMod"
-              ? ACCIONES.MOD_CASILLERO
-              : ACCIONES.STATS.MOD_VIDA,
+              ? A.GRAL.MOD_CASILLERO
+              : A.STATS.MOD_VIDA,
           valor: localState[variable],
         });
         localDispatch({
@@ -320,7 +320,7 @@ export function Desplegable() {
         break;
       case TIPO_DESPLEGABLE.PSICOSIS:
         dispatch({
-          type: ACCIONES.PSICOSIS,
+          type: A.BUFF.PSICOSIS,
           fase: "carga",
           poder: localState.psicosis,
         });
@@ -332,7 +332,7 @@ export function Desplegable() {
 
   const activarDPS = () => {
     dispatch({
-      type: ACCIONES.EFECTOS_PS,
+      type: A.BUFF.EFECTOS_PS,
       tipo: localState.dpsMod,
       valor: localState.vidaMod,
       ticks: localState.ticks,
@@ -454,7 +454,7 @@ export function Desplegable() {
                   </p>
                 </button>
               );
-            } else if (localState.dpsMod == 2) {
+            } else if (localState.dpsMod == 2 || localState.dpsMod == 3) {
               return (
                 <button
                   ref={defensaRef}

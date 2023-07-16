@@ -16,13 +16,12 @@ export function ContextProvider({ children }) {
   useEffect(() => {
     if (firstRender) {
       setFirstRender(false);
-      dispatch({ type: ACCIONES.HANDLE_NUMERO_DADOS });
+      dispatch({ type: A.DADO.HANDLE_NUMERO_DADOS });
     }
   }, [firstRender]);
 
   useEffect(() => {
-    dispatch({ type: ACCIONES.HANDLE_NUMERO_DADOS, tipo: "normal" });
-    console.log(`activa el use effect dados`);
+    dispatch({ type: A.DADO.HANDLE_NUMERO_DADOS, tipo: "normal" });
   }, [
     state.dados.dadosBase,
     state.dados.dadoIra,
@@ -56,23 +55,28 @@ export function ContextProvider({ children }) {
         }
       }
       console.log("El valor coincidente es: " + valorCoincidente);
-      dispatch({ type: ACCIONES.ESPECIAL, arrayBase: array, valorCoincidente });
-      dispatch({ type: ACCIONES.NEGATIVO });
+      dispatch({ type: A.DADO.ESPECIAL, arrayBase: array, valorCoincidente });
+      dispatch({ type: A.DADO.NEGATIVO });
     }
   }, [state.rollFlag]);
 
   useEffect(() => {
     dispatch({
-      type: ACCIONES.SELECCION_PERSONAJE,
+      type: A.GRAL.SELECCION_PERSONAJE,
       caso: "personaje",
       valor: state.numeroClase + state.numeroSpec,
     });
-  }, [state.numeroClase, state.numeroSpec]);
+  }, [state.numeroClase, state.numeroSpec, state.muerteContador]);
+
+  useEffect(() => {
+    if (state.personaje.vida > 0 && state.corruptos.length < 19) return;
+    dispatch({ type: A.STATS.MUERTE });
+  }, [state.personaje.vida, state.corruptos]);
 
   useEffect(() => {
     if (state.personaje.energia > state.personaje.energiaMax) {
       dispatch({
-        type: ACCIONES.STATS.EXCESO_ENERGIA,
+        type: A.STATS.EXCESO_ENERGIA,
         caso: "exceso",
         valor: parseInt(
           Math.floor((state.personaje.energia - state.personaje.energiaMax) / 2)
@@ -83,11 +87,11 @@ export function ContextProvider({ children }) {
 
   useEffect(() => {
     if (state.numeroClase == 100) {
-      dispatch({ type: ACCIONES.IRA_DADOS });
+      dispatch({ type: A.STATS.IRA_DADOS });
     }
   }, [state.personaje.ira]);
   useEffect(() => {
-    dispatch({ type: ACCIONES.HANDLE_NUMERO_DADOS });
+    dispatch({ type: A.DADO.HANDLE_NUMERO_DADOS });
   }, [
     state.dados.dadoIra,
     state.dados.dadosAdd,
@@ -96,7 +100,7 @@ export function ContextProvider({ children }) {
     state.casillero,
   ]);
   useEffect(() => {
-    dispatch({ type: ACCIONES.CALCULAR_STATS });
+    dispatch({ type: A.STATS.CALCULAR_STATS });
   }, [
     state.personaje.ataqueBase,
     state.personaje.defensaBase,
@@ -114,7 +118,7 @@ export function ContextProvider({ children }) {
 
   useEffect(() => {
     dispatch({
-      type: ACCIONES.PORCENTAJE_VIDA,
+      type: A.STATS.PORCENTAJE_VIDA,
     });
 
     if (
@@ -122,7 +126,7 @@ export function ContextProvider({ children }) {
       state.efectosPorSec.tickPsicosis > 0
     ) {
       dispatch({
-        type: ACCIONES.PSICOSIS,
+        type: A.BUFF.PSICOSIS,
         fase: "golpe",
         retroceso: prevCasillero.current - state.casillero,
       });
@@ -133,12 +137,12 @@ export function ContextProvider({ children }) {
     ) {
       console.log(`entra al condicional de casillero previo mayor`);
       dispatch({
-        type: ACCIONES.HANDLE_IRA,
+        type: A.STATS.HANDLE_IRA,
       });
     }
     prevCasillero.current = state.casillero;
     prevVida.current = state.personaje.vida;
-    dispatch({ type: ACCIONES.PODER_DADO_CASILLERO });
+    dispatch({ type: A.DADO.PODER_DADO_CASILLERO });
   }, [state.personaje.vida, state.personaje.vidaBase, state.casillero]);
 
   return (

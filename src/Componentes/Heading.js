@@ -11,7 +11,7 @@ export function Heading() {
 
   const handleRoll = () => {
     if (state.personaje.energia > 0 && state.estadoTurno) {
-      dispatch({ type: ACCIONES.ROLL_ALL });
+      dispatch({ type: A.DADO.ROLL_ALL });
     }
   };
 
@@ -22,7 +22,7 @@ export function Heading() {
       switch (ref) {
         case numDadoRef:
           if (state.dados.dadosTotales < state.numDadoMaximo) {
-            dispatch({ type: ACCIONES.NUM_DADO, valor: 1 });
+            dispatch({ type: A.DADO.NUM_DADO, valor: 1 });
           }
           break;
       }
@@ -30,15 +30,22 @@ export function Heading() {
       switch (ref) {
         case numDadoRef:
           if (variable > 0) {
-            dispatch({ type: ACCIONES.NUM_DADO, valor: -1 });
+            dispatch({ type: A.DADO.NUM_DADO, valor: -1 });
           }
           break;
       }
     }
   };
   const handleNivelDado = () => {
-    if (state.estadoTurno) return;
-    dispatch({ type: ACCIONES.PODER_DADO });
+    if (state.casillero < 20) {
+      window.alert(`Todavía sos muy pequeñete para elegir`);
+      return;
+    }
+    if (state.estadoTurno) {
+      window.alert(`No puedes cambiar el dado durante tu turno`);
+      return;
+    }
+    dispatch({ type: A.DADO.PODER_DADO });
   };
 
   const activarHabilidad = () => {
@@ -48,13 +55,13 @@ export function Heading() {
         state.personaje.ira * 0.1 * state.personaje.vidaMaxima;
 
       dispatch({
-        type: ACCIONES.EFECTOS_PS,
+        type: A.BUFF.EFECTOS_PS,
         tipo: 3,
         valor: -totalRejuIra,
         ticks: 3,
       });
     }
-    dispatch({ type: ACCIONES.ACTIVAR_SKILL, personaje });
+    dispatch({ type: A.STATS.ACTIVAR_SKILL, personaje });
   };
   const recursoSecundario = (recurso) => {
     if (recurso == "secundario") {
@@ -153,7 +160,7 @@ export function Heading() {
         </p>
       ));
       return (
-        <div className="div-recurso-secundario">
+        <div className="div-contenedor-energia">
           <p className="p-recursoSec">Energia</p> {recursoEnergia}
         </div>
       );
@@ -192,13 +199,13 @@ export function Heading() {
             style={{ boxShadow: `${buttonStyles.mago.boxShadow}` }}
           >
             {`Avanzas 
-            ${Math.floor(
-              state.personaje.mana +
-                Math.floor(
-                  state.personaje.mana * (state.personaje.maleficio / 200)
-                )
-            )}
-             casilleros`}
+          ${Math.floor(
+            state.personaje.mana +
+              Math.floor(
+                state.personaje.mana * (state.personaje.maleficio / 200)
+              )
+          )}
+           casilleros`}
           </button>
         );
       case 402:
@@ -276,7 +283,7 @@ export function Heading() {
     }
   };
   const toggleTurno = () => {
-    dispatch({ type: ACCIONES.TOGGLE_TURNO });
+    dispatch({ type: A.GRAL.TOGGLE_TURNO });
   };
   const updateLifeBar = () => {
     const lifeBar = document.querySelector(".life-bar-fill");
@@ -340,7 +347,7 @@ export function Heading() {
     const selectedOption = event.target.options[event.target.selectedIndex];
     const indice = selectedOption.getAttribute("indice");
     console.log("Valor del parámetro 'indice':", indice);
-    dispatch({ type: ACCIONES.MODIFICAR_EQUIPO, tipo, indice });
+    dispatch({ type: A.STATS.MODIFICAR_EQUIPO, tipo, indice });
   };
 
   const pintarStats = (stat) => {
@@ -398,40 +405,43 @@ export function Heading() {
   }, [cambioVida]);
 
   return (
-    <div className="div-roll">
-      <div className="div-columna">
+    <div className=" div-center-main">
+      <div className="div-seccion-izq">
+        <div className="div-columna ">
+          <button
+            onClick={toggleTurno}
+            className={state.estadoTurno ? `estado-amarillo` : `estado-gris`}
+          >
+            Turno
+          </button>
+          <button
+            className={`btn-mod`}
+            ref={nivelDadoRef}
+            onClick={handleNivelDado}
+          >
+            {`D${state.poderDado}`}
+          </button>
+          <button onClick={handleRoll} className={`btn-roll`}>
+            Roll
+          </button>
+        </div>
+
         <button
-          onClick={toggleTurno}
-          className={state.estadoTurno ? `estado-amarillo` : `estado-gris`}
+          className={`btn-largo`}
+          ref={numDadoRef}
+          onClick={(event) =>
+            handleClick(event, numDadoRef, state.dados.dadosAdd)
+          }
         >
-          Turno
-        </button>
-        <button
-          className={`btn-mod`}
-          ref={nivelDadoRef}
-          onClick={handleNivelDado}
-        >
-          {`D${state.poderDado}`}
-        </button>
-        <button onClick={handleRoll} className={`btn-mod`}>
-          Rollear
+          <p>#Dados</p>
+          <p>
+            {state.dados.dadosTotales > state.numDadoMaximo
+              ? state.numDadoMaximo
+              : state.dados.dadosTotales}
+          </p>
         </button>
       </div>
 
-      <button
-        className={`btn-largo`}
-        ref={numDadoRef}
-        onClick={(event) =>
-          handleClick(event, numDadoRef, state.dados.dadosAdd)
-        }
-      >
-        <p>#Dados</p>
-        <p>
-          {state.dados.dadosTotales > state.numDadoMaximo
-            ? state.numDadoMaximo
-            : state.dados.dadosTotales}
-        </p>
-      </button>
       <div className={`div-columna div-stats-principal `}>
         <div
           className={`life-bar ${
@@ -496,7 +506,7 @@ export function Heading() {
             </li>
           </ul>
         </div>
-        {activaMana()}
+        <div className="div-habilidad">{activaMana()}</div>
       </div>
       <div className={`div-equipo div-columna`}>
         <select

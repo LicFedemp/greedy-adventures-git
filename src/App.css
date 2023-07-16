@@ -4,11 +4,10 @@ body, html{
 div{
     display: flex;
     align-items: stretch;
-    border: 1px dotted rgba(255, 255, 255, 0.342);
+    /* border: 1px dotted rgba(255, 255, 255, 0.342); */
     flex: 1;
 }
 button{
-    transition: background-color 0.3s, box-shadow 0.3 ;
     cursor: pointer;
 }
 li{

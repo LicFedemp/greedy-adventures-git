@@ -3,6 +3,7 @@ import { ACCIONES, A } from "./Objetos/Acciones";
 import { DADOS } from "./Objetos/Dados";
 import "../StyleSheets/Rolleo.css";
 import { useEffect } from "react";
+import { GiBrokenSkull, GiPlagueDoctorProfile } from "react-icons/gi";
 
 //descripcion aca.
 export function Rolleo(props) {
@@ -43,18 +44,33 @@ export function Rolleo(props) {
         break;
     }
     if (state[props.dado].peste[1] > 0) {
-      dispatch({ type: ACCIONES.CONTAGIO_PESTE, dado: [props.dado] });
+      dispatch({ type: A.BUFF.CONTAGIO_PESTE, dado: [props.dado] });
+    }
+    if (
+      state.poderDado == 20 &&
+      state.corruptos.includes(n) &&
+      !state.dadosObligados.includes(n)
+    ) {
+      dispatch({
+        type: A.DADO.ACTIVACION_DADO,
+        n: 13,
+        modo: false,
+        dado: [props.dado],
+        gastoEnergia: 0,
+        accion: "contagio",
+      });
     }
 
     dispatch({
-      type: ACCIONES.ACTIVACION_DADO,
+      type: A.DADO.ACTIVACION_DADO,
       n,
       modo,
       dado: [props.dado],
       gastoEnergia,
     });
+
     if (n == 3 && modo) {
-      dispatch({ type: ACCIONES.TOGGLE_TURNO });
+      dispatch({ type: A.GRAL.TOGGLE_TURNO });
     }
     const obligados = state.dadosObligados.includes(n);
     if (
@@ -63,11 +79,11 @@ export function Rolleo(props) {
       estadoActual != 0 &&
       gastoEnergia <= state.personaje.energia
     ) {
-      dispatch({ type: ACCIONES.EFECTOS_PS, tipo: "hemoAccion" });
+      dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "hemoAccion" });
     }
   };
   const toggleDado = () => {
-    dispatch({ type: ACCIONES.MODO_DADO, dado: [props.dado] });
+    dispatch({ type: A.DADO.MODO_DADO, dado: [props.dado] });
   };
   const calcularNuevoClari = (variable) => {
     const chanceClari = state.efectosPorSec.chanceClari;
@@ -107,7 +123,7 @@ export function Rolleo(props) {
         case 201:
           return `Golpe en los riñones`;
         case 202:
-          return `Esfumarse`;
+          return `Esfumarse: +30% esquivar`;
         case 301:
         case 302:
           return `Psicosis`;
@@ -170,7 +186,9 @@ export function Rolleo(props) {
         case 12:
           return ` ${cartaSkill(1)}`;
         case 13:
-          return `Peste`;
+          return DADOS.D13.A.DECRIPCION;
+        case 17:
+          return DADOS.D17.A.DECRIPCION;
       }
     } else if (!state[props.dado].modo) {
       switch (n) {
@@ -186,9 +204,7 @@ export function Rolleo(props) {
             danoRecibido <= 0 ? `0 ` : danoRecibido
           } puntos de dano`;
         case 3:
-          return `Recibe ${
-            state.personaje.defensa < 50 ? 50 - state.personaje.defensa : 0
-          } puntos de daño`;
+          return DADOS.D3.B.DECRIPCION;
         case 4:
           return DADOS.D4.B.DECRIPCION;
         case 5:
@@ -218,6 +234,11 @@ export function Rolleo(props) {
           }`;
         case 12:
           return ` ${cartaSkill(1)}`;
+
+        case 13:
+          return `Corrupcion: corrompe 1 Num. Esparcible mientras utilices D20. `;
+        case 17:
+          return DADOS.D17.B.DECRIPCION;
       }
     }
   };
@@ -248,12 +269,6 @@ export function Rolleo(props) {
       case 13:
       case 17:
         return `estado-violeta`;
-      case 3:
-        if (state[props.dado].modo) {
-          return `estado-marron`;
-        } else if (!state[props.dado].modo) {
-          return `estado-violeta`;
-        }
       // VERDE
       case 5:
         if (state[props.dado].modo) {
@@ -268,6 +283,7 @@ export function Rolleo(props) {
           return `estado-naranja`;
         }
       case 15:
+      case 3:
         return `estado-verde`;
       //NARANJA
       case 6:
@@ -307,7 +323,11 @@ export function Rolleo(props) {
       <div className={`div-dado-superior`}>
         <p className={`p-dado-superior`}>
           {" "}
-          {state[props.dado].peste[1] > 0 ? state[props.dado].peste[1] : " "}
+          {state[props.dado].peste[1] > 0 ? (
+            state[props.dado].peste[1]
+          ) : (
+            <GiPlagueDoctorProfile className={`plaga-inactiva`} />
+          )}
         </p>
         {}
         <button
@@ -318,7 +338,12 @@ export function Rolleo(props) {
         </button>
         <p className={`p-dado-superior`}>
           {" "}
-          {state[props.dado].peste[1] > 0 ? state[props.dado].peste[1] : " "}
+          {state.corruptos.includes(state[props.dado].numero) &&
+          state.poderDado == 20 ? (
+            <GiBrokenSkull className={`corrupcion-activa`} />
+          ) : (
+            <GiBrokenSkull className={`corrupcion-inactiva`} />
+          )}
         </p>
       </div>
       <button className={`btn-dado ${colorDado()}`} onClick={toggleDado}>

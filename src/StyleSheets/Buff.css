@@ -1,6 +1,13 @@
-.div-seleccion-personaje{
+.div-buff-main{
+    align-items: center;
+    justify-content: left;
+    margin-top: 10px;
+    /* margin-bottom: 10px; */
+    padding-bottom: 5px;
+    max-height: 60px;
+    max-width: 880px;
     border-bottom: 3px groove rgb(0, 0, 0);
-    box-shadow: 0px 0px 5px 3px black;
+    border-right: 1px groove black;
 }
 .div-casillero{
     margin-left: 10px;
@@ -11,26 +18,10 @@
     color: rgb(255, 220, 20);
     text-shadow: 0px 0px 5px rgb(255, 220, 20) ;
 }
-.select-personaje{
-    width: 150px;
-    margin-right: 10px;
-    text-align: center;
-}
-.btn-100w{
-    width: 100px;
-    height: 45px;
-    
-}
-
-.option-personaje{
-    justify-content: center;
-    align-items: center;
-}
-
 .div-efectosps-general{
-    justify-content:center;
-    align-items:normal;
-    max-width: 350px;
+    justify-content:left;
+    align-items:center;
+    max-width: 500px;
     margin-left: 5px;
 }
 
@@ -46,9 +37,15 @@
 
 }
 .div-efectops {
+    border: 1px solid rgba(63, 63, 63, 0.699);
+    border-radius: 25%;
+    margin: 10px;
+    padding: 2px;
     justify-content: center;
     align-items: center;
     margin-left: 0px;
+    max-height: 50px;
+    max-width: 80px;
 }
 .reju-icon{
     position: relative;

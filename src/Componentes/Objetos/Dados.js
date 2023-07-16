@@ -8,8 +8,15 @@ export const DADOS = {
     B: { EFECTO: "DB2", DECRIPCION: "Recibe 10 daño" },
   },
   D3: {
-    A: { EFECTO: "DA3", DECRIPCION: "Camino sin salida (pierdes el turno) " },
-    B: { EFECTO: "DB3", DECRIPCION: "" },
+    A: {
+      EFECTO: "DA3",
+      DECRIPCION: "+1 dado temporal ",
+      DECRIPCION: "Pierdes el turno, +2 dados temporales en el proximo turno ",
+    },
+    B: {
+      EFECTO: "DB3",
+      DECRIPCION: "+1 dado temporal ",
+    },
   },
   D4: {
     A: { EFECTO: "DA4", DECRIPCION: "Lanza D4, avanza el resultado" },
@@ -71,8 +78,15 @@ export const DADOS = {
   },
 
   D13: {
-    A: { EFECTO: "DA13", DECRIPCION: "" },
-    B: { EFECTO: "DB13", DECRIPCION: "" },
+    A: {
+      EFECTO: "DA13",
+      DECRIPCION:
+        " Peste: activar dados con peste la contagia a otros dados y te envenena",
+    },
+    B: {
+      EFECTO: "DB13",
+      DECRIPCION: " ",
+    },
   },
   D14: {
     A: { EFECTO: "DA14", DECRIPCION: "" },
@@ -87,8 +101,11 @@ export const DADOS = {
     B: { EFECTO: "DB16", DECRIPCION: "" },
   },
   D17: {
-    A: { EFECTO: "DA17", DECRIPCION: "" },
-    B: { EFECTO: "DB17", DECRIPCION: "" },
+    A: {
+      EFECTO: "DA17",
+      DECRIPCION: "Confusion: activaciones impredecibles por 1 turno",
+    },
+    B: { EFECTO: "DB17", DECRIPCION: "Desgaste: -3 a todos los stats" },
   },
   D18: {
     A: { EFECTO: "DA18", DECRIPCION: "" },

@@ -15,5 +15,9 @@ export function RolleoZone() {
     return rolleos;
   };
 
-  return <div className="div-roll-zone">{renderRolleo()}</div>;
+  return (
+    <div className="div-roll-zone">
+      <div className=" div-roll-zone-secundario">{renderRolleo()}</div>
+    </div>
+  );
 }

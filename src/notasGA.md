@@ -90,3 +90,42 @@ className={`btn-superiores ${
           }`} >
 Lock
 </button>
+
+    /*case "correccion":
+          if (totalCantidadDados <= limite) return { ...state };
+
+          const secuenciaCorrectora = [
+            "dadosAdd",
+            "dadosTemporales",
+            "dadoIra",
+            "dadosPermanentes",
+          ];
+          let arrayValores = secuenciaCorrectora.map(
+            (elemento) => state.dados[elemento]
+          );
+
+          let diferencia = totalCantidadDados - limite;
+          //bucle corrector
+          for (let x = 0; x < secuenciaCorrectora.length; x++) {
+            if (arrayValores[x] < diferencia) {
+              diferencia = diferencia - arrayValores[x];
+              arrayValores[x] = 0;
+            } else {
+              arrayValores[x] = arrayValores[x] - diferencia;
+              break;
+            }
+          }
+          return {
+            ...state,
+            dados: {
+              ...state.dados,
+              [secuenciaCorrectora[0]]: arrayValores[0],
+              [secuenciaCorrectora[1]]: arrayValores[1],
+              [secuenciaCorrectora[2]]: arrayValores[2],
+              [secuenciaCorrectora[3]]: arrayValores[3],
+            },
+          };*/
+
+    //   default:
+    //     return { ...state };
+    // }
