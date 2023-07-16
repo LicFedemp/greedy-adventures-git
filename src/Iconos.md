@@ -6,10 +6,12 @@ abs pala: GiAbstract108
 abs warlok:GiAlienBug
 ank healer:GiAnkh
 acido: GiAcid
+poison: GiPoisonGas
 angel: GiAngelOutfit//GiAngelWings
 armor up:GiArmorUpgrade
 armordown: GiArmorDowngrade
 broken skull: GiBrokenSkull
+skull facha: GiDisintegrate
 bolt:
 healing: GiHealing
 robe: GiRobe
