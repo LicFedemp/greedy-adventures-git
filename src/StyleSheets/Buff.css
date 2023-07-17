@@ -53,6 +53,16 @@
     bottom: -10px;
     font-size: 20px;
 }
+.confusion-icon{
+    position: relative;
+    left: 9px;
+    font-size: 20px;
+    
+}
+.efecto-CONFUSION p{
+    color: coral;
+
+}
 .efecto-HEMO p{
     color: rgba(255, 0, 0, 0.89);
 }

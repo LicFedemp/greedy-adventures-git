@@ -28,6 +28,7 @@ export const A = {
     PSICOSIS: "psicosis",
     CONTAGIO_PESTE: "peste",
     CORRUPCION: "corrupcion",
+    CONFUSION: "confusion",
   },
   GRAL: {
     SELECCION_PERSONAJE: "seleccion-personaje",

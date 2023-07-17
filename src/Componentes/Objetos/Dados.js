@@ -1,7 +1,7 @@
 export const DADOS = {
   D1: {
-    A: { EFECTO: "DA1", DECRIPCION: "Avanza 1" },
-    B: { EFECTO: "DB1", DECRIPCION: "Inflige daño x1" },
+    A: { EFECTO: "DA1", DECRIPCION: "Avanzas casilleros" },
+    B: { EFECTO: "DB1", DECRIPCION: "Infliges daño x1" },
   },
   D2: {
     A: { EFECTO: "DA2", DECRIPCION: "Retrocede 1" },
@@ -19,12 +19,15 @@ export const DADOS = {
     },
   },
   D4: {
-    A: { EFECTO: "DA4", DECRIPCION: "Lanza D4, avanza el resultado" },
+    A: {
+      EFECTO: "DA4",
+      DECRIPCION: "Lanza D4, avanzas el resultado (potenciado x ataque)",
+    },
     B: { EFECTO: "DB4", DECRIPCION: "Drop lvl1" },
   },
   D5: {
-    A: { EFECTO: "DA5", DECRIPCION: "+2 Energia" },
-    B: { EFECTO: "DB5", DECRIPCION: `Te curas ${`state.personaje.curacion`}` },
+    A: { EFECTO: "DA5", DECRIPCION: "+Energia" },
+    B: { EFECTO: "DB5", DECRIPCION: `Te curas vida` },
   },
   D6: {
     A: {

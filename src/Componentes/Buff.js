@@ -70,9 +70,9 @@ export function Buff(params) {
           P2: `xT`,
         },
         CONFUSION: {
-          ICONO: <FaQuestion />,
+          ICONO: <FaQuestion className="confusion-icon" />,
           P1: null,
-          P2: null,
+          P2: "Confundido",
         },
       },
     };

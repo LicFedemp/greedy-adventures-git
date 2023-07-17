@@ -3,6 +3,7 @@ import { STATS_AUTOMATICO } from "./Objetos/Personajes";
 import { efectosPSec } from "./Objetos/EfectosPS";
 import { EQUIPO, arrayEquipo } from "./Objetos/Equipo";
 import { ACCIONES, A } from "./Objetos/Acciones";
+import { DADOS } from "./Objetos/Dados";
 const estadoRoll = {
   numero: 0,
   modo: true,
@@ -54,6 +55,7 @@ const estadoInicial = {
     vida: 0,
     blindado: false,
     esfumarse: false,
+    campoFuerza: false,
   },
   porcentajeVida: 100,
   regeneracion: 0,
@@ -93,6 +95,7 @@ const estadoInicial = {
   corrupcionFlag: false,
   pesteIntensidad: 1,
   confusion: false,
+  alertConfusion: [1, true],
 };
 const randomNumber = (numeroMaximo) => {
   const random = Math.floor(Math.random() * numeroMaximo) + 1;
@@ -139,6 +142,7 @@ const reducer = (state, action) => {
     state.dados.dadosTotales > state.numDadoMaximo
       ? state.numDadoMaximo
       : state.dados.dadosTotales;
+
   const calcularHealing = (cambio, funcion) => {
     const curacion = P.vida + cambio;
     const overhealing = curacion > P.vidaMaxima ? true : false;
@@ -151,6 +155,21 @@ const reducer = (state, action) => {
         return;
     }
   };
+
+  const calcularDano = (dano, critico, bonusCrit) => {
+    const danoBase = critico ? dano * bonusCrit : dano;
+    const defensa = window.prompt(
+      `Infliges ${danoBase} puntos de dano ${
+        critico ? `con un ataque critico!` : `.`
+      } Cuanta defensa tiene tu objetivo? Cancela si el ataque fue esquivado o bloqueado.`
+    );
+    const danoEfectivo = defensa < danoBase ? Math.floor(dano - defensa) : 0;
+    const vampirismo = danoEfectivo * P.vampirismo * 0.01;
+    const arrayRetorno = [danoEfectivo, vampirismo];
+
+    return arrayRetorno;
+  };
+
   const nuevoArrayCorrupcion = () => {
     let arrayFaltantes = [];
     for (let x = 1; x <= 20; x++) {
@@ -422,7 +441,12 @@ const reducer = (state, action) => {
                 ? state.efectosPorSec.tickReju - 1
                 : 0,
           },
-          bonus: { ...state.bonus, blindado: false, esfumarse: false },
+          bonus: {
+            ...state.bonus,
+            blindado: false,
+            esfumarse: false,
+            campoFuerza: false,
+          },
         };
       }
     case A.DADO.NUM_DADO:
@@ -694,6 +718,11 @@ const reducer = (state, action) => {
         };
       }
       return { ...state };
+    case A.BUFF.CONFUSION:
+      const arrayConfusion = [action.numero, action.modo];
+      console.log(`array de confusion en reducer = ${arrayConfusion}`);
+
+      return { ...state, alertConfusion: [arrayConfusion] };
     case A.BUFF.EFECTOS_PS:
       const tipo = isNaN(action.tipo) ? action.tipo : parseInt(action.tipo);
       switch (tipo) {
@@ -1056,17 +1085,10 @@ const reducer = (state, action) => {
           if (gastoEnergia > P.energia) return { ...state };
           const uniModPresente = state.uniMod.includes(action.n);
 
-          const modo = state.confusion
-            ? randomNumber(2) == 1
-              ? true
-              : false
-            : action.modo;
-          const numero = state.confusion
-            ? parseInt(randomNumber(20))
-            : action.n;
-          console.log(
-            `Numero = ${numero} vs ${action.n}, modo=${modo} vs ${action.modo}`
-          );
+          let modo = action.modo;
+          let numero = action.n;
+          console.log(`numero activado= ${numero}/${modo}`);
+
           if (modo || (!modo && uniModPresente)) {
             switch (numero) {
               case 1:
@@ -1470,7 +1492,52 @@ const reducer = (state, action) => {
                     peste: [true, 3],
                   },
                 };
-
+              case 14:
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                  },
+                  dados: {
+                    ...state.dados,
+                    dadosPermanentes: state.dados.dadosPermanentes + 1,
+                  },
+                };
+              case 15:
+                const dano15 = Math.floor(
+                  state.personaje.ataque * 1.5 + state.personaje.maleficio * 0.5
+                );
+                const [danoEfectivo, vampBase] = calcularDano(
+                  dano15,
+                  randomCritico,
+                  2
+                );
+                const vampirismo15 = Math.floor(danoEfectivo * 0.2);
+                console.log(
+                  `Dano efectivo=${danoEfectivo}, vampirismo=${vampBase}+${vampirismo15}`
+                );
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    vida: P.vida + vampirismo15 + vampBase,
+                    energia: P.energia - gastoEnergia,
+                  },
+                };
+              case 16:
+                //campo de fuerza
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  bonus: { ...state.bonus, campoFuerza: true },
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                  },
+                };
               case 17:
                 return {
                   ...state,
@@ -1486,20 +1553,14 @@ const reducer = (state, action) => {
             let tipo = 0;
             let obj = 0;
 
-            switch (action.n) {
+            switch (numero) {
               case 1:
-                danoInfligido = P.ataque;
-                if (randomCritico) {
-                  danoInfligido = Math.floor(danoInfligido * 2);
-                  window.alert(
-                    `Haz hecho un ataque critico, infliges ${danoInfligido}`
-                  );
-                }
-                const vampirismo1 = Math.floor(
-                  danoInfligido * (P.vampirismo / 100)
+                const [danoEfectivo, vampirismoEfectivo] = calcularDano(
+                  P.ataque,
+                  randomCritico,
+                  2
                 );
 
-                console.log(`vampirismo = `, vampirismo1);
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
@@ -1513,7 +1574,7 @@ const reducer = (state, action) => {
                       state.numeroClase == 200 && P.combo < P.comboMax
                         ? P.combo + 1
                         : P.combo,
-                    vida: P.vida + vampirismo1,
+                    vida: P.vida + vampirismoEfectivo,
                   },
                 };
 
@@ -1570,16 +1631,17 @@ const reducer = (state, action) => {
                 };
               case 4:
               case 8:
+              case 14:
                 console.clear();
                 const numeroMaximo = state.cantidadPersonajes * 100;
-                let arrayProbabilidad = [0.65, 0.4, 0.2, 0.1, 0];
+                let arrayProbabilidad = [0.65, 0.4, 0.2, 0.1, 0]; //35%, 25%, 20%, 10%, 10%
                 let arrayX = [0, 1, 2, 3, 4];
                 for (let i = 0; i < 4; i++) {
                   let numeroRandom = 0;
                   console.log(`Entra al bucle for padre, valor de i = ${i}`);
                   switch (i) {
                     case 0:
-                      const accion = parseInt(action.n);
+                      const accion = parseInt(numero);
                       lvl = accion == 4 ? 1 : accion == 8 ? 2 : 3;
                       break;
                     case 1:
@@ -1648,7 +1710,7 @@ const reducer = (state, action) => {
                     case 2:
                       //seleccion tipo: arma, armadura, joya
                       numeroRandom = randomNumber(numeroMaximo);
-                      arrayProbabilidad = [0.6, 0.2, 0];
+                      arrayProbabilidad = [0.6, 0.2, 0]; //40%, 40%, 20%
                       bucleSelectorSpec: for (let x = 0; x < 3; x++) {
                         if (
                           numeroRandom >=
@@ -1980,9 +2042,12 @@ const reducer = (state, action) => {
                       window.alert(
                         `Atacas infligiendo ${ataqueRedondeado} puntos de dano.`
                       );
-                      const vidaFinal =
-                        P.vida +
-                        Math.floor((ataqueRedondeado * P.vampirismo) / 2);
+                      const [ataque, vampBase] = calcularDano(
+                        ataqueRedondeado,
+                        false,
+                        2
+                      );
+                      const vidaFinal = P.vida + vampBase;
                       return {
                         ...state,
                         ataqueAcumulado: 0,
@@ -2081,6 +2146,25 @@ const reducer = (state, action) => {
                   ...state,
                   corruptos: [...nuevosCorruptos],
                   [action.dado]: ESTADO_SHORTCOUT,
+                };
+              case 17:
+                const statsDisminuidos = {
+                  ...state.personaje,
+                  vidaBase: P.vidaBase - 5,
+                  ataqueBase: P.ataque - 3,
+                  defensaBase: P.defensa - 3,
+                  criticoBase: P.criticoBase - 3 > 0 ? P.criticoBase - 3 : 0,
+                  esquivarBase: P.esquivarBase - 3 > 0 ? P.esquivarBase - 3 : 0,
+                  curacionBase: P.curacionBase - 3 > 0 ? P.curacionBase - 3 : 0,
+                  malemaleficioBaseficio:
+                    P.maleficioBase - 3 > 0 ? P.maleficioBase - 3 : 0,
+                  vampirismoBase:
+                    P.vampirismoBase - 3 > 0 ? P.vampirismoBase - 3 : 0,
+                };
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: statsDisminuidos,
                 };
             }
             return { ...state };
