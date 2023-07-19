@@ -10,6 +10,8 @@ Monje: ying yang, las curaciones progresivas dan unos stats y los danos progresi
 ---INTERFACE---
 Desplegable de equipo.
 
+--AGREGAR BUFFS---
+danza de cuchillas, esfumarse, enfurecido,blindado,supersanacion
 ----CORRECCIONES----
 --La adicion del dado hacerlo permanente? hacer un dado extra temp y 1 dado perma (D20).
 --Revisar alcance de efectos (mele/distancia)
@@ -17,6 +19,7 @@ Desplegable de equipo.
 ---CAMBIOS PERSONAJES EXISTENTES---
 
 ---AGREGAR---
+logos: campo de fuerza, blindado, esfumarse.
 -Panel inferior con descripcion de equipo:
 --Ordenar stats de mayor bonus a menor.
 

@@ -65,14 +65,18 @@ export function Rolleo(props) {
   const ejecutarAccion = () => {
     const estadoActual = parseInt(state[props.dado].estado);
     const [n, modo, gastoEnergia] = calculoConfusion(estadoActual);
-    const obligados = state.dadosObligados.includes(n);
+    const obligado = state.dadosObligados.includes(n);
     const obligadoPresente = comprobacionNegativos();
+    const esPurificacion =
+      state[props.dado].numero == 18 && state[props.dado].modo == true
+        ? true
+        : false;
     //colador
     if (
       !state.estadoTurno ||
       gastoEnergia > state.personaje.energia ||
       estadoActual === 0 ||
-      (!obligados && obligadoPresente && !state.confusion)
+      (!obligado && obligadoPresente && !state.confusion && !esPurificacion)
     ) {
       return;
     }
@@ -115,7 +119,7 @@ export function Rolleo(props) {
       dispatch({ type: A.GRAL.TOGGLE_TURNO });
     }
     //tick hemo
-    if (state.efectosPorSec.tickHemo > 0 && !obligados) {
+    if (state.efectosPorSec.tickHemo > 0 && !obligado) {
       dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "hemoAccion" });
     }
   };

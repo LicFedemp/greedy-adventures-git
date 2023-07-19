@@ -69,9 +69,10 @@ export function ContextProvider({ children }) {
   }, [state.numeroClase, state.numeroSpec, state.muerteContador]);
 
   useEffect(() => {
-    if (state.personaje.vida > 0 && state.corruptos.length < 19) return;
-    dispatch({ type: A.STATS.MUERTE });
-  }, [state.personaje.vida, state.corruptos]);
+    if (state.personaje.vida <= 0 || state.corruptosContador >= 19) {
+      dispatch({ type: A.STATS.MUERTE });
+    }
+  }, [state.personaje.vida, state.corruptosContador]);
 
   useEffect(() => {
     if (state.personaje.energia > state.personaje.energiaMax) {
@@ -111,6 +112,18 @@ export function ContextProvider({ children }) {
     state.personaje.vampirismoBase,
     state.personaje.ira,
     state.personaje.combo,
+    state.personaje.vidaMaximaBonus,
+    state.personaje.regeneracionBonus,
+    state.personaje.energiaBonus,
+    state.personaje.reservaEnergiaBonus,
+    state.personaje.ataqueBonus,
+    state.personaje.defensaBonus,
+    state.personaje.defensaMagicaBonus,
+    state.personaje.criticoBonus,
+    state.personaje.esquivarBonus,
+    state.personaje.curacionBonus,
+    state.personaje.maleficioBonus,
+    state.personaje.vampirismoBonus,
 
     state.equipo.actual,
     state.bonus,
@@ -143,7 +156,17 @@ export function ContextProvider({ children }) {
     prevCasillero.current = state.casillero;
     prevVida.current = state.personaje.vida;
     dispatch({ type: A.DADO.PODER_DADO_CASILLERO });
-  }, [state.personaje.vida, state.personaje.vidaBase, state.casillero]);
+  }, [
+    state.personaje.vida,
+    state.personaje.vidaBase,
+    state.casillero,
+    state.personaje.vidaMaxima,
+  ]);
+  useEffect(() => {
+    dispatch({
+      type: A.STATS.HANDLE_IRA,
+    });
+  }, [state.bonus.enfurecido]);
 
   return (
     <div className="div-columna">

@@ -343,7 +343,8 @@ export function Heading() {
       }
     }
 
-    if (state.personaje.energia == 0 || algunNegativo) return;
+    if (state.personaje.energia == 0 || algunNegativo || !state.estadoTurno)
+      return;
     const selectedOption = event.target.options[event.target.selectedIndex];
     const indice = selectedOption.getAttribute("indice");
     console.log("Valor del parámetro 'indice':", indice);
@@ -351,39 +352,18 @@ export function Heading() {
   };
 
   const pintarStats = (stat) => {
+    const statActual = state.personaje[stat];
+    const statBase = state.personaje[`${stat}Base`];
     if (
-      (state.bonus.blindado &&
-        state.numeroClase == 100 &&
-        state.numeroSpec == 2 &&
-        stat == "defensa") ||
-      (state.bonus.esfumarse && state.numeroClase == 200 && stat == "esquivar")
+      (state.bonus.blindado && stat == "defensa") ||
+      (state.bonus.esfumarse && stat == "esquivar")
     ) {
       return "stat-potenciado-extra";
-    } else if (
-      state.equipo.actual.arma[0]?.[stat] > 0 ||
-      state.equipo.actual.armadura[0]?.[stat] > 0 ||
-      state.equipo.actual.joya[0]?.[stat] > 0 ||
-      (state.numeroClase == 100 &&
-        state.numeroSpec == 1 &&
-        state.personaje.ira > 0 &&
-        stat == "ataque") ||
-      (state.numeroClase == 100 &&
-        state.numeroSpec == 2 &&
-        state.personaje.ira > 0 &&
-        stat == "defensa")
-    ) {
+    } else if (statActual > statBase) {
       return "stat-potenciado";
-    } else if (
-      state.equipo.actual.arma[0]?.[stat] < 0 ||
-      state.equipo.actual.armadura[0]?.[stat] < 0 ||
-      state.equipo.actual.joya[0]?.[stat] < 0
-    ) {
+    } else if (statActual < statBase) {
       return "stat-disminuido";
-    } else if (
-      state.equipo.actual.arma[0]?.[stat] == 0 ||
-      state.equipo.actual.armadura[0]?.[stat] == 0 ||
-      state.equipo.actual.joya[0]?.[stat] == 0
-    ) {
+    } else if (statActual == statBase) {
       return "";
     }
   };

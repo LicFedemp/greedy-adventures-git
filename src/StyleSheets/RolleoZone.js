@@ -50,7 +50,7 @@ export function RolleoZone() {
           return `Esfumarse: +30% esquivar`;
         case 301:
         case 302:
-          return `Psicosis`;
+          return `Psicosis: el objetivo pierde ${state.bonus.poderPsicosis}% de vida x retroceso.`;
         case 401:
         case 402:
           return `Clarividencia: ${calcularNuevoClari(
@@ -66,24 +66,23 @@ export function RolleoZone() {
         case 102:
           return `Embate de escudo: inflige ${state.personaje.defensa} puntos de dano`;
         case 201:
-          const ataqueSiniestro = state.personaje.ataque * 2;
-          return `Ataque siniestro: infliges ${ataqueSiniestro} puntos de dano. +30 `;
+          const ataqueSiniestro =
+            state.personaje.ataque * 2 + state.personaje.maleficio * 1;
+          return `Ataque siniestro: infliges ${ataqueSiniestro}. Critico = 300% `;
         case 202:
-          return `Contraataque: cada vez que esquivas infliges ${state.personaje.ataque} de dano al jugador +cercano`;
+          return `Danza de Cuchillas: cada vez que esquivas infliges ${state.personaje.ataque} de dano al jugador +cercano`;
         case 301:
           return `Infliges ${
             state.personaje.maleficio
           } de dano a TODOS los jugadores. Te curas ${
-            state.personaje.vidaMaxima * 0.2
+            state.personaje.vidaMaxima * 0.1
           } hp por cada jugador afectado.`;
         case 302:
           return `Destruccion mental:+2% Dano de Psicosis.`;
         case 401:
           return `Teletransportacion: 2 jugadores intercambian posiciones`;
         case 402:
-          return `Curas a otro jugador hasta un maximo de ${
-            state.personaje.curacion * 2
-          }, te curas el doble. 10 overheal == +1MaxHP`;
+          return `Durante 1 turno las curaciones pueden ser críticas, +30% critico`;
         default:
           break;
       }
@@ -146,7 +145,7 @@ export function RolleoZone() {
               : `mana`
           }`;
         case 12:
-          return ` ${cartaSkill(1)}`;
+          return cartaSkill(1);
         case 13:
           return DADOS.D13.A.DECRIPCION;
         case 14:
@@ -158,7 +157,7 @@ export function RolleoZone() {
           const vampirismo15 = Math.floor(state.personaje.vampirismo + 20);
           return `Infliges ${dano15} de dano al jugador MAS CERCANO y te curas ${vampirismo15}% de lo infligido`;
         case 16:
-          return `Campo de fuerza: 50% de chances de bloquear efectos negativos x 1Turno.`;
+          return `Campo de fuerza: 33% de chances de bloquear efectos negativos x 1Turno.`;
 
         case 17:
           return DADOS.D17.A.DECRIPCION;
@@ -167,7 +166,7 @@ export function RolleoZone() {
         case 19:
           return `+3: Ataque, Maleficio, Vampirismo y Critico`;
         case 20:
-          return `SKILL T2`;
+          return cartaSkill(2);
         default:
           return ``;
       }
@@ -237,7 +236,7 @@ export function RolleoZone() {
         case 19:
           return `+3 Defensa, Esquivar, Curacion & +5HP Max`;
         case 20:
-          return `SKILL T2`;
+          return `+1 de energia maxima. Maximo:5`;
         default:
           return ``;
       }

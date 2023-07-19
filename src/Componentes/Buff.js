@@ -1,4 +1,5 @@
 import { useGeneralContext } from "./Provider";
+import { arrayEquipo } from "./Objetos/Equipo";
 import { A } from "./Objetos/Acciones";
 import "../StyleSheets/Buff.css";
 import { BsFillDropletFill } from "react-icons/bs";
@@ -21,7 +22,7 @@ export function Buff(params) {
         REJU: state.efectosPorSec.reju,
         PSICO: state.efectosPorSec.psicosis,
         CLARI: state.efectosPorSec.clarividencia,
-        REGEN: state.regeneracion,
+        REGEN: state.personaje.regeneracion,
         CONFUSION: state.confusion,
         THEMO: state.efectosPorSec.tickHemo,
         TVENENO: state.efectosPorSec.tickVeneno,
@@ -142,11 +143,32 @@ export function Buff(params) {
         </div>
       ));
   };
+  const renderEfectoItem = () => {
+    console.log();
+    const arrayEquipoActual = [
+      state.equipo.actual?.arma[0],
+      state.equipo.actual?.armadura[0],
+      state.equipo.actual?.joya[0],
+    ];
+    return arrayEquipoActual.map((equipo, index) => {
+      if (equipo?.efecto) {
+        return (
+          <div className="div-individual-equipo-efecto" key={index}>
+            <p>
+              {equipo.nombre}:{equipo.efecto}
+            </p>
+          </div>
+        );
+      } else {
+        return null;
+      }
+    });
+  };
 
   return (
     <div className="div-bajo div-buff-main">
       <div className={`div-casillero`}>Casillero: {state.casillero}</div>{" "}
-      <div className={`div-efectosps-general`}>{renderVariables()} </div>;
+      <div className={`div-efectosps-general`}>{renderVariables()} </div>
     </div>
   );
 }

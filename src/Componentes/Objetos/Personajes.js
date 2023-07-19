@@ -138,5 +138,17 @@ Object.entries(statsBase).forEach(([key, value]) => {
     curacion: value.curacionBase,
     maleficio: value.maleficioBase,
     vampirismo: value.vampirismoBase,
+    vidaMaximaBonus: 0,
+    regeneracionBonus: 0,
+    energiaBonus: 0,
+    reservaEnergiaBonus: 0,
+    ataqueBonus: 0,
+    defensaBonus: 0,
+    defensaMagicaBonus: 0,
+    criticoBonus: 0,
+    esquivarBonus: 0,
+    curacionBonus: 0,
+    maleficioBonus: 0,
+    vampirismoBonus: 0,
   };
 });

@@ -56,6 +56,10 @@ const estadoInicial = {
     blindado: false,
     esfumarse: false,
     campoFuerza: false,
+    enfurecido: false,
+    danzaCuchillas: false,
+    poderPsicosis: 5,
+    superSanacion: false,
   },
   porcentajeVida: 100,
   regeneracion: 0,
@@ -90,9 +94,10 @@ const estadoInicial = {
   cantidadPersonajes: 6,
   accion: false,
   algunNegativo: false,
-  uniMod: [12, 10, 14, 15, 20],
+  uniMod: [12, 10],
   corruptos: [],
   corrupcionFlag: false,
+  corruptosContador: 0,
   pesteIntensidad: 1,
   confusion: false,
   alertConfusion: [1, true],
@@ -102,67 +107,84 @@ const randomNumber = (numeroMaximo) => {
   return random;
 };
 const reducer = (state, action) => {
-  const P = {
-    vida: state.personaje.vida,
-    vidaMaxima: state.personaje.vidaMaxima,
-    regeneracion: state.personaje.regeneracion,
-    energia: state.personaje.energia,
-    reservaEnergia: 0,
-    ataque: state.personaje.ataque,
-    defensa: state.personaje.defensa,
-    defensaMagica: state.personaje.defensaMagica,
-    critico: state.personaje.critico,
-    esquivar: state.personaje.esquivar,
-    curacion: state.personaje.curacion,
-    maleficio: state.personaje.maleficio,
-    vampirismo: state.personaje.vampirismo,
-    vidaBase: state.personaje.vidaBase,
-    regeneracionBase: state.personaje.regeneracionBase,
-    energiaMax: state.personaje.energiaMax,
-    ataqueBase: state.personaje.ataqueBase,
-    defensaBase: state.personaje.defensaBase,
-    mana: state.personaje.mana,
-    manaMax: state.personaje.manaMax,
-    comboMax: state.personaje.comboMax,
-    combo: state.personaje.combo,
-    ira: state.personaje.ira,
-    iraMax: state.personaje.iraMax,
-    criticoBase: state.personaje.criticoBase,
-    esquivarBase: state.personaje.esquivarBase,
-    curacionBase: state.personaje.curacionBase,
-    maleficioBase: state.personaje.maleficioBase,
-    defensaMagicaBase: state.personaje.defensaMagicaBase,
-    vampirismoBase: state.personaje.vampirismoBase,
-  };
+  const { personaje } = state;
+  const P = {};
+
+  for (let key in personaje) {
+    P[key] = personaje[key];
+  }
 
   const claseSpec = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
   const randomEsquivar = randomNumber(100) <= P.esquivar ? true : false;
   const randomCritico = randomNumber(100) <= P.critico ? true : false;
+  const modCritSanacion = randomCritico && state.bonus.superSanacion ? 2 : 1;
   const numDadosValido =
     state.dados.dadosTotales > state.numDadoMaximo
       ? state.numDadoMaximo
       : state.dados.dadosTotales;
 
-  const calcularHealing = (cambio, funcion) => {
-    const curacion = P.vida + cambio;
-    const overhealing = curacion > P.vidaMaxima ? true : false;
-    switch (funcion) {
-      case FUNCIONES.CURACION:
-        return curacion;
-      case FUNCIONES.OVERHEALING:
-        return overhealing;
-      default:
-        return;
+  const calcularHealing = (cambio) => {
+    const curacionBasica = P.vida + cambio;
+    const ohBool = curacionBasica > P.vidaMaxima ? true : false;
+    const vidaFinal = ohBool ? P.vidaMaxima : curacionBasica;
+    const ohValor = ohBool ? curacionBasica - P.vidaMaxima : 0;
+    return [vidaFinal, ohBool, ohValor];
+  };
+
+  const campoDeFuerza = () => {
+    if (!state.bonus.campoFuerza) {
+      return false;
     }
+    const bloqueo = randomNumber(2) == 1 ? true : false;
+    console.log(bloqueo);
+    if (bloqueo) {
+      window.alert(`Campo de fuerza ha bloqueado el efecto negativo!`);
+    }
+    return bloqueo;
+  };
+
+  const esquivarReturn = (dado) => {
+    const danzaCuchillasBool = state.bonus.danzaCuchillas;
+    window.alert(
+      `Has esquivado el efecto negativo!${
+        danzaCuchillasBool
+          ? `Danza de cuchillas inflige daño al atacante o al jugador más cercano.`
+          : ``
+      }`
+    );
+    const nuevoEstado = {
+      ...state,
+
+      personaje: {
+        ...state.personaje,
+        energia:
+          P.energia < P.energiaMax && state.numeroClase == 200 && randomEsquivar
+            ? P.energia + 1
+            : P.energia,
+      },
+    };
+    const danoContraataque = danzaCuchillasBool ? state.personaje.ataque : 0;
+    if (danoContraataque > 0) {
+      const [, VampEfectivo] = calcularDano(danoContraataque, randomCritico, 2);
+      const [vidaFinal] = calcularHealing(VampEfectivo);
+      nuevoEstado.personaje.vida = vidaFinal;
+    }
+
+    if (dado != false) {
+      nuevoEstado[dado] = { ...state[dado], estado: 0 };
+    }
+
+    return { ...nuevoEstado };
   };
 
   const calcularDano = (dano, critico, bonusCrit) => {
     const danoBase = critico ? dano * bonusCrit : dano;
-    const defensa = window.prompt(
+    const defensaPrompt = window.prompt(
       `Infliges ${danoBase} puntos de dano ${
         critico ? `con un ataque critico!` : `.`
       } Cuanta defensa tiene tu objetivo? Cancela si el ataque fue esquivado o bloqueado.`
     );
+    const defensa = !isNaN(defensaPrompt) ? defensaPrompt : 0;
     const danoEfectivo = defensa < danoBase ? Math.floor(dano - defensa) : 0;
     const vampirismo = danoEfectivo * P.vampirismo * 0.01;
     const arrayRetorno = [danoEfectivo, vampirismo];
@@ -315,12 +337,8 @@ const reducer = (state, action) => {
         : venenoTickTurno;
 
       if (state.estadoTurno) {
-        const turnoHealing = calcularHealing(
-          P.vidaMaxima * 0.15,
-          FUNCIONES.CURACION
-        );
-        const turnoFinalHealing =
-          turnoHealing > P.vidaMaxima ? P.vidaMaxima : turnoHealing;
+        const [turnoHealing] = calcularHealing(P.vidaMaxima * 0.15);
+        const turnoFinalHealing = turnoHealing;
         const fraccionTick = 4;
         const hemoTickTurno =
           state.efectosPorSec.hemo > 0 && state.efectosPorSec.tickHemo > 0
@@ -343,7 +361,7 @@ const reducer = (state, action) => {
           console.log(`Turno nuevo corrupto = ${nuevosCorruptos}`);
         }
 
-        return {
+        const estadoFinTurno = {
           ...state,
           pesteIntensidad: 1,
           confusion: false,
@@ -387,17 +405,16 @@ const reducer = (state, action) => {
                 ? state.efectosPorSec.tickPsicosis - 1
                 : state.efectosPorSec.tickPsicosis,
           },
-          roll1: { ...state.roll1, numero: 0, estado: 1, lock: false },
-          roll2: { ...state.roll2, numero: 0, estado: 1, lock: false },
-          roll3: { ...state.roll3, numero: 0, estado: 1, lock: false },
-          roll4: { ...state.roll4, numero: 0, estado: 1, lock: false },
-          roll5: { ...state.roll5, numero: 0, estado: 1, lock: false },
-          roll6: { ...state.roll6, numero: 0, estado: 1, lock: false },
-          roll7: { ...state.roll7, numero: 0, estado: 1, lock: false },
-          roll8: { ...state.roll8, numero: 0, estado: 1, lock: false },
-          roll9: { ...state.roll9, numero: 0, estado: 1, lock: false },
-          roll10: { ...state.roll10, numero: 0, estado: 1, lock: false },
+          bonus: { ...state.bonus, enfurecido: false, superSanacion: false },
         };
+        for (let x = 1; x <= 10; x++) {
+          const dadoActual = `roll${x}`;
+          estadoFinTurno[dadoActual] = {
+            ...estadoRoll,
+            peste: state[dadoActual].peste,
+          };
+        }
+        return { ...estadoFinTurno };
       } else if (!state.estadoTurno) {
         const rejuInicioTurno =
           state.efectosPorSec.reju > 0 && state.efectosPorSec.tickReju > 0
@@ -446,6 +463,7 @@ const reducer = (state, action) => {
             blindado: false,
             esfumarse: false,
             campoFuerza: false,
+            danzaCuchillas: false,
           },
         };
       }
@@ -498,35 +516,21 @@ const reducer = (state, action) => {
         numDadoMaximo: casillero > 19 ? 10 : 5,
       };
 
-      return {
-        ...state,
-        poderDado: casillero > 19 ? 12 : casillero > 9 ? 12 : 6,
-        nivelDado: casillero > 19 ? 2 : casillero > 9 ? 2 : 1,
-        numDadoMaximo: casillero > 19 ? 10 : 5,
-      };
     case ACCIONES.LOCK:
       return { ...state };
-      if (state[action.dado].estado != 0) {
-        return {
-          ...state,
-          [action.dado]: {
-            ...state[action.dado],
-            lock: !state[action.dado].lock,
-          },
-        };
-      } else {
-        return {
-          ...state,
-          [action.dado]: {
-            ...state[action.dado],
-            lock: false,
-          },
-        };
-      }
     case A.DADO.NEGATIVO:
       return { ...state, algunNegativo: algunNegativo };
     case A.DADO.ROLL_ALL:
-      let arrayNumero = [];
+      const nuevoEstado = {
+        ...state,
+        rollFlag: !state.rollFlag,
+        accion: true,
+        personaje: {
+          ...state.personaje,
+          energia: P.energia - 1,
+        },
+      };
+
       const arrayPrimera = [0, 1, 3, 7];
       let numModificadorFinal = 1;
       const numDado = numDadosValido;
@@ -545,59 +549,30 @@ const reducer = (state, action) => {
         let aleatorio =
           Math.floor(Math.random() * primerModificador) + numModificadorFinal;
 
-        const lockActual = state[`roll${i + 1}`].lock;
-        if (lockActual) {
-          arrayNumero[i] = state[`roll${i + 1}`].numero;
-        } else {
-          const numerosChanceReducida = [13, 17];
-          if (numerosChanceReducida.includes(aleatorio)) {
-            const puerta = randomNumber(3);
-            while (puerta < 2 && numerosChanceReducida.includes(aleatorio)) {
-              aleatorio = randomNumber(20);
-            }
+        const numerosChanceReducida = [13, 17];
+        if (numerosChanceReducida.includes(aleatorio)) {
+          const puerta = randomNumber(3);
+          while (puerta < 2 && numerosChanceReducida.includes(aleatorio)) {
+            aleatorio = randomNumber(20);
           }
-          arrayNumero[i] = aleatorio;
         }
+        const nombreDado = `roll${i + 1}`;
+        const cargas = state[nombreDado].peste[1];
+        const nuevaPeste = cargas > 1 ? true : false;
+        const nuevaCarga = cargas > 0 ? cargas - 1 : 0;
+        const arrayPeste = [nuevaPeste, nuevaCarga];
+        nuevoEstado[nombreDado] = {
+          ...state[nombreDado],
+          numero: aleatorio,
+          peste: arrayPeste,
+        };
       }
-      //Peste
-      let arrayRollX = [];
-      let arrayPeste = [];
-
-      for (let x = 0; x < 10; x++) {
-        arrayRollX.push(`roll${x + 1}`);
-        const peste = state[arrayRollX[x]].peste[0];
-        const cargas = state[arrayRollX[x]].peste[1];
-        //podria prescindirse del boolean peste
-        if (peste && cargas > 1) {
-          arrayPeste.push([true, cargas - 1]);
-        } else {
-          arrayPeste.push([false, 0]);
-        }
+      for (let x = numDado + 1; x <= 10; x++) {
+        const nombreDado = `roll${x}`;
+        nuevoEstado[nombreDado] = estadoRoll;
       }
 
-      return {
-        ...state,
-        rollFlag: !state.rollFlag,
-        accion: true,
-        roll1: { ...state.roll1, numero: arrayNumero[0], peste: arrayPeste[0] },
-        roll2: { ...state.roll2, numero: arrayNumero[1], peste: arrayPeste[1] },
-        roll3: { ...state.roll3, numero: arrayNumero[2], peste: arrayPeste[2] },
-        roll4: { ...state.roll4, numero: arrayNumero[3], peste: arrayPeste[3] },
-        roll5: { ...state.roll5, numero: arrayNumero[4], peste: arrayPeste[4] },
-        roll6: { ...state.roll6, numero: arrayNumero[5], peste: arrayPeste[5] },
-        roll7: { ...state.roll7, numero: arrayNumero[6], peste: arrayPeste[6] },
-        roll8: { ...state.roll8, numero: arrayNumero[7], peste: arrayPeste[7] },
-        roll9: { ...state.roll9, numero: arrayNumero[8], peste: arrayPeste[8] },
-        roll10: {
-          ...state.roll10,
-          numero: arrayNumero[9],
-          peste: arrayPeste[9],
-        },
-        personaje: {
-          ...state.personaje,
-          energia: P.energia - 1,
-        },
-      };
+      return { ...nuevoEstado };
     case A.DADO.ESPECIAL:
       let arrayBase = action.arrayBase;
       const arrayCoincidente = action.valorCoincidente;
@@ -646,18 +621,16 @@ const reducer = (state, action) => {
           arrayEspecial[x] = 3;
         }
       }
+      const estadoNuevo = { ...state };
+      for (let x = 0; x < 10; x++) {
+        const dadoActual = `roll${x + 1}`;
+        estadoNuevo[dadoActual] = {
+          ...state[dadoActual],
+          estado: arrayEspecial[x],
+        };
+      }
       return {
-        ...state,
-        roll1: { ...state.roll1, estado: arrayEspecial[0] },
-        roll2: { ...state.roll2, estado: arrayEspecial[1] },
-        roll3: { ...state.roll3, estado: arrayEspecial[2] },
-        roll4: { ...state.roll4, estado: arrayEspecial[3] },
-        roll5: { ...state.roll5, estado: arrayEspecial[4] },
-        roll6: { ...state.roll6, estado: arrayEspecial[5] },
-        roll7: { ...state.roll7, estado: arrayEspecial[6] },
-        roll8: { ...state.roll8, estado: arrayEspecial[7] },
-        roll9: { ...state.roll9, estado: arrayEspecial[8] },
-        roll10: { ...state.roll10, estado: arrayEspecial[9] },
+        ...estadoNuevo,
       };
     case A.DADO.MODO_DADO:
       return {
@@ -668,6 +641,9 @@ const reducer = (state, action) => {
         },
       };
     case A.GRAL.MOD_CASILLERO:
+      if (action.valor < 0 && campoDeFuerza()) {
+        return { ...state };
+      }
       const reducRetroceso =
         action.valor < 0
           ? -P.defensaMagica > action.valor
@@ -697,6 +673,9 @@ const reducer = (state, action) => {
 
       return { ...state, modDesplegable: nuevoModo };
     case A.BUFF.PSICOSIS:
+      if (campoDeFuerza()) {
+        return { ...state };
+      }
       if (action.fase == "carga") {
         const danoPsicosis = Math.floor(action.poder * P.vidaMaxima * 0.01);
         return {
@@ -708,9 +687,8 @@ const reducer = (state, action) => {
           },
         };
       } else if (action.fase == "golpe") {
-        const vidaFinalPsicosis = calcularHealing(
-          -action.retroceso * state.efectosPorSec.psicosis,
-          FUNCIONES.CURACION
+        const [vidaFinalPsicosis] = calcularHealing(
+          -action.retroceso * state.efectosPorSec.psicosis
         );
         return {
           ...state,
@@ -725,6 +703,9 @@ const reducer = (state, action) => {
       return { ...state, alertConfusion: [arrayConfusion] };
     case A.BUFF.EFECTOS_PS:
       const tipo = isNaN(action.tipo) ? action.tipo : parseInt(action.tipo);
+      if (tipo != 3 && campoDeFuerza()) {
+        return { ...state };
+      }
       switch (tipo) {
         case 1:
           //hemo
@@ -732,10 +713,14 @@ const reducer = (state, action) => {
             ...state,
             efectosPorSec: {
               ...state.efectosPorSec,
-              hemo: state.efectosPorSec.hemo + action.valor,
+              hemo: Math.floor(state.efectosPorSec.hemo + action.valor),
               tickHemo:
                 state.efectosPorSec.tickHemo > 0
-                  ? parseInt((state.efectosPorSec.tickHemo + action.ticks) / 2)
+                  ? parseInt(
+                      Math.floor(
+                        (state.efectosPorSec.tickHemo + action.ticks) / 2
+                      )
+                    )
                   : action.ticks,
             },
           };
@@ -743,7 +728,10 @@ const reducer = (state, action) => {
           const hemoTickRoll =
             state.efectosPorSec.hemo > 0 && state.efectosPorSec.tickHemo > 0
               ? parseInt(
-                  state.efectosPorSec.hemo / (state.efectosPorSec.tickHemo * 4)
+                  Math.floor(
+                    state.efectosPorSec.hemo /
+                      (state.efectosPorSec.tickHemo * 4)
+                  )
                 )
               : 0;
 
@@ -751,7 +739,7 @@ const reducer = (state, action) => {
             ...state,
             personaje: {
               ...state.personaje,
-              vida: P.vida - hemoTickRoll,
+              vida: Math.floor(P.vida - hemoTickRoll),
             },
           };
         case 2:
@@ -799,12 +787,16 @@ const reducer = (state, action) => {
       const estadoReset = {
         ...estadoInicial,
         muerteContador: state.muerte + 1,
+        casillero: state.casillero > 10 ? 10 : 0,
         numeroClase: state.numeroClase,
         numeroSpec: state.numeroSpec,
         equipo: { ...state.equipo },
       };
       return { ...estadoReset };
     case A.STATS.MOD_VIDA:
+      if (campoDeFuerza() && action.valor > 0) {
+        return { ...state };
+      }
       const danoFiltrado =
         action.valor > P.defensa
           ? action.valor - P.defensa
@@ -812,16 +804,9 @@ const reducer = (state, action) => {
           ? action.valor
           : 0;
       if (randomEsquivar && action.valor > 0) {
-        window.alert(`Has esquivado el efecto negativo`);
+        const nuevoEstado = esquivarReturn(false);
         return {
-          ...state,
-          personaje: {
-            ...state.personaje,
-            energia:
-              (P.energia < P.energiaMax && claseSpec == 201) || claseSpec == 202
-                ? P.energia + 1
-                : P.energia,
-          },
+          ...nuevoEstado,
         };
       }
       return {
@@ -879,37 +864,37 @@ const reducer = (state, action) => {
             personaje: { ...state.personaje, mana: 0 },
           };
         case 402:
-          const healing = calcularHealing(
-            Math.floor(P.mana * (P.curacion / 3)),
-            FUNCIONES.CURACION
-          );
-          const overhealingBool = calcularHealing(
-            healing,
-            FUNCIONES.OVERHEALING
+          const [healing, overhealingBool, ohValor] = calcularHealing(
+            Math.floor(P.mana * (P.curacion / 3)) * modCritSanacion
           );
           const bonusVidaMaxima = overhealingBool
-            ? Math.floor((healing - P.vidaMaxima) / 10)
+            ? Math.floor(ohValor / 10)
             : 0;
           return {
             ...state,
             personaje: {
               ...state.personaje,
               mana: 0,
-              vida: overhealingBool ? P.vidaMaxima : healing,
-              vidaMaxima: P.vidaMaxima + bonusVidaMaxima,
+              vida: healing,
+              vidaMaximaBonus: P.vidaMaximaBonus + bonusVidaMaxima,
             },
-            bonus: { ...state.bonus, vida: state.bonus.vida + bonusVidaMaxima },
           };
 
         default:
           return { ...state };
       }
     case A.STATS.HANDLE_IRA:
+      console.log(
+        `Entra a ira y ${
+          state.bonus.enfurecido ? `esta enfurecido` : `no esta enfurecido`
+        }`
+      );
       return {
         ...state,
         personaje: {
           ...state.personaje,
-          ira: P.ira < P.iraMax ? P.ira + 1 : P.ira,
+          ira:
+            P.ira == P.iraMax || state.bonus.enfurecido ? P.iraMax : P.ira + 1,
         },
       };
     case A.STATS.IRA_DADOS:
@@ -922,9 +907,9 @@ const reducer = (state, action) => {
     case A.STATS.CALCULAR_STATS:
       //DEFENSA
       const comboCritico =
-        state.numeroClase == 200 && state.numeroSpec == 1 ? P.combo * 5 : 0;
+        state.numeroClase == 200 && state.numeroSpec == 1 ? P.combo * 3 : 0;
       const comboEsquivar =
-        state.numeroClase == 200 && state.numeroSpec == 2 ? P.combo * 5 : 0;
+        state.numeroClase == 200 && state.numeroSpec == 2 ? P.combo * 3 : 0;
 
       const arrayStats = [
         "defensa",
@@ -960,40 +945,71 @@ const reducer = (state, action) => {
           ? Math.floor((arrayStatsValores[1] + P.ataqueBase) * (P.ira * 0.1))
           : 0;
       const modificadorBlindado = state.bonus.blindado ? 2 : 1;
-      const totalDefensa =
-        parseInt(P.defensaBase + iraModDefensa + arrayStatsValores[0]) *
-        modificadorBlindado;
-      const totalAtaque = parseInt(
-        P.ataqueBase + iraModAtaque + arrayStatsValores[1]
+      const totalDefensa = state.bonus.enfurecido
+        ? 0
+        : Math.floor(
+            P.defensaBase +
+              iraModDefensa +
+              arrayStatsValores[0] +
+              P.defensaBonus
+          ) * modificadorBlindado;
+      const totalAtaque = Math.floor(
+        P.ataqueBase + iraModAtaque + arrayStatsValores[1] + P.ataqueBonus
       );
-      const criticoTotal = P.criticoBase + arrayStatsValores[2] + comboCritico;
+      const modSuperSanacion = state.bonus.superSanacion ? 30 : 0;
+      const criticoTotal =
+        P.criticoBase +
+        arrayStatsValores[2] +
+        comboCritico +
+        P.criticoBonus +
+        modSuperSanacion;
+      const modificadorEsfumarse = state.bonus.esfumarse ? 30 : 0;
       const esquivarTotal =
-        P.esquivarBase + arrayStatsValores[3] + comboEsquivar;
-      const maleficioTotal = P.maleficioBase + arrayStatsValores[4];
-      const curacionTotal = P.curacionBase + arrayStatsValores[5];
-      const vampirismoTotal = P.vampirismoBase + arrayStatsValores[6];
-      const defMagicaFromDefensa =
-        Math.floor(totalDefensa / 50) > 0 ? Math.floor(totalDefensa / 50) : 0;
+        P.esquivarBase +
+        arrayStatsValores[3] +
+        comboEsquivar +
+        modificadorEsfumarse +
+        P.esquivarBonus;
+      const maleficioTotal =
+        P.maleficioBase + arrayStatsValores[4] + P.maleficioBonus;
+      const curacionTotal =
+        P.curacionBase + arrayStatsValores[5] + P.curacionBonus;
+      const vampirismoTotal =
+        P.vampirismoBase + arrayStatsValores[6] + P.vampirismoBonus;
+      const defMagicaFromDefensa = Math.floor(totalDefensa / 50);
       const defensaMagicaTotal =
-        P.defensaMagicaBase + arrayStatsValores[7] + defMagicaFromDefensa;
-      const regeneracionTotal = P.regeneracionBase + arrayStatsValores[8];
+        P.defensaMagicaBase +
+        arrayStatsValores[7] +
+        defMagicaFromDefensa +
+        P.defensaMagicaBonus;
+      const regeneracionTotal =
+        P.regeneracionBase + arrayStatsValores[8] + P.regeneracionBonus;
       const vidaMaximaTotal =
-        P.vidaBase + arrayStatsValores[9] + state.bonus.vida;
-      console.log(`Bonus vida maxima = ${state.bonus.vida} `);
+        P.vidaBase + arrayStatsValores[9] + P.vidaMaximaBonus;
 
       return {
         ...state,
         personaje: {
           ...state.personaje,
-          esquivar: state.bonus.esfumarse ? esquivarTotal + 30 : esquivarTotal,
-          critico: criticoTotal,
-          ataque: totalAtaque,
-          defensa: totalDefensa,
-          maleficio: maleficioTotal,
-          curacion: curacionTotal,
-          vampirismo: vampirismoTotal,
-          defensaMagica: defensaMagicaTotal,
-          regeneracion: regeneracionTotal,
+          esquivar: esquivarTotal > 0 ? esquivarTotal : 0,
+          critico: criticoTotal > 0 ? criticoTotal : 0,
+          ataque:
+            totalAtaque > 0
+              ? state.bonus.enfurecido
+                ? totalAtaque + totalAtaque * 0.5
+                : totalAtaque
+              : 0,
+          defensa: totalDefensa > 0 ? totalDefensa : 0,
+          maleficio: maleficioTotal > 0 ? maleficioTotal : 0,
+          curacion: curacionTotal > 0 ? curacionTotal : 0,
+          vampirismo:
+            vampirismoTotal > 0
+              ? state.bonus.enfurecido
+                ? vampirismoTotal + 50
+                : vampirismoTotal
+              : 0,
+          defensaMagica: defensaMagicaTotal > 0 ? defensaMagicaTotal : 0,
+          regeneracion: regeneracionTotal > 0 ? regeneracionTotal : 0,
           vidaMaxima: vidaMaximaTotal,
         },
       };
@@ -1073,13 +1089,23 @@ const reducer = (state, action) => {
           return { ...state };
       }
     case A.DADO.ACTIVACION_DADO:
-      if (!algunNegativo || state[action.dado].estado == 3) {
-        if (state[action.dado].estado != 0 && state.estadoTurno) {
-          const ESTADO_SHORTCOUT = {
-            ...state[action.dado],
-            estado: 0,
-            lock: false,
+      const ESTADO_SHORTCOUT = {
+        ...state[action.dado],
+        estado: 0,
+        lock: false,
+      };
+      if (
+        !algunNegativo ||
+        state[action.dado].estado == 3 ||
+        (action.n == 18 && action.modo === true)
+      ) {
+        if (campoDeFuerza() && state[action.dado].estado == 3) {
+          return {
+            ...state,
+            [action.dado]: ESTADO_SHORTCOUT,
           };
+        }
+        if (state[action.dado].estado != 0 && state.estadoTurno) {
           const gastoEnergia = action.gastoEnergia;
           console.log(`energia = ${gastoEnergia}`);
           if (gastoEnergia > P.energia) return { ...state };
@@ -1106,19 +1132,20 @@ const reducer = (state, action) => {
               case 2:
                 if (randomEsquivar) {
                   window.alert(`Has esquivado el efecto negativo!`);
-                  if (state.numeroClase == 200) {
-                    return {
-                      ...state,
-                      [action.dado]: ESTADO_SHORTCOUT,
-                      personaje: {
-                        ...state.personaje,
-                        energia:
-                          P.energia < P.energiaMax ? P.energia + 1 : P.energia,
-                      },
-                    };
-                  } else if (state.numeroClase != 200) {
-                    return { ...state, [action.dado]: ESTADO_SHORTCOUT };
-                  }
+
+                  return {
+                    ...state,
+                    [action.dado]: ESTADO_SHORTCOUT,
+                    personaje: {
+                      ...state.personaje,
+                      energia:
+                        P.energia < P.energiaMax &&
+                        state.numeroClase == 200 &&
+                        randomEsquivar
+                          ? P.energia + 1
+                          : P.energia,
+                    },
+                  };
                 } else {
                   const vidaFinal =
                     state.casillero + P.defensaMagica > 0
@@ -1334,7 +1361,7 @@ const reducer = (state, action) => {
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: {
                     ...state.personaje,
-                    ataqueBase: P.ataqueBase + 1,
+                    ataqueBonus: P.ataqueBonus + 1,
                     energia: P.energia - gastoEnergia,
                   },
                 };
@@ -1544,6 +1571,203 @@ const reducer = (state, action) => {
                   [action.dado]: ESTADO_SHORTCOUT,
                   confusion: true,
                 };
+              case 18:
+                //purificacion
+                const efectosPorsegundo = {
+                  ...efectosPSec,
+                  reju: state.efectosPorSec.reju,
+                  clarividencia: state.efectosPorSec.clarividencia,
+                  tickReju: state.efectosPorSec.tickReju,
+                  chanceClari: state.efectosPorSec.chanceClari,
+                };
+                const nuevoEstado = {
+                  ...state,
+                  confusion: false,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                  },
+                  efectosPorSec: { ...efectosPorsegundo },
+                };
+                if (algunNegativo) {
+                  for (let x = 1; x <= state.dados.dadosTotales; x++) {
+                    const dadoActual = `roll${x}`;
+                    if (dadoActual == action.dado) {
+                      nuevoEstado[dadoActual] = {
+                        ...state[dadoActual],
+                        estado: 0,
+                        peste: [false, 0],
+                      };
+                    } else if (
+                      state.dadosObligados.includes(state[dadoActual].numero)
+                    ) {
+                      nuevoEstado[dadoActual] = {
+                        ...state[dadoActual],
+                        estado: 0,
+                        peste: [false, 0],
+                      };
+                    }
+                  }
+                }
+
+                return { ...nuevoEstado };
+              case 19:
+                // +3 ataque, maleficio, critico y vampirismo
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    ataqueBonus: P.ataqueBonus + 3,
+                    criticoBonus: P.criticoBonus + 3,
+                    maleficioBonus: P.maleficioBonus + 3,
+                    vampirismoBonus: P.vampirismoBonus + 3,
+                  },
+                };
+              case 20:
+                switch (claseSpec) {
+                  case 101:
+                    return {
+                      ...state,
+
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      personaje: {
+                        ...state.personaje,
+                        energia: P.energia - gastoEnergia,
+                      },
+                      bonus: {
+                        ...state.bonus,
+                        enfurecido: true,
+                      },
+                    };
+                  case 102:
+                    const [, vampEf20] = calcularDano(
+                      state.personaje.defensa,
+                      randomCritico,
+                      2
+                    );
+                    const [curacionVamp, ,] = calcularHealing(vampEf20);
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      bonus: { ...state.bonus, blindado: false },
+                      personaje: {
+                        ...state.personaje,
+                        energia: P.energia - gastoEnergia,
+                        vida: curacionVamp,
+                      },
+                    };
+                  case 201:
+                    const ataqueSiniestro =
+                      state.personaje.ataque * 2 +
+                      state.personaje.maleficio * 1;
+                    const [danoSiniestro, vampEf20Rogue] = calcularDano(
+                      ataqueSiniestro,
+                      randomCritico,
+                      3
+                    );
+                    const [curacionVampRogue, ,] =
+                      calcularHealing(vampEf20Rogue);
+
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      personaje: {
+                        ...state.personaje,
+                        energia:
+                          randomCritico && danoSiniestro > 0
+                            ? P.energia - gastoEnergia + 1
+                            : P.energia - gastoEnergia,
+                        vida: curacionVampRogue,
+                      },
+                    };
+                  case 202:
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      personaje: {
+                        ...state.personaje,
+                        energia: P.energia - gastoEnergia,
+                      },
+                      bonus: { ...state.bonus, danzaCuchillas: true },
+                    };
+                  case 301:
+                    let cantidadJugadores;
+                    while (isNaN(cantidadJugadores)) {
+                      let contador = 0;
+                      cantidadJugadores = parseInt(
+                        window.prompt(
+                          `${
+                            contador > 0 ? `Vamos de nuevo...` : ``
+                          }Cuantos enemigos hay en juego?`
+                        )
+                      );
+                      contador++;
+                    }
+                    let vampirismoAcumulado = 0;
+                    const dano20 = state.personaje.maleficio;
+                    for (let x = 1; x <= cantidadJugadores; x++) {
+                      window.alert(`Dano al jugador n° ${x}`);
+                      const [, vampEfectivo] = calcularDano(
+                        dano20,
+                        randomCritico,
+                        2
+                      );
+                      vampirismoAcumulado = vampirismoAcumulado + vampEfectivo;
+                    }
+                    const Healaoe =
+                      P.vidaMaxima * 0.1 * cantidadJugadores +
+                      vampirismoAcumulado;
+                    const [vidaFinal, ,] = calcularHealing(Healaoe);
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      personaje: {
+                        ...state.personaje,
+                        energia: P.energia - gastoEnergia,
+                        vida: vidaFinal,
+                      },
+                    };
+                  case 302:
+                    const nuevoPoderPsicosis = state.bonus.poderPsicosis + 2;
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      bonus: {
+                        ...state.bonus,
+                        poderPsicosis: nuevoPoderPsicosis,
+                      },
+                      personaje: {
+                        ...state.personaje,
+                        energia: P.energia - gastoEnergia,
+                      },
+                    };
+                  case 401:
+                    window.alert(
+                      `Intercambias la posicion de 2 jugadores (vos inclusive).`
+                    );
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      personaje: {
+                        ...state.personaje,
+                        energia: P.energia - gastoEnergia,
+                      },
+                    };
+
+                  case 402:
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      personaje: {
+                        ...state.personaje,
+                        energia: P.energia - gastoEnergia,
+                      },
+                      bonus: { ...state.bonus, superSanacion: true },
+                    };
+                }
+
               default:
                 return { ...state };
             }
@@ -1956,7 +2180,7 @@ const reducer = (state, action) => {
               //Switch para ubicar el objeto en la bolsa segun tipo de item
 
               case 5:
-                const totalSanacion = P.vida + P.curacion;
+                const totalSanacion = (P.vida + P.curacion) * modCritSanacion;
 
                 return {
                   ...state,
@@ -2116,7 +2340,7 @@ const reducer = (state, action) => {
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: {
                     ...state.personaje,
-                    maleficioBase: P.maleficioBase + 1,
+                    maleficioBonus: P.maleficioBonus + 1,
                     energia: P.energia - gastoEnergia,
                   },
                 };
@@ -2125,46 +2349,124 @@ const reducer = (state, action) => {
                 const curacion =
                   state.numeroClase == 100 || state.numeroClase == 200
                     ? Math.floor(P.curacion * 4)
-                    : Math.floor(P.curacion * 2);
-
+                    : Math.floor(P.curacion * 2) * modCritSanacion;
+                const [healing] = calcularHealing(curacion);
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: {
                     ...state.personaje,
                     energia: P.energia - gastoEnergia,
-                    vida: calcularHealing(curacion, FUNCIONES.CURACION),
+                    vida: healing,
                   },
                 };
               case 13:
                 const nuevosCorruptos = nuevoArrayCorrupcion();
                 console.log(`corruptos actualizado${nuevosCorruptos}`);
                 if (action.accion == "contagio") {
-                  return { ...state, corruptos: [...nuevosCorruptos] };
+                  return {
+                    ...state,
+                    corruptos: [...nuevosCorruptos],
+                    corruptosContador: state.corruptosContador + 1,
+                  };
                 }
                 return {
                   ...state,
                   corruptos: [...nuevosCorruptos],
                   [action.dado]: ESTADO_SHORTCOUT,
                 };
+              case 15:
+                const dano15 = Math.floor(
+                  state.personaje.ataque * 0.8 + state.personaje.maleficio * 1.2
+                );
+                const [danoEfectivo15, vampEfectivo15] = calcularDano(
+                  dano15,
+                  randomCritico,
+                  3
+                );
+                const vidaFinal15 =
+                  P.vida + vampEfectivo15 > P.vidaMaxima
+                    ? P.vidaMaxima
+                    : P.vida + vampEfectivo15;
+                return {
+                  ...state,
+                  personaje: {
+                    ...state.personaje,
+                    vida: vidaFinal15,
+                    energia: P.energia - gastoEnergia,
+                  },
+
+                  [action.dado]: ESTADO_SHORTCOUT,
+                };
+              case 16:
+                return {
+                  ...state,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    defensaMagicaBonus: P.defensaMagicaBonus + 1,
+                  },
+                  [action.dado]: ESTADO_SHORTCOUT,
+                };
               case 17:
                 const statsDisminuidos = {
                   ...state.personaje,
-                  vidaBase: P.vidaBase - 5,
-                  ataqueBase: P.ataque - 3,
-                  defensaBase: P.defensa - 3,
-                  criticoBase: P.criticoBase - 3 > 0 ? P.criticoBase - 3 : 0,
-                  esquivarBase: P.esquivarBase - 3 > 0 ? P.esquivarBase - 3 : 0,
-                  curacionBase: P.curacionBase - 3 > 0 ? P.curacionBase - 3 : 0,
-                  malemaleficioBaseficio:
-                    P.maleficioBase - 3 > 0 ? P.maleficioBase - 3 : 0,
-                  vampirismoBase:
-                    P.vampirismoBase - 3 > 0 ? P.vampirismoBase - 3 : 0,
+                  vidaMaximaBonus: P.vidaMaximaBonus - 5,
+                  ataqueBonus: P.ataqueBonus - 3,
+                  defensaBonus: P.defensaBonus - 3,
+                  criticoBonus: P.criticoBonus - 3,
+                  esquivarBonus: P.esquivarBonus - 3,
+                  curacionBonus: P.curacionBonus - 3,
+                  maleficioBonus: P.maleficioBonus - 3,
+                  vampirismoBonus: P.vampirismoBonus - 3,
                 };
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: statsDisminuidos,
+                };
+              case 18:
+                const curacionBase =
+                  Math.floor(P.curacion * 2 + P.vidaMaxima * 0.2) *
+                  modCritSanacion;
+                const [curacion18, ohBool, ohValor] =
+                  calcularHealing(curacionBase);
+
+                return {
+                  ...state,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    vida: curacion18,
+                    vidaMaximaBonus:
+                      P.vidaMaximaBonus + Math.floor(ohValor / 10),
+                  },
+                  [action.dado]: ESTADO_SHORTCOUT,
+                };
+              case 19:
+                // +3 Defensa, Esquivar, Curacion & +5HP Max
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    defensaBonus: P.defensaBonus + 3,
+                    esquivarBonus: P.esquivarBonus + 3,
+                    curacionBonus: P.curacionBonus + 3,
+                    vidaMaximaBonus: P.vidaMaximaBonus + 5,
+                  },
+                };
+              case 20:
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    energiaMax:
+                      P.energiaMax < 5 ? P.energiaMax + 1 : P.energiaMax,
+                  },
                 };
             }
             return { ...state };
