@@ -292,46 +292,16 @@ export function Heading() {
   };
 
   const generateOptions = (tipo) => {
-    switch (tipo) {
-      case "arma":
-        const bolsaArma = [...state.equipo.bolsa.arma];
-        const optionsArma = bolsaArma.map((objeto) => (
-          <option
-            key={objeto.clave}
-            value={objeto.clave}
-            indice={objeto.indice}
-          >
-            {objeto.nombre}
-          </option>
-        ));
-        return optionsArma;
-      case "armadura":
-        const bolsaArmadura = [...state.equipo.bolsa.armadura];
-        const optionsArmadura = bolsaArmadura.map((objeto) => (
-          <option
-            key={objeto.clave}
-            value={objeto.clave}
-            indice={objeto.indice}
-          >
-            {objeto.nombre}
-          </option>
-        ));
-        return optionsArmadura;
-      case "joya":
-        const bolsaJoya = [...state.equipo.bolsa.joya];
-        const optionsJoya = bolsaJoya.map((objeto) => (
-          <option
-            key={objeto.clave}
-            value={objeto.clave}
-            indice={objeto.indice}
-          >
-            {objeto.nombre}
-          </option>
-        ));
-        return optionsJoya;
-      default:
-        return <option>Aun no hay objetos</option>;
+    const bolsa = [...state.equipo.bolsa[tipo]];
+    if (bolsa.length === 0) {
+      return <option>Todavía vacío</option>;
     }
+    const options = bolsa.map((objeto) => (
+      <option key={objeto.clave} value={objeto.clave} indice={objeto.indice}>
+        {objeto.nombre}
+      </option>
+    ));
+    return options;
   };
 
   const modificarEquipo = (event, tipo) => {

@@ -114,12 +114,23 @@
     box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.616);
 }
 .div-equipo-slot{
+    flex-direction: column;
 border: 2px groove black;
 box-shadow: 0 0 5px 2px rgba(0, 0, 0, 0.616);
 border-radius: 15px;
 width: 375px;
 
 max-height: 145px;
+}
+.select-equipo-descripcion{
+    height: 30px;
+    border-radius: 5px;
+    text-align: center;
+    background-color: grey;
+    z-index: 3;
+}
+.select-vacio{
+    opacity: 0;
 }
 .equipo-nombre{
     color: white;
@@ -136,4 +147,34 @@ top:40px;
     text-align: center;
     font-size: 25px;
     font-weight: 800;
+}
+.div-equipo-stats-efecto{
+    flex-direction: column;
+}
+.contenedor-stats-equipo{
+    width: 95%;
+    min-height:80px ;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    justify-content: space-around;
+}
+.div-stat-equipo{
+    margin-right: 5px;
+    margin-bottom: 5px;
+    margin-left: 3px;
+    color: white;
+    min-width: 90px;
+    flex-wrap:unset;
+    text-align: center;
+    text-overflow:ellipsis;
+}
+.div-efecto-equipo-adicional{
+    margin-right: 5px;
+    margin-left: 3px;
+    color: white;
+    min-width: 90px;
+    flex-wrap:unset;
+    text-align: center;
+    text-overflow:ellipsis;
+
 }

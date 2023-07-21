@@ -1953,13 +1953,11 @@ const reducer = (state, action) => {
               case 4:
               case 8:
               case 14:
-                console.clear();
                 const numeroMaximo = state.cantidadPersonajes * 100;
                 let arrayProbabilidad = [0.65, 0.4, 0.2, 0.1, 0]; //35%, 25%, 20%, 10%, 10%
                 let arrayX = [0, 1, 2, 3, 4];
                 for (let i = 0; i < 4; i++) {
                   let numeroRandom = 0;
-                  console.log(`Entra al bucle for padre, valor de i = ${i}`);
                   switch (i) {
                     case 0:
                       const accion = parseInt(numero);
@@ -1967,9 +1965,6 @@ const reducer = (state, action) => {
                       break;
                     case 1:
                       numeroRandom = randomNumber(numeroMaximo);
-                      console.log(
-                        `Definicion de spec, numeroRandom = ${numeroRandom}/${numeroMaximo}`
-                      );
 
                       switch (claseSpec) {
                         case 101:
@@ -1994,33 +1989,13 @@ const reducer = (state, action) => {
                         default:
                           break;
                       }
-                      console.log(
-                        `ClaseSpec = ${
-                          parseInt(state.numeroClase) +
-                          parseInt(state.numeroSpec)
-                        }, arrayX = ${arrayX}`
-                      );
 
                       bucleSelectorSpec: for (let x = 0; x < 5; x++) {
-                        console.log(`Entra al bucle select spec`);
                         if (
                           numeroRandom >=
                           numeroMaximo * arrayProbabilidad[x]
                         ) {
                           spec = arrayX[x];
-                          console.log(
-                            `Spec seleccionado = ${
-                              spec == 0
-                                ? `Ataque`
-                                : spec == 1
-                                ? `Defensa`
-                                : spec == 2
-                                ? `Agilidad`
-                                : spec == 3
-                                ? `Maleficio`
-                                : `Curacion`
-                            }`
-                          );
                           break bucleSelectorSpec;
                         } else {
                           continue;
@@ -2038,15 +2013,6 @@ const reducer = (state, action) => {
                           numeroMaximo * arrayProbabilidad[x]
                         ) {
                           tipo = x;
-                          console.log(
-                            `Tipo ${
-                              tipo == 0
-                                ? `Arma`
-                                : tipo == 1
-                                ? `Armadura`
-                                : `Accesorio`
-                            }`
-                          );
 
                           break bucleSelectorSpec;
                         } else {
@@ -2070,7 +2036,6 @@ const reducer = (state, action) => {
                 }
                 // comprobacion de drop repetido
                 let codigoString = [lvl, spec, tipo, obj];
-                console.log(`El codigo string = ${codigoString.join("")}`);
 
                 let arrayCodigos = [...state.equipo.codigoDrop];
                 if (arrayCodigos.includes(codigoString.join(""))) {
