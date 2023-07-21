@@ -132,3 +132,11 @@ Lock
     //   default:
     //     return { ...state };
     // }
+
+{
+icono: EPS.CONTENIDO.SUPERHEAL.ICONO,
+p1: EPS.CONTENIDO.SUPERHEAL.P1,
+p2: EPS.CONTENIDO.SUPERHEAL.P2,
+nombre: EPS.DESCRIPCION.SUPERHEAL,
+valor: EPS.VARIABLE.SUPERHEAL,
+},

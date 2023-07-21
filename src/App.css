@@ -21,6 +21,7 @@ select{
 .App{
     flex-direction: column;
     min-height: 150vh;
+    width: 1349px;
     background-color: rgb(39, 39, 39);
     
 

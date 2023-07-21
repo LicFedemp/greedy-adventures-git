@@ -129,25 +129,21 @@ export function Rolleo(props) {
 
   const colorDado = () => {
     const numeroDado = parseInt(state[props.dado].numero);
+    const modo = state[props.dado].modo;
+    let retorno = ``;
     switch (numeroDado) {
       // ROJO
       case 1:
-      case 14:
-      case 19:
+      case 3:
+      case 15:
         return `estado-rojo`;
       case 4:
-        if (state[props.dado].modo) {
-          return `estado-rojo`;
-        } else if (!state[props.dado].modo) {
-          return `estado-naranja`;
-        }
+      case 14:
+        retorno = modo ? `estado-rojo` : `estado-naranja`;
+        return retorno;
       case 9:
-        if (state[props.dado].modo) {
-          return `estado-rojo`;
-        } else if (!state[props.dado].modo) {
-          return `estado-naranja`;
-        }
-
+        retorno = modo ? `estado-rojo` : `estado-violeta`;
+        return retorno;
       // VIOLETA
       case 2:
       case 7:
@@ -156,31 +152,25 @@ export function Rolleo(props) {
         return `estado-violeta`;
       // VERDE
       case 5:
-        if (state[props.dado].modo) {
-          return `estado-verde`;
-        } else if (!state[props.dado].modo) {
-          return `estado-celeste`;
-        }
+        retorno = modo ? `estado-verde` : `estado-heal`;
+        return retorno;
       case 8:
-        if (state[props.dado].modo) {
-          return `estado-verde`;
-        } else if (!state[props.dado].modo) {
-          return `estado-naranja`;
-        }
-      case 15:
-      case 3:
-        return `estado-verde`;
+      case 11:
+        retorno = modo ? `estado-verde` : `estado-naranja`;
+        return retorno;
+
       //NARANJA
       case 6:
-      case 18:
+      case 19:
         return `estado-naranja`;
       //CELESTE
-      case 11:
-        return `estado-celeste`;
+      case 16:
+      case 18:
+        return `estado-heal`;
       case 10:
         return `estado-marron`;
+
       case 12:
-      case 16:
       case 20:
         const clase = parseInt(state.numeroClase);
         switch (clase) {

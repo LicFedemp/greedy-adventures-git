@@ -838,6 +838,7 @@ const reducer = (state, action) => {
           return {
             ...state,
             personaje: { ...state.personaje, ira: 0 },
+            bonus: { ...state.bonus, enfurecido: false },
           };
         case 201:
         case 202:
@@ -1415,12 +1416,31 @@ const reducer = (state, action) => {
               case 12:
                 switch (claseSpec) {
                   case 101:
-                    danoInfligido = randomCritico ? P.ataque * 2 : P.ataque;
-                    window.alert(
-                      `Avanzas 3 casilleros e infliges ${danoInfligido}${
-                        randomCritico ? `(Critico)` : ``
-                      } de daño a quienes superes.`
-                    );
+                    let cantidadJugadores;
+                    let contador = 0;
+                    while (isNaN(cantidadJugadores) || contador == 10) {
+                      cantidadJugadores = parseInt(
+                        window.prompt(
+                          `${
+                            contador > 0 ? `Vamos de nuevo...` : ``
+                          }Cuantos enemigos haz alcanzado con Cargar?`
+                        )
+                      );
+                      contador++;
+                    }
+                    let vampirismoAcumulado = 0;
+                    const danoCargar = state.personaje.ataque;
+                    for (let x = 1; x <= cantidadJugadores; x++) {
+                      window.alert(`Dano al jugador n° ${x}`);
+                      const [, vampEfectivo] = calcularDano(
+                        danoCargar,
+                        randomCritico,
+                        2
+                      );
+                      vampirismoAcumulado = vampirismoAcumulado + vampEfectivo;
+                    }
+
+                    const [vidaFinal, ,] = calcularHealing(vampirismoAcumulado);
                     return {
                       ...state,
                       casillero: state.casillero + 3,
@@ -1428,9 +1448,24 @@ const reducer = (state, action) => {
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
+                        vida: vidaFinal,
                       },
                     };
                   case 102:
+                    if (state.bonus.blindado) {
+                      return {
+                        ...state,
+                        [action.dado]: ESTADO_SHORTCOUT,
+                        personaje: {
+                          ...state.personaje,
+                          energia: P.energia - gastoEnergia,
+                        },
+                        dados: {
+                          ...state.dados,
+                          dadosTemporales: state.dados.dadosTemporales + 1,
+                        },
+                      };
+                    }
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1450,6 +1485,21 @@ const reducer = (state, action) => {
                       },
                     };
                   case 202:
+                    if (state.bonus.esfumarse) {
+                      return {
+                        ...state,
+                        [action.dado]: ESTADO_SHORTCOUT,
+                        personaje: {
+                          ...state.personaje,
+                          energia: P.energia - gastoEnergia,
+                        },
+                        dados: {
+                          ...state.dados,
+                          dadosTemporales: state.dados.dadosTemporales + 1,
+                        },
+                      };
+                    }
+
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1512,11 +1562,17 @@ const reducer = (state, action) => {
                 //peste
                 return {
                   ...state,
-                  [action.dado]: ESTADO_SHORTCOUT,
                   [action.dado]: {
                     ...state[action.dado],
                     estado: 0,
                     peste: [true, 3],
+                  },
+                  personaje: {
+                    ...state.personaje,
+                    mana:
+                      claseSpec < 400 && P.mana < P.manaMax
+                        ? P.mana + 1
+                        : P.mana,
                   },
                 };
               case 14:
@@ -1570,6 +1626,13 @@ const reducer = (state, action) => {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
                   confusion: true,
+                  personaje: {
+                    ...state.personaje,
+                    mana:
+                      claseSpec < 400 && P.mana < P.manaMax
+                        ? P.mana + 1
+                        : P.mana,
+                  },
                 };
               case 18:
                 //purificacion
@@ -1628,6 +1691,18 @@ const reducer = (state, action) => {
               case 20:
                 switch (claseSpec) {
                   case 101:
+                    if (state.bonus.enfurecido) {
+                      return {
+                        ...state,
+                        [action.dado]: ESTADO_SHORTCOUT,
+                        personaje: {
+                          ...state.personaje,
+                          energia: P.energia - gastoEnergia,
+                          ataqueBonus: P.ataqueBonus + 3,
+                        },
+                      };
+                    }
+
                     return {
                       ...state,
 
@@ -1683,6 +1758,17 @@ const reducer = (state, action) => {
                       },
                     };
                   case 202:
+                    if (state.bonus.danzaCuchillas) {
+                      return {
+                        ...state,
+                        [action.dado]: ESTADO_SHORTCOUT,
+                        personaje: {
+                          ...state.personaje,
+                          energia: P.energia - gastoEnergia,
+                          ataqueBonus: P.ataqueBonus + 3,
+                        },
+                      };
+                    }
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1757,6 +1843,17 @@ const reducer = (state, action) => {
                     };
 
                   case 402:
+                    if (state.bonus.superSanacion) {
+                      return {
+                        ...state,
+                        [action.dado]: ESTADO_SHORTCOUT,
+                        personaje: {
+                          ...state.personaje,
+                          energia: P.energia - gastoEnergia,
+                          curacionBonus: P.curacionBonus + 3,
+                        },
+                      };
+                    }
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -2374,6 +2471,13 @@ const reducer = (state, action) => {
                   ...state,
                   corruptos: [...nuevosCorruptos],
                   [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    mana:
+                      claseSpec < 400 && P.mana < P.manaMax
+                        ? P.mana + 1
+                        : P.mana,
+                  },
                 };
               case 15:
                 const dano15 = Math.floor(
@@ -2419,6 +2523,8 @@ const reducer = (state, action) => {
                   curacionBonus: P.curacionBonus - 3,
                   maleficioBonus: P.maleficioBonus - 3,
                   vampirismoBonus: P.vampirismoBonus - 3,
+                  mana:
+                    claseSpec < 400 && P.mana < P.manaMax ? P.mana + 1 : P.mana,
                 };
                 return {
                   ...state,

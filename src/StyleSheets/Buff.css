@@ -63,11 +63,17 @@
     color: coral;
 
 }
-.efecto-HEMO p{
+.efecto-HEMO  p{
+    color: rgba(255, 0, 0, 0.89);
+}
+.efecto-RAGE p{
     color: rgba(255, 0, 0, 0.89);
 }
 
 .efecto-VENENO p{
+    color: rgba(47, 252, 20, 0.89);
+}
+.efecto-CUCHILLAS p{
     color: rgba(47, 252, 20, 0.89);
 }
 .efecto-REJU p{
@@ -79,6 +85,55 @@
 .efecto-CLARI p{
     color: rgba(0, 110, 255, 0.89);
 }
+.efecto-SUPERHEAL p{
+    color: rgba(0, 110, 255, 0.89);
+}
 .efecto-REGEN p{
     color: rgba(4, 255, 159, 0.89);
+}
+.efecto-BLINDADO p{
+    color: rgba(184, 184, 184, 0.89);
+}
+.efecto-ESFUMARSE p{
+    color: rgba(80, 80, 80, 0.89);
+}
+
+.div-equipo-explicacion{
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    position:absolute;
+    right:35px;
+    top:77px;
+    left:905px;
+    bottom:800px;
+    width: 400px;
+    height: 485px;
+    border-radius: 15px;
+    border: 2px groove black;
+    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.616);
+}
+.div-equipo-slot{
+border: 2px groove black;
+box-shadow: 0 0 5px 2px rgba(0, 0, 0, 0.616);
+border-radius: 15px;
+width: 375px;
+
+max-height: 145px;
+}
+.equipo-nombre{
+    color: white;
+    text-align: center;
+    
+    font-size: 15px;
+    font-weight: 600;
+
+}
+.equipo-indefinido{
+position: relative;
+top:40px;
+    color: white;
+    text-align: center;
+    font-size: 25px;
+    font-weight: 800;
 }

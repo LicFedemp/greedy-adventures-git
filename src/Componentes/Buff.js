@@ -8,6 +8,11 @@ import {
   GiHealing,
   GiSkullSlices,
   GiCrystalize,
+  GiEnrage,
+  GiKitchenKnives,
+  GiLayeredArmor,
+  GiInvisible,
+  GiLeafSwirl,
 } from "react-icons/gi";
 import { FaQuestion } from "react-icons/fa";
 
@@ -29,6 +34,11 @@ export function Buff(params) {
         TREJU: state.efectosPorSec.tickReju,
         TPSICO: state.efectosPorSec.tickPsicosis,
         CHANCE_CLARI: state.efectosPorSec.chanceClari,
+        RAGE: state.bonus.enfurecido,
+        CUCHILLAS: state.bonus.danzaCuchillas,
+        ESFUMARSE: state.bonus.esfumarse,
+        BLINDADO: state.bonus.blindado,
+        SUPERHEAL: state.bonus.superSanacion,
       },
       DESCRIPCION: {
         HEMO: "HEMO",
@@ -38,6 +48,11 @@ export function Buff(params) {
         CLARI: "CLARI",
         REGEN: "REGEN",
         CONFUSION: "CONFUSION",
+        RAGE: "RAGE",
+        CUCHILLAS: "CUCHILLAS",
+        ESFUMARSE: "ESFUMARSE",
+        BLINDADO: "BLINDADO",
+        SUPERHEAL: "SUPERHEAL",
       },
       CONTENIDO: {
         HEMO: {
@@ -74,6 +89,36 @@ export function Buff(params) {
           ICONO: <FaQuestion className="confusion-icon" />,
           P1: null,
           P2: "Confundido",
+        },
+        RAGE: {
+          //rage
+          ICONO: <GiEnrage className="confusion-icon" />,
+          P1: null,
+          P2: `Enfurecido`,
+        },
+        CUCHILLAS: {
+          //danzade cuchillas
+          ICONO: <GiKitchenKnives className="confusion-icon" />,
+          P1: null,
+          P2: "Cuchillas",
+        },
+        ESFUMARSE: {
+          //esfumarse
+          ICONO: <GiInvisible className="confusion-icon" />,
+          P1: null,
+          P2: "+30% esq",
+        },
+        BLINDADO: {
+          //blindado
+          ICONO: <GiLayeredArmor className="confusion-icon" />,
+          P1: null,
+          P2: "Blindado",
+        },
+        SUPERHEAL: {
+          //superheal
+          ICONO: <GiLeafSwirl className="confusion-icon" />,
+          P1: null,
+          P2: "CritHeal",
         },
       },
     };
@@ -127,6 +172,41 @@ export function Buff(params) {
         nombre: EPS.DESCRIPCION.CLARI,
         valor: EPS.VARIABLE.CLARI,
       },
+      {
+        icono: EPS.CONTENIDO.RAGE.ICONO,
+        p1: EPS.CONTENIDO.RAGE.P1,
+        p2: EPS.CONTENIDO.RAGE.P2,
+        nombre: EPS.DESCRIPCION.RAGE,
+        valor: EPS.VARIABLE.RAGE,
+      },
+      {
+        icono: EPS.CONTENIDO.CUCHILLAS.ICONO,
+        p1: EPS.CONTENIDO.CUCHILLAS.P1,
+        p2: EPS.CONTENIDO.CUCHILLAS.P2,
+        nombre: EPS.DESCRIPCION.CUCHILLAS,
+        valor: EPS.VARIABLE.CUCHILLAS,
+      },
+      {
+        icono: EPS.CONTENIDO.ESFUMARSE.ICONO,
+        p1: EPS.CONTENIDO.ESFUMARSE.P1,
+        p2: EPS.CONTENIDO.ESFUMARSE.P2,
+        nombre: EPS.DESCRIPCION.ESFUMARSE,
+        valor: EPS.VARIABLE.ESFUMARSE,
+      },
+      {
+        icono: EPS.CONTENIDO.BLINDADO.ICONO,
+        p1: EPS.CONTENIDO.BLINDADO.P1,
+        p2: EPS.CONTENIDO.BLINDADO.P2,
+        nombre: EPS.DESCRIPCION.BLINDADO,
+        valor: EPS.VARIABLE.BLINDADO,
+      },
+      {
+        icono: EPS.CONTENIDO.SUPERHEAL.ICONO,
+        p1: EPS.CONTENIDO.SUPERHEAL.P1,
+        p2: EPS.CONTENIDO.SUPERHEAL.P2,
+        nombre: EPS.DESCRIPCION.SUPERHEAL,
+        valor: EPS.VARIABLE.SUPERHEAL,
+      },
     ];
 
     return variables
@@ -164,11 +244,53 @@ export function Buff(params) {
       }
     });
   };
+  const renderEquipo = (slot) => {
+    const objeto = state.equipo?.actual[slot][0];
+    const arrayStats = [
+      "defensa",
+      "ataque",
+      "critico",
+      "esquivar",
+      "maleficio",
+      "curacion",
+      "vampirismo",
+      "defensaMagica",
+      "regeneracion",
+      "vidaMaxima",
+    ];
+    if (typeof objeto !== "undefined") {
+      const statsMayoresCero = arrayStats.filter(
+        (stat) => objeto[stat] && objeto[stat] > 0
+      );
+
+      return (
+        <div>
+          <div className="equipo-nombre">{objeto.nombre}</div>
+          <div className=" contenedor-stats-equipo">
+            {statsMayoresCero.map((stat, index) => (
+              <div key={`stat${index}`} className="div-stat-equipo">
+                {`${stat}: ${objeto[stat]}`}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="equipo-indefinido">AUN NO HAY ITEMS EN ESTE SLOT</div>
+      );
+    }
+  };
 
   return (
     <div className="div-bajo div-buff-main">
       <div className={`div-casillero`}>Casillero: {state.casillero}</div>{" "}
       <div className={`div-efectosps-general`}>{renderVariables()} </div>
+      <div className="div-equipo-explicacion">
+        <div className="div-equipo-slot ">{renderEquipo("arma")}</div>
+        <div className="div-equipo-slot ">{renderEquipo("armadura")}</div>
+        <div className="div-equipo-slot ">{renderEquipo("joya")}</div>
+      </div>
     </div>
   );
 }

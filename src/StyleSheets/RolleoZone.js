@@ -38,16 +38,23 @@ export function RolleoZone() {
 
   const cartaSkill = (tier) => {
     const personaje = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
+    let descripcion = "";
     if (tier == 1) {
       switch (personaje) {
         case 101:
-          return `Cargar`;
+          return `Cargar: avanzas 3 casilleros e infliges ${state.personaje.ataque} de daño a quienes atravieses`;
         case 102:
-          return `Blindado`;
+          descripcion = state.bonus.blindado
+            ? `+1 Dado temporal`
+            : `Blindado: duplica tu defensa`;
+          return descripcion;
         case 201:
-          return `Golpe en los riñones`;
+          return `Golpe en los riñones: el objetivo pierde el turno`;
         case 202:
-          return `Esfumarse: +30% esquivar`;
+          descripcion = state.bonus.esfumarse
+            ? `+1 Dado temporal`
+            : `Esfumarse: +30% esquivar`;
+          return descripcion;
         case 301:
         case 302:
           return `Psicosis: el objetivo pierde ${state.bonus.poderPsicosis}% de vida x retroceso.`;
@@ -62,7 +69,10 @@ export function RolleoZone() {
     } else if (tier == 2) {
       switch (personaje) {
         case 101:
-          return `Rage: +50% ataque, +50% vampirismo, 0 defensa`;
+          descripcion = state.bonus.enfurecido
+            ? `+3 ataque permanente`
+            : `Rage: +50% ataque, +50% vampirismo, 0 defensa`;
+          return descripcion;
         case 102:
           return `Embate de escudo: inflige ${state.personaje.defensa} puntos de dano`;
         case 201:
@@ -70,7 +80,10 @@ export function RolleoZone() {
             state.personaje.ataque * 2 + state.personaje.maleficio * 1;
           return `Ataque siniestro: infliges ${ataqueSiniestro}. Critico = 300% `;
         case 202:
-          return `Danza de Cuchillas: cada vez que esquivas infliges ${state.personaje.ataque} de dano al jugador +cercano`;
+          descripcion = state.bonus.danzaCuchillas
+            ? `+3 ataque permanente`
+            : `Danza de Cuchillas: cada vez que esquivas infliges ${state.personaje.ataque} de dano al jugador +cercano`;
+          return descripcion;
         case 301:
           return `Infliges ${
             state.personaje.maleficio
@@ -82,7 +95,10 @@ export function RolleoZone() {
         case 401:
           return `Teletransportacion: 2 jugadores intercambian posiciones`;
         case 402:
-          return `Durante 1 turno las curaciones pueden ser críticas, +30% critico`;
+          descripcion = state.bonus.superSanacion
+            ? `+3 curacion permanente`
+            : `Durante 1 turno las curaciones pueden ser críticas, +30% critico`;
+          return descripcion;
         default:
           break;
       }
@@ -186,7 +202,7 @@ export function RolleoZone() {
         case 3:
           return DADOS.D3.B.DECRIPCION;
         case 4:
-          return DADOS.D4.B.DECRIPCION;
+          return `Equipo Nivel 1`;
         case 5:
           return `Te curas ${state.personaje.curacion} puntos de vida`;
         case 6:
@@ -200,7 +216,7 @@ export function RolleoZone() {
           const maleficio7 = Math.floor(state.personaje.maleficio * 1);
           return `Infliges ${Math.floor(ataque7 + maleficio7)} puntos de dano `;
         case 8:
-          return DADOS.D8.B.DECRIPCION;
+          return `Equipo Nivel 2`;
         case 9:
           return DADOS.D9.B.DECRIPCION;
         case 10:
@@ -218,7 +234,7 @@ export function RolleoZone() {
         case 13:
           return `Corrupcion: corrompe 1 Num. Esparcible mientras utilices D20. `;
         case 14:
-          return `Equipo lvl 3`;
+          return `Equipo Nivel 3`;
         case 15:
           const dano15 = Math.floor(
             state.personaje.ataque * 0.8 + state.personaje.maleficio * 1.2

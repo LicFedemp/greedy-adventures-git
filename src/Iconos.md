@@ -8,7 +8,7 @@ ank healer:GiAnkh
 acido: GiAcid
 poison: GiPoisonGas
 angel: GiAngelOutfit//GiAngelWings
-armor up:GiArmorUpgrade
+armor up:  
 armordown: GiArmorDowngrade
 broken skull: GiBrokenSkull
 skull facha: GiDisintegrate
