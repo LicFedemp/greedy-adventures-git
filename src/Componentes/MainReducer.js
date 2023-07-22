@@ -677,6 +677,7 @@ const reducer = (state, action) => {
         return { ...state };
       }
       if (action.fase == "carga") {
+        //ya se carga con el dano real
         const danoPsicosis = Math.floor(action.poder * P.vidaMaxima * 0.01);
         return {
           ...state,
@@ -787,7 +788,7 @@ const reducer = (state, action) => {
       const estadoReset = {
         ...estadoInicial,
         muerteContador: state.muerte + 1,
-        casillero: state.casillero > 10 ? 10 : 0,
+        casillero: 0,
         numeroClase: state.numeroClase,
         numeroSpec: state.numeroSpec,
         equipo: { ...state.equipo },
@@ -1181,6 +1182,10 @@ const reducer = (state, action) => {
                     ...state.dados,
                     dadosFuturos: state.dados.dadosFuturos + 2,
                   },
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                  },
                 };
               case 4:
                 if (state.automatico) {
@@ -1268,8 +1273,11 @@ const reducer = (state, action) => {
                         );
                         const mayorCero =
                           state.casillero - reducRetroceso > 0 ? true : false;
+                        const danoPsicosisFlat = state.efectosPorSec.psicosis;
                         const danoPsicosis =
-                          state.efectosPorSec.tickPsicosis > 0 ? 0 : 0;
+                          state.efectosPorSec.tickPsicosis > 0
+                            ? danoPsicosisFlat * reducRetroceso
+                            : 0;
                         return {
                           ...state,
                           [action.dado]: ESTADO_SHORTCOUT,
@@ -1949,6 +1957,10 @@ const reducer = (state, action) => {
                     ...state.dados,
                     dadosTemporales: state.dados.dadosTemporales + 1,
                   },
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                  },
                 };
               case 4:
               case 8:
@@ -2376,13 +2388,13 @@ const reducer = (state, action) => {
               case 7:
                 const ataque7 = Math.floor(P.ataque * 0.5);
                 const maleficio7 = Math.floor(P.maleficio * 1);
-                const vampirismo = Math.floor(
-                  (ataque7 + maleficio7) * (P.vampirismo * 0.1) * 0.8
+                const [atqEfectivo, vampEfectivo] = calcularDano(
+                  ataque7 + maleficio7,
+                  randomCritico,
+                  2
                 );
-                const cambioVida =
-                  P.vida + vampirismo > P.vidaMaxima
-                    ? P.vidaMaxima
-                    : P.vida + vampirismo;
+                const [nuevaVidaVamp7] = calcularHealing(vampEfectivo);
+                const cambioVida = nuevaVidaVamp7;
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,

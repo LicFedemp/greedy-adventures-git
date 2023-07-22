@@ -138,7 +138,7 @@ export function RolleoZone() {
         case 5:
           return `${state[dado].estado == 2 ? `+2` : `+1`} Energia`;
         case 6:
-          return DADOS.D6.A.DECRIPCION;
+          return `Acumulas avance pero tienes 15% de chances de retroceder lo acumulado`;
         case 7:
           const retrocesoPotenciado =
             1 + Math.floor(state.personaje.maleficio / 50);
@@ -206,11 +206,9 @@ export function RolleoZone() {
         case 5:
           return `Te curas ${state.personaje.curacion} puntos de vida`;
         case 6:
-          return `Lanzas D6. Resultado <6: infliges ${Math.floor(
+          return `Lanzas D6. Resultado <6: acumulas ${Math.floor(
             state.personaje.ataque / 2
-          )} PD. Si D6 == 6, recibiras ${Math.floor(
-            state.personaje.ataque * 2
-          )} PD`;
+          )} PD. Si D6 == 6, recibiras lo acumulado`;
         case 7:
           const ataque7 = Math.floor(state.personaje.ataque * 0.5);
           const maleficio7 = Math.floor(state.personaje.maleficio * 1);

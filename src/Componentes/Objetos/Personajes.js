@@ -26,7 +26,7 @@ const statsBase = {
     esquivarBase: 5,
     curacionBase: 5,
     maleficioBase: 0,
-    defensaMagicaBase: 2,
+    defensaMagicaBase: 0,
     vampirismoBase: 0,
   },
   rogueSicario: {
