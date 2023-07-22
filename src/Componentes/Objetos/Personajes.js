@@ -12,7 +12,7 @@ const statsBase = {
     curacionBase: 5,
     maleficioBase: 0,
     defensaMagicaBase: 0,
-    vampirismoBase: 50,
+    vampirismoBase: 0,
   },
   warriorProtec: {
     vidaBase: 120,
@@ -111,7 +111,7 @@ const statsBase = {
     energiaMax: 3,
     ataqueBase: 10,
     defensaBase: 1,
-    mana: 5,
+    mana: 0,
     manaMax: 5,
     criticoBase: 15,
     esquivarBase: 5,
