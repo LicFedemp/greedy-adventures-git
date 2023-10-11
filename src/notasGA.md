@@ -7,23 +7,25 @@ Druida: transformaciones.
 Monje: ying yang, las curaciones progresivas dan unos stats y los danos progresivos dan otros, se puede autinfligir ambos.
 ---Tareas hasta D20---
 
+---Bugs---
+
+// la descripcion de confusion hhace efecto incluso si la activacion es denegada.
+
 ---INTERFACE---
 Desplegable de equipo.
-
+Personaje con slots de equipo? mm
+---EQUIPAMIENTO---
+Revisar spina con su efecto de bloqueo de dps antes de hacerlo
 --AGREGAR BUFFS---
-danza de cuchillas, esfumarse, enfurecido,blindado,supersanacion
+
 ----CORRECCIONES----
---La adicion del dado hacerlo permanente? hacer un dado extra temp y 1 dado perma (D20).
 --Revisar alcance de efectos (mele/distancia)
 --Revisar retroceso de habilidad de warlok
+
 ---CAMBIOS PERSONAJES EXISTENTES---
 
 ---AGREGAR---
-logos: campo de fuerza, blindado, esfumarse.
--Panel inferior con descripcion de equipo:
---Ordenar stats de mayor bonus a menor.
-
-- Peste y corrupcion.
+logos: campo de fuerza.
 
 ---Formula poder warlock---
 Destruccion: retroceso= 1cada 2 mana+1 cada 2 mana cada 50maleficio

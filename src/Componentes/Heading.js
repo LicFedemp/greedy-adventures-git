@@ -2,6 +2,8 @@ import { useGeneralContext } from "./Provider";
 import { ACCIONES, A } from "./Objetos/Acciones";
 import { useRef, useState, useEffect } from "react";
 import "../StyleSheets/Heading.css";
+import { atmosphereSounds,sounds } from "./Objetos/Audios";
+
 export function Heading() {
   const { state, dispatch } = useGeneralContext();
   const [vidaPrevia, setVidaPrevia] = useState(state.personaje.vidaMaxima);
@@ -282,7 +284,15 @@ export function Heading() {
         return <p>Sin mana no hay habilidad</p>;
     }
   };
+  const sonidoAtmosferico = ()=>{
+    if(Math.floor(Math.random()*3)+1 != 1)return;
+    const faseSonido = state.casillero >15? 2:1;
+    new Audio(atmosphereSounds[faseSonido][Math.floor(Math.random()*atmosphereSounds[faseSonido].length)]).play()
+  }
   const toggleTurno = () => {
+   if(!state.estadoTurno){
+      sonidoAtmosferico()
+    }
     dispatch({ type: A.GRAL.TOGGLE_TURNO });
   };
   const updateLifeBar = () => {

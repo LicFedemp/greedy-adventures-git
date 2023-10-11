@@ -33,15 +33,15 @@ export const EFECTOS_EQUIPO = {
   VIDA_REGEN: "+1 regeneracion cada 20 puntos de vida perdidos",
   VIDA_RESURRECCION:
     "Por solo 1 vez, al quedar por debajo de 1HP te curas el 100% de la vida",
-  REGEN_STATS: "+2 Ataque y Maleficio x 1 de regeneracion",
+  REGEN_STATS: "+2 Ataque y Maleficio x cada punto de regeneracion",
   CRIT_STUN: "Los impactos criticos hacen perder 1 turno al objetivo",
-  DADOS_ATAQUE: "+10 ataque x dado",
-  CRIT_CRIT: "Cada ataque critico con la Katana aumenta el critico 1%",
+  DADOS_ATAQUE: "+10 ataque x cada dado en juego",
+  CRIT_CRIT: "Cada ataque critico con la Katana aumenta la probabilidad de critico 1%",
   CRIT_VENENO:
     "Colmillo de Basilisco: los impactos criticos infligen veneno 40 x3T ",
   CRIT_HEAL: "Sadismo:los impactos criticos curan el 5% del HpMax",
   CRIT_HEMO: "Cortante: los impactos criticos provocan hemorragia 50 x3T",
-  BLOCK_DPS: "30% de probabilidad de evitar efectos por segundo negativos",
+  SPINA: "30% de probabilidad de devolver el daño recibido",
 };
 
 export const arrayEquipo = [
@@ -542,6 +542,7 @@ export const arrayEquipo = [
           vampirismo: 25,
         },
         {
+          //3001
           nombre: "Maza del Gigante",
           ataque: 70,
           critico: 5,
@@ -608,7 +609,7 @@ export const arrayEquipo = [
       ],
     ],
     [
-      // defensa
+      // defensa 1
       [
         {
           nombre: "Maza del Gigante",
@@ -625,6 +626,7 @@ export const arrayEquipo = [
           efecto: EFECTOS_EQUIPO.CRIT_STUN,
         },
         {
+          //3101
           nombre: "Spina",
           ataque: 15,
           vampirismo: 5,
@@ -634,12 +636,12 @@ export const arrayEquipo = [
           esquivar: 5,
           maleficio: 0,
           curacion: 0,
-          efecto: EFECTOS_EQUIPO.BLOCK_DPS,
+          efecto: EFECTOS_EQUIPO.SPINA,
         },
       ],
       [
         {
-          nombre: "Placas Hierrocrater",
+          nombre: "Placas de Hierrocrater",
           ataque: 0,
           defensa: 50,
           esquivar: 0,
@@ -690,7 +692,7 @@ export const arrayEquipo = [
       ],
     ],
     [
-      //agilidad
+      //agilidad 2
       [
         {
           nombre: "Suspiro de muerte",
@@ -702,6 +704,7 @@ export const arrayEquipo = [
           vampirismo: 0,
         },
         {
+          //3201
           nombre: "Katana",
           ataque: 20,
           defensa: 0,
@@ -783,6 +786,7 @@ export const arrayEquipo = [
           curacion: 10,
         },
         {
+          //3222
           nombre: "Sadismo",
           ataque: 10,
           critico: 15,
@@ -798,7 +802,7 @@ export const arrayEquipo = [
       ],
     ],
     [
-      // maleficio
+      // maleficio 3
       [
         {
           nombre: "Vara Desalmada",
@@ -810,7 +814,7 @@ export const arrayEquipo = [
           curacion: 0,
         },
         {
-          nombre: "Frasco de Vidrio",
+          nombre: "Botella de Whisky Rota",
           ataque: 10,
           vampirismo: 10,
           critico: 0,
@@ -882,6 +886,7 @@ export const arrayEquipo = [
           regeneracion: 0,
         },
         {
+          //3321
           nombre: "Alquimia VII",
           ataque: 5,
           critico: 0,
@@ -910,7 +915,7 @@ export const arrayEquipo = [
       ],
     ],
     [
-      //healer
+      //healer 4
       [
         {
           nombre: "Justiciera de Plata",
@@ -957,7 +962,9 @@ export const arrayEquipo = [
         },
       ],
       [
+        //2
         {
+          //0
           nombre: "Amuleto de Resurreccion",
           ataque: 0,
           critico: 10,

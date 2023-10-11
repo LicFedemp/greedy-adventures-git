@@ -1,9 +1,10 @@
 import { useReducer } from "react";
 import { STATS_AUTOMATICO } from "./Objetos/Personajes";
 import { efectosPSec } from "./Objetos/EfectosPS";
-import { EQUIPO, arrayEquipo } from "./Objetos/Equipo";
+import { EQUIPO, arrayEquipo, EFECTOS_EQUIPO } from "./Objetos/Equipo";
 import { ACCIONES, A } from "./Objetos/Acciones";
 import { DADOS } from "./Objetos/Dados";
+import { sounds } from "./Objetos/Audios";
 const estadoRoll = {
   numero: 0,
   modo: true,
@@ -60,6 +61,8 @@ const estadoInicial = {
     danzaCuchillas: false,
     poderPsicosis: 5,
     superSanacion: false,
+    resurreccion:false,
+    criticoKatana:0,
   },
   porcentajeVida: 100,
   regeneracion: 0,
@@ -122,7 +125,12 @@ const reducer = (state, action) => {
     state.dados.dadosTotales > state.numDadoMaximo
       ? state.numDadoMaximo
       : state.dados.dadosTotales;
-
+      //
+  const nuevoCriticoKatana = ()=>{
+    const dependencia = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_CRIT && randomCritico? true :false;
+    const resultante = dependencia?state.bonus.criticoKatana + 1:state.bonus.criticoKatana;
+    return resultante
+  }
   const calcularHealing = (cambio) => {
     const curacionBasica = P.vida + cambio;
     const ohBool = curacionBasica > P.vidaMaxima ? true : false;
@@ -135,7 +143,7 @@ const reducer = (state, action) => {
     if (!state.bonus.campoFuerza) {
       return false;
     }
-    const bloqueo = randomNumber(2) == 1 ? true : false;
+    const bloqueo = randomNumber(3) == 1 ? true : false;
     console.log(bloqueo);
     if (bloqueo) {
       window.alert(`Campo de fuerza ha bloqueado el efecto negativo!`);
@@ -178,15 +186,20 @@ const reducer = (state, action) => {
   };
 
   const calcularDano = (dano, critico, bonusCrit) => {
+    const modLegendarioCritStun = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_STUN && critico? true:false;
+    const modLegendarioCritPoison = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_VENENO && critico? true:false;
+    const modLegendarioCritHemo = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_HEMO && critico? true:false;
+    const modLegendarioCritHeal = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.CRIT_HEAL && critico? Math.floor(P.vidaMaxima * 0.05):0;
+
     const danoBase = critico ? dano * bonusCrit : dano;
     const defensaPrompt = window.prompt(
       `Infliges ${danoBase} puntos de dano ${
         critico ? `con un ataque critico!` : `.`
-      } Cuanta defensa tiene tu objetivo? Cancela si el ataque fue esquivado o bloqueado.`
+      } ${modLegendarioCritStun?`Tu objetivo PIERDE EL SEGUIENTE TURNO.`:``}${modLegendarioCritPoison?`Envenenas a tu objetivo 40 x3 turnos.`:``}${modLegendarioCritHemo?`Haces sangrar a tu objetivo 50 x3 turnos.`:``} Cuanta defensa tiene tu objetivo? Cancela si el ataque fue esquivado o bloqueado.`
     );
     const defensa = !isNaN(defensaPrompt) ? defensaPrompt : 0;
-    const danoEfectivo = defensa < danoBase ? Math.floor(dano - defensa) : 0;
-    const vampirismo = danoEfectivo * P.vampirismo * 0.01;
+    const danoEfectivo = defensa < danoBase ? Math.floor(danoBase - defensa) : 0;
+    const vampirismo = Math.floor(danoEfectivo * P.vampirismo * 0.01)+modLegendarioCritHeal;
     const arrayRetorno = [danoEfectivo, vampirismo];
 
     return arrayRetorno;
@@ -503,7 +516,7 @@ const reducer = (state, action) => {
 
       return {
         ...state,
-        dados: { ...state.dados, dadosTotales: totalCantidadDados },
+        dados: { ...state.dados, dadosTotales: totalCantidadDados>state.numDadoMaximo?state.numDadoMaximo:totalCantidadDados },
       };
 
     case A.DADO.PODER_DADO_CASILLERO:
@@ -793,6 +806,11 @@ const reducer = (state, action) => {
         numeroSpec: state.numeroSpec,
         equipo: { ...state.equipo },
       };
+      if(!state.bonus.resurreccion && state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_RESURRECCION){
+        window.alert("El amuleto de resurreccion ha salvado tu vida! No habra segunda oportunidad")
+        return{...state,bonus:{...state.bonus, resurreccion:true}, personaje: {...state.personaje, vida: P.vidaMaxima}}
+      }
+      window.alert("Has muerto, vuelves al casillero 0")
       return { ...estadoReset };
     case A.STATS.MOD_VIDA:
       if (campoDeFuerza() && action.valor > 0) {
@@ -809,6 +827,9 @@ const reducer = (state, action) => {
         return {
           ...nuevoEstado,
         };
+      }
+      if(state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.SPINA && randomNumber(100)<=30){
+        window.alert(`Tu escudo espinoso daña al atacante infligiendo ${danoFiltrado} puntos de daño`)
       }
       return {
         ...state,
@@ -946,6 +967,13 @@ const reducer = (state, action) => {
         state.numeroSpec == 1 && state.numeroClase == 100
           ? Math.floor((arrayStatsValores[1] + P.ataqueBase) * (P.ira * 0.1))
           : 0;
+// MODIFICADORES DE STATS CON EFECTOS ESPECIALES DE EQUIP LVL3
+const modLegendarioVidaAtaque = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_ATAQUE? Math.floor((P.vidaMaxima - P.vida)/20)*5:0;
+const modLegendarioVidaRegen = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_REGEN? Math.floor((P.vidaMaxima - P.vida)/20)*1:0;
+const modLegendarioDadoAtaque = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.DADOS_ATAQUE? state.dados.dadosTotales * 5:0;
+const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.REGEN_STATS? P.regeneracion * 2:0;
+
+//CALCULOS DE TOTALES
       const modificadorBlindado = state.bonus.blindado ? 2 : 1;
       const totalDefensa = state.bonus.enfurecido
         ? 0
@@ -956,7 +984,7 @@ const reducer = (state, action) => {
               P.defensaBonus
           ) * modificadorBlindado;
       const totalAtaque = Math.floor(
-        P.ataqueBase + iraModAtaque + arrayStatsValores[1] + P.ataqueBonus
+        P.ataqueBase + iraModAtaque + arrayStatsValores[1] + P.ataqueBonus + modLegendarioVidaAtaque + modLegendarioDadoAtaque +modLegendarioOfensivoRegen
       );
       const modSuperSanacion = state.bonus.superSanacion ? 30 : 0;
       const criticoTotal =
@@ -964,7 +992,7 @@ const reducer = (state, action) => {
         arrayStatsValores[2] +
         comboCritico +
         P.criticoBonus +
-        modSuperSanacion;
+        modSuperSanacion + state.bonus.criticoKatana;
       const modificadorEsfumarse = state.bonus.esfumarse ? 30 : 0;
       const esquivarTotal =
         P.esquivarBase +
@@ -973,7 +1001,7 @@ const reducer = (state, action) => {
         modificadorEsfumarse +
         P.esquivarBonus;
       const maleficioTotal =
-        P.maleficioBase + arrayStatsValores[4] + P.maleficioBonus;
+        P.maleficioBase + arrayStatsValores[4] + P.maleficioBonus +modLegendarioOfensivoRegen;
       const curacionTotal =
         P.curacionBase + arrayStatsValores[5] + P.curacionBonus;
       const vampirismoTotal =
@@ -985,7 +1013,7 @@ const reducer = (state, action) => {
         defMagicaFromDefensa +
         P.defensaMagicaBonus;
       const regeneracionTotal =
-        P.regeneracionBase + arrayStatsValores[8] + P.regeneracionBonus;
+        P.regeneracionBase + arrayStatsValores[8] + P.regeneracionBonus +modLegendarioVidaRegen;
       const vidaMaximaTotal =
         P.vidaBase + arrayStatsValores[9] + P.vidaMaximaBonus;
 
@@ -998,7 +1026,7 @@ const reducer = (state, action) => {
           ataque:
             totalAtaque > 0
               ? state.bonus.enfurecido
-                ? totalAtaque + totalAtaque * 0.5
+                ? Math.floor(totalAtaque + totalAtaque * 0.5)
                 : totalAtaque
               : 0,
           defensa: totalDefensa > 0 ? totalDefensa : 0,
@@ -1143,7 +1171,7 @@ const reducer = (state, action) => {
                       energia:
                         P.energia < P.energiaMax &&
                         state.numeroClase == 200 &&
-                        randomEsquivar
+                        randomEsquivar && gastoEnergia< 1
                           ? P.energia + 1
                           : P.energia,
                     },
@@ -1163,6 +1191,7 @@ const reducer = (state, action) => {
                     personaje: {
                       ...state.personaje,
                       vida: vidaFinal,
+                      energia: P.energia - gastoEnergia,
                       mana:
                         state.numeroClase == 300 &&
                         P.mana < P.manaMax &&
@@ -1174,6 +1203,9 @@ const reducer = (state, action) => {
                 }
 
               case 3:
+                if (state.dados.dadosTotales >= state.numDadoMaximo){
+                  window.alert("Haz alcanzado el numero maximo de dados");
+                  return{...state, }}
                 window.alert(`Inversion a futuro.Pierdes un turno`);
                 return {
                   ...state,
@@ -1399,6 +1431,7 @@ const reducer = (state, action) => {
                   personaje: {
                     ...state.personaje,
                     vida: vidaResultante,
+                    energia: P.energia - gastoEnergia,
                     mana:
                       claseSpec < 400 && P.mana < P.manaMax
                         ? P.mana + 1
@@ -1453,6 +1486,7 @@ const reducer = (state, action) => {
                       ...state,
                       casillero: state.casillero + 3,
                       [action.dado]: ESTADO_SHORTCOUT,
+                      bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
@@ -1577,6 +1611,8 @@ const reducer = (state, action) => {
                   },
                   personaje: {
                     ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
                     mana:
                       claseSpec < 400 && P.mana < P.manaMax
                         ? P.mana + 1
@@ -1584,6 +1620,9 @@ const reducer = (state, action) => {
                   },
                 };
               case 14:
+                if (state.dados.dadosTotales >= state.numDadoMaximo){
+                  window.alert("Haz alcanzado el numero maximo de dados");
+                  return{...state, }}
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
@@ -1612,10 +1651,12 @@ const reducer = (state, action) => {
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
+                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                   personaje: {
                     ...state.personaje,
                     vida: P.vida + vampirismo15 + vampBase,
                     energia: P.energia - gastoEnergia,
+                    combo: P.combo < P.comboMax?P.combo + 1:P.combo
                   },
                 };
               case 16:
@@ -1636,6 +1677,7 @@ const reducer = (state, action) => {
                   confusion: true,
                   personaje: {
                     ...state.personaje,
+                    ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
                     mana:
                       claseSpec < 400 && P.mana < P.manaMax
                         ? P.mana + 1
@@ -1660,7 +1702,7 @@ const reducer = (state, action) => {
                   },
                   efectosPorSec: { ...efectosPorsegundo },
                 };
-                if (algunNegativo) {
+                
                   for (let x = 1; x <= state.dados.dadosTotales; x++) {
                     const dadoActual = `roll${x}`;
                     if (dadoActual == action.dado) {
@@ -1679,7 +1721,7 @@ const reducer = (state, action) => {
                       };
                     }
                   }
-                }
+                
 
                 return { ...nuevoEstado };
               case 19:
@@ -1734,7 +1776,7 @@ const reducer = (state, action) => {
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
-                      bonus: { ...state.bonus, blindado: false },
+                      bonus: { ...state.bonus, blindado: false, criticoKatana:nuevoCriticoKatana() },
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
@@ -1756,6 +1798,7 @@ const reducer = (state, action) => {
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
+                      bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                       personaje: {
                         ...state.personaje,
                         energia:
@@ -1817,6 +1860,7 @@ const reducer = (state, action) => {
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
+                      bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
@@ -1893,6 +1937,7 @@ const reducer = (state, action) => {
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
+                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                   personaje: {
                     ...state.personaje,
                     energia:
@@ -1941,6 +1986,7 @@ const reducer = (state, action) => {
                     personaje: {
                       ...state.personaje,
                       vida: P.defensa > 10 ? P.vida : P.vida + (P.defensa - 10),
+                      energia: P.energia - gastoEnergia,
                       mana:
                         state.numeroClase == 300 && P.mana < P.manaMax
                           ? P.mana + 1
@@ -1950,6 +1996,9 @@ const reducer = (state, action) => {
                 }
 
               case 3:
+                if (state.dados.dadosTotales >= state.numDadoMaximo){
+                  window.alert("Haz alcanzado el numero maximo de dados");
+                  return{...state, }}
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
@@ -2350,6 +2399,7 @@ const reducer = (state, action) => {
                         ...state,
                         ataqueAcumulado: 0,
                         [action.dado]: ESTADO_SHORTCOUT,
+                        bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                         personaje: {
                           ...state.personaje,
                           vida:
@@ -2398,6 +2448,7 @@ const reducer = (state, action) => {
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
+                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                   personaje: {
                     ...state.personaje,
                     vida: cambioVida,
@@ -2450,6 +2501,8 @@ const reducer = (state, action) => {
                   [action.dado]: ESTADO_SHORTCOUT,
                   personaje: {
                     ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                    ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
                     mana:
                       claseSpec < 400 && P.mana < P.manaMax
                         ? P.mana + 1
@@ -2471,10 +2524,12 @@ const reducer = (state, action) => {
                     : P.vida + vampEfectivo15;
                 return {
                   ...state,
+                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
                   personaje: {
                     ...state.personaje,
                     vida: vidaFinal15,
                     energia: P.energia - gastoEnergia,
+                    combo: P.combo < P.comboMax?P.combo + 1:P.combo
                   },
 
                   [action.dado]: ESTADO_SHORTCOUT,
@@ -2492,6 +2547,8 @@ const reducer = (state, action) => {
               case 17:
                 const statsDisminuidos = {
                   ...state.personaje,
+                  ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
+                  energia: P.energia - gastoEnergia,
                   vidaMaximaBonus: P.vidaMaximaBonus - 5,
                   ataqueBonus: P.ataqueBonus - 3,
                   defensaBonus: P.defensaBonus - 3,

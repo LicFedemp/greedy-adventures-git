@@ -4,6 +4,8 @@ import { DADOS } from "./Objetos/Dados";
 import "../StyleSheets/Rolleo.css";
 import { useEffect } from "react";
 import { GiBrokenSkull, GiPlagueDoctorProfile } from "react-icons/gi";
+import { sounds } from "./Objetos/Audios";
+
 
 //descripcion aca.
 export function Rolleo(props) {
@@ -62,20 +64,28 @@ export function Rolleo(props) {
     const arrayRetorno = [numero, modo, gastoEnergia];
     return arrayRetorno;
   };
+  
   const ejecutarAccion = () => {
+    new Audio(sounds.simpleClick).play();
+
     const estadoActual = parseInt(state[props.dado].estado);
-    const [n, modo, gastoEnergia] = calculoConfusion(estadoActual);
-    const obligado = state.dadosObligados.includes(n);
+    //colador 1
+if(estadoActual === 0){return}
+    //colador 2
+    const numero = parseInt(state[props.dado].numero);
+    const obligado = state.dadosObligados.includes(numero);
     const obligadoPresente = comprobacionNegativos();
     const esPurificacion =
-      state[props.dado].numero == 18 && state[props.dado].modo == true
-        ? true
-        : false;
-    //colador
+    state[props.dado].numero == 18 && state[props.dado].modo == true
+      ? true
+      : false;
+
+if(!obligado && obligadoPresente&& !esPurificacion){return}
+// Supera coladores
+    const [n, modo, gastoEnergia] = calculoConfusion(estadoActual);
     if (
       !state.estadoTurno ||
       gastoEnergia > state.personaje.energia ||
-      estadoActual === 0 ||
       (!obligado && obligadoPresente && !state.confusion && !esPurificacion)
     ) {
       return;
@@ -101,7 +111,7 @@ export function Rolleo(props) {
       });
     }
     //activacion dado
-    //confusion
+    //confusion: modifica el array de confusion (chequeador?)
     if (state.confusion) {
       dispatch({ type: A.BUFF.CONFUSION, numero: n, modo });
       console.log(`array de confusion = ${state.alertConfusion}`);
@@ -123,6 +133,7 @@ export function Rolleo(props) {
       dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "hemoAccion" });
     }
   };
+  
   const toggleDado = () => {
     dispatch({ type: A.DADO.MODO_DADO, dado: [props.dado] });
   };

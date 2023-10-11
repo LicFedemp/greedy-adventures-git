@@ -124,9 +124,10 @@ export function ContextProvider({ children }) {
     state.personaje.curacionBonus,
     state.personaje.maleficioBonus,
     state.personaje.vampirismoBonus,
-
+    state.personaje.vida,
     state.equipo.actual,
     state.bonus,
+    state.dados.dadosTotales,
   ]);
 
   useEffect(() => {
