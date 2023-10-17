@@ -29,27 +29,14 @@ Revisar spina con su efecto de bloqueo de dps antes de hacerlo
 
 ----CORRECCIONES----
 --Revisar alcance de efectos (mele/distancia)
---Revisar retroceso de habilidad de warlok
---Cuando sale del D6 dano utilizar la funcion calcular dano.
---Al alcanzar 5 puntos de mana tiene que haber un efecto adicional, el incremento lineal no tiene gracia
 Explicar que el 7 puede hitear a cualquier enemigo.
-Regeneracion habilidad warrior que sea un floor.
 Dividir ataques entre mele y distancia
-si combina rage con regeneracion iracunda se pone muy op, nerfear curacion.
-Efecto secundario cuando danza de cuchillas esta activo (como rage) (modificar renderizado)
-Efecto sustain Esfumarse (heal 5% max HP por activacion)
 
----CAMBIOS PERSONAJES EXISTENTES---
-Necesidad de buff del warlock: opciones
-
-1. Incremento de stat defensivo progresivo: armor (piel de demonio)
-2. 5 puntos de mana hacen algo extra.
-   En endgame se gana mucho antihechizo: solucion
-3. Con psicosis el antiretroceso se va a 0. me guta.
+----CAMBIOS PERSONAJES EXISTENTES
 
 ---AGREGAR---
-logos: campo de fuerza.
-
+Ataques mejorados pr la espalda en rogue. backend
+Ataque mele aoe con warriors
 ---Formula poder warlock---
 Destruccion: retroceso= 1cada 2 mana+1 cada 2 mana cada 50maleficio
 Masas: same pero incrementa con 100maleficio

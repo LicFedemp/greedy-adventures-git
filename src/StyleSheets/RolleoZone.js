@@ -44,15 +44,13 @@ export function RolleoZone() {
         case 101:
           return `Cargar: avanzas 3 casilleros e infliges ${state.personaje.ataque} de daño a quienes atravieses`;
         case 102:
-          descripcion = state.bonus.blindado
-            ? `+1 Dado temporal`
-            : `Blindado: duplica tu defensa`;
+          descripcion = `Blindado: defensa +30% (acumulable)`;
           return descripcion;
         case 201:
           return `Golpe en los riñones: el objetivo pierde el turno`;
         case 202:
           descripcion = state.bonus.esfumarse
-            ? `+1 Dado temporal`
+            ? `Curacion: ${Math.floor(state.personaje.vidaMaxima * 0.1)} HP`
             : `Esfumarse: +30% esquivar`;
           return descripcion;
         case 301:
@@ -89,9 +87,9 @@ export function RolleoZone() {
             state.personaje.maleficio
           } de dano a TODOS los jugadores. Te curas ${
             state.personaje.vidaMaxima * 0.1
-          } hp por cada jugador afectado.`;
+          } HP por cada jugador afectado.`;
         case 302:
-          return `Destruccion mental:+2% Dano de Psicosis.`;
+          return `Destruccion mental:+1% Dano de Psicosis.`;
         case 401:
           return `Teletransportacion: 2 jugadores intercambian posiciones`;
         case 402:
@@ -210,9 +208,11 @@ export function RolleoZone() {
             state.personaje.ataque / 2
           )} PD. Si D6 == 6, recibiras lo acumulado`;
         case 7:
-          const ataque7 = Math.floor(state.personaje.ataque * 0.5);
-          const maleficio7 = Math.floor(state.personaje.maleficio * 1);
-          return `Infliges ${Math.floor(ataque7 + maleficio7)} puntos de dano `;
+          const ataque7 = Math.floor(state.personaje.ataque * 0.35);
+          const maleficio7 = Math.floor(state.personaje.maleficio * 0.75);
+          return `Range: Infliges ${Math.floor(
+            ataque7 + maleficio7
+          )} puntos de dano `;
         case 8:
           return `Equipo Nivel 2`;
         case 9:

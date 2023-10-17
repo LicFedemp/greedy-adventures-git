@@ -16,22 +16,22 @@ import {
   GiAlienBug,
   GiDisintegrate,
   GiAngelOutfit,
-  GiBellShield
+  GiBellShield,
 } from "react-icons/gi";
 import { FaQuestion } from "react-icons/fa";
 import { useEffect, useState } from "react";
 
 export function Buff(params) {
   const { state, dispatch } = useGeneralContext();
-  const [indexArma, setIndiceArma] = useState(null);
-  const [indexArmadura, setIndiceArmadura] = useState(null);
-  const [indexJoya, setIndiceJoya] = useState(null);
+  const [indexArma, setIndiceArma] = useState(0);
+  const [indexArmadura, setIndiceArmadura] = useState(0);
+  const [indexJoya, setIndiceJoya] = useState(0);
   const [blockEffect, setBlockEffect] = useState(false);
 
   const renderVariables = () => {
     const EPS = {
       DESCRIPCION: {
-        CORRUPTOS:"CORRUPTOS",
+        CORRUPTOS: "CORRUPTOS",
         HEMO: "HEMO",
         VENENO: "VENENO",
         REJU: "REJU",
@@ -44,30 +44,26 @@ export function Buff(params) {
         ESFUMARSE: "ESFUMARSE",
         BLINDADO: "BLINDADO",
         SUPERHEAL: "SUPERHEAL",
-        CAMPOFUERZA:"CAMPOFUERZA",
+        CAMPOFUERZA: "CAMPOFUERZA",
       },
       VARIABLE: {
-        HEMO: state.efectosPorSec.hemo,
-        VENENO: state.efectosPorSec.veneno,
-        REJU: state.efectosPorSec.reju,
-        PSICO: state.efectosPorSec.psicosis,
         CLARI: state.efectosPorSec.clarividencia,
         REGEN: state.personaje.regeneracion,
         CONFUSION: state.confusion,
-        THEMO: state.efectosPorSec.tickHemo,
-        TVENENO: state.efectosPorSec.tickVeneno,
-        TREJU: state.efectosPorSec.tickReju,
-        TPSICO: state.efectosPorSec.tickPsicosis,
+        HEMO: state.efectosPorSec.tickHemo,
+        VENENO: state.efectosPorSec.tickVeneno,
+        REJU: state.efectosPorSec.tickReju,
+        PSICO: state.efectosPorSec.tickPsicosis,
         CHANCE_CLARI: state.efectosPorSec.chanceClari,
         RAGE: state.bonus.enfurecido,
         CUCHILLAS: state.bonus.danzaCuchillas,
         ESFUMARSE: state.bonus.esfumarse,
-        BLINDADO: state.bonus.blindado,
+        BLINDADO: state.bonus.blindadoCargas,
         SUPERHEAL: state.bonus.superSanacion,
-        CORRUPTOS:state.corruptos.length,
+        CORRUPTOS: state.corruptos.length,
         CAMPOFUERZA: state.bonus.campoFuerza,
       },
-      
+
       CONTENIDO: {
         HEMO: {
           ICONO: <BsFillDropletFill className="reju-icon" />,
@@ -126,7 +122,7 @@ export function Buff(params) {
           //blindado
           ICONO: <GiLayeredArmor className="confusion-icon" />,
           P1: null,
-          P2: "Blindado",
+          P2: `x ${state.bonus.blindadoCargas}`,
         },
         SUPERHEAL: {
           //superheal
@@ -134,126 +130,28 @@ export function Buff(params) {
           P1: null,
           P2: "CritHeal",
         },
-        CORRUPTOS:{
-          ICONO:<GiDisintegrate className="confusion-icon"/>,
-          P1:null,
-          P2: state.corruptos.length
-
+        CORRUPTOS: {
+          ICONO: <GiDisintegrate className="confusion-icon" />,
+          P1: null,
+          P2: state.corruptos.length,
         },
-        CAMPOFUERZA:{
-          ICONO:<GiBellShield className="confusion-icon"/>,
-          P1:null,
+        CAMPOFUERZA: {
+          ICONO: <GiBellShield className="confusion-icon" />,
+          P1: null,
           P2: null,
-
-        }
+        },
       },
     };
-    const nombresEPS = Object.keys(EPS.DESCRIPCION);      
-    // const variablesEficiente = Array.from((EPS), (clave, valor)=>{
-    //   return {icono: ,p1:,p2:,nombre:,valor:}
-    // });
-    const variables = [
-      {
-        icono: EPS.CONTENIDO.CORRUPTOS.ICONO,
-        p1: EPS.CONTENIDO.CORRUPTOS.P1,
-        p2: EPS.CONTENIDO.CORRUPTOS.P2,
-        nombre: EPS.DESCRIPCION.CORRUPTOS,
-        valor: EPS.VARIABLE.CORRUPTOS,
-      },
-      {
-        icono: EPS.CONTENIDO.HEMO.ICONO,
-        p1: EPS.CONTENIDO.HEMO.P1,
-        p2: EPS.CONTENIDO.HEMO.P2,
-        nombre: EPS.DESCRIPCION.HEMO,
-        valor: EPS.VARIABLE.THEMO,
-      },
-      {
-        icono: EPS.CONTENIDO.VENENO.ICONO,
-        p1: EPS.CONTENIDO.VENENO.P1,
-        p2: EPS.CONTENIDO.VENENO.P2,
-        nombre: EPS.DESCRIPCION.VENENO,
-        valor: EPS.VARIABLE.TVENENO,
-      },
-      {
-        icono: EPS.CONTENIDO.PSICO.ICONO,
-        p1: EPS.CONTENIDO.PSICO.P1,
-        p2: EPS.CONTENIDO.PSICO.P2,
-        nombre: EPS.DESCRIPCION.PSICO,
-        valor: EPS.VARIABLE.TPSICO,
-      },
-      {
-        icono: EPS.CONTENIDO.CONFUSION.ICONO,
-        p1: EPS.CONTENIDO.CONFUSION.P1,
-        p2: EPS.CONTENIDO.CONFUSION.P2,
-        nombre: EPS.DESCRIPCION.CONFUSION,
-        valor: EPS.VARIABLE.CONFUSION,
-      },
-      {
-        icono: EPS.CONTENIDO.REJU.ICONO,
-        p1: EPS.CONTENIDO.REJU.P1,
-        p2: EPS.CONTENIDO.REJU.P2,
-        nombre: EPS.DESCRIPCION.REJU,
-        valor: EPS.VARIABLE.TREJU,
-      },
-      {
-        icono: EPS.CONTENIDO.REGEN.ICONO,
-        p1: EPS.CONTENIDO.REGEN.P1,
-        p2: EPS.CONTENIDO.REGEN.P2,
-        nombre: EPS.DESCRIPCION.REGEN,
-        valor: EPS.VARIABLE.REGEN,
-      },
-      {
-        icono: EPS.CONTENIDO.CLARI.ICONO,
-        p1: EPS.CONTENIDO.CLARI.P1,
-        p2: EPS.CONTENIDO.CLARI.P2,
-        nombre: EPS.DESCRIPCION.CLARI,
-        valor: EPS.VARIABLE.CLARI,
-      },
-      {
-        icono: EPS.CONTENIDO.RAGE.ICONO,
-        p1: EPS.CONTENIDO.RAGE.P1,
-        p2: EPS.CONTENIDO.RAGE.P2,
-        nombre: EPS.DESCRIPCION.RAGE,
-        valor: EPS.VARIABLE.RAGE,
-      },
-      {
-        icono: EPS.CONTENIDO.CUCHILLAS.ICONO,
-        p1: EPS.CONTENIDO.CUCHILLAS.P1,
-        p2: EPS.CONTENIDO.CUCHILLAS.P2,
-        nombre: EPS.DESCRIPCION.CUCHILLAS,
-        valor: EPS.VARIABLE.CUCHILLAS,
-      },
-      {
-        icono: EPS.CONTENIDO.ESFUMARSE.ICONO,
-        p1: EPS.CONTENIDO.ESFUMARSE.P1,
-        p2: EPS.CONTENIDO.ESFUMARSE.P2,
-        nombre: EPS.DESCRIPCION.ESFUMARSE,
-        valor: EPS.VARIABLE.ESFUMARSE,
-      },
-      {
-        icono: EPS.CONTENIDO.BLINDADO.ICONO,
-        p1: EPS.CONTENIDO.BLINDADO.P1,
-        p2: EPS.CONTENIDO.BLINDADO.P2,
-        nombre: EPS.DESCRIPCION.BLINDADO,
-        valor: EPS.VARIABLE.BLINDADO,
-      },
-      {
-        icono: EPS.CONTENIDO.SUPERHEAL.ICONO,
-        p1: EPS.CONTENIDO.SUPERHEAL.P1,
-        p2: EPS.CONTENIDO.SUPERHEAL.P2,
-        nombre: EPS.DESCRIPCION.SUPERHEAL,
-        valor: EPS.VARIABLE.SUPERHEAL,
-      },
-      {
-        icono: EPS.CONTENIDO.CAMPOFUERZA.ICONO,
-        p1: EPS.CONTENIDO.CAMPOFUERZA.P1,
-        p2: EPS.CONTENIDO.CAMPOFUERZA.P2,
-        nombre: EPS.DESCRIPCION.CAMPOFUERZA,
-        valor: EPS.VARIABLE.CAMPOFUERZA,
-      },
-    ];
+    const nombresEPS = Object.keys(EPS.DESCRIPCION);
+    const variablesEficiente = Array.from(nombresEPS, (nombreEPS) => ({
+      icono: EPS.CONTENIDO[nombreEPS].ICONO,
+      p1: EPS.CONTENIDO[nombreEPS].P1,
+      p2: EPS.CONTENIDO[nombreEPS].P2,
+      nombre: EPS.DESCRIPCION[nombreEPS],
+      valor: EPS.VARIABLE[nombreEPS],
+    }));
 
-    return variables
+    return variablesEficiente
       .filter((variable) => variable.valor > 0)
       .map((variable) => (
         <div
@@ -325,6 +223,7 @@ export function Buff(params) {
   };
 
   const renderEquipo = (slot) => {
+    const boolBolsaVacia = state.equipo?.bolsa[slot].length == 0 ? true : false;
     const indice =
       slot == "arma"
         ? indexArma
@@ -346,9 +245,7 @@ export function Buff(params) {
       "regeneracion",
       "vidaMaxima",
     ];
-    if (typeof objeto !== "undefined" && indice !== null) {
-      
-
+    if (!boolBolsaVacia) {
       const statsMayoresCero = arrayStats.filter(
         (stat) => objeto[stat] && objeto[stat] > 0
       );

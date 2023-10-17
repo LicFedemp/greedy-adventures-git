@@ -56,12 +56,12 @@ export const DADOS = {
   D9: {
     A: {
       EFECTO: "DA9",
-      DECRIPCION: "Lider: todos se te acercan 2 casilleros. +1 ataque perma",
+      DECRIPCION: "Lider: todos se te acercan 1 casilleros. +1 ataque perma",
     },
     B: {
       EFECTO: "DB9",
       DECRIPCION:
-        "Hediondo: todos se alejan 2 casilleros. +1 p. Habilidad perma ",
+        "Hediondo: todos se alejan 1 casilleros. +1 p. Habilidad perma ",
     },
   },
   D10: {

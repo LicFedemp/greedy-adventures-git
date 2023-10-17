@@ -2,7 +2,7 @@ import { useGeneralContext } from "./Provider";
 import { ACCIONES, A } from "./Objetos/Acciones";
 import { useRef, useState, useEffect } from "react";
 import "../StyleSheets/Heading.css";
-import { atmosphereSounds,sounds } from "./Objetos/Audios";
+import { atmosphereSounds, sounds } from "./Objetos/Audios";
 
 export function Heading() {
   const { state, dispatch } = useGeneralContext();
@@ -233,7 +233,7 @@ export function Heading() {
             Haz retroceder a todos los jugadores{" "}
             {Math.floor(
               state.personaje.mana / 2 +
-                state.personaje.mana  *
+                state.personaje.mana *
                   Math.floor(state.personaje.maleficio / 300)
             )}{" "}
             casilleros.
@@ -249,8 +249,9 @@ export function Heading() {
             Haz retroceder a cualquier jugador{" "}
             {Math.floor(
               state.personaje.mana / 2 +
-                
-                  Math.floor(state.personaje.mana  *(state.personaje.maleficio / 130))
+                Math.floor(
+                  state.personaje.mana * (state.personaje.maleficio / 130)
+                )
             )}{" "}
             casilleros.
           </button>
@@ -284,14 +285,18 @@ export function Heading() {
         return <p>Sin mana no hay habilidad</p>;
     }
   };
-  const sonidoAtmosferico = ()=>{
-    if(Math.floor(Math.random()*3)+1 != 1)return;
-    const faseSonido = state.casillero >15? 2:1;
-    new Audio(atmosphereSounds[faseSonido][Math.floor(Math.random()*atmosphereSounds[faseSonido].length)]).play()
-  }
+  const sonidoAtmosferico = () => {
+    if (Math.floor(Math.random() * 3) + 1 != 1) return;
+    const faseSonido = state.casillero > 15 ? 2 : 1;
+    new Audio(
+      atmosphereSounds[faseSonido][
+        Math.floor(Math.random() * atmosphereSounds[faseSonido].length)
+      ]
+    ).play();
+  };
   const toggleTurno = () => {
-   if(!state.estadoTurno){
-      sonidoAtmosferico()
+    if (!state.estadoTurno) {
+      sonidoAtmosferico();
     }
     dispatch({ type: A.GRAL.TOGGLE_TURNO });
   };
@@ -301,54 +306,57 @@ export function Heading() {
     console.log(state.porcentajeVida);
   };
 
-
   const generateOptions = (tipo) => {
     const bolsa = [...state.equipo.bolsa[tipo]];
     if (bolsa.length === 0) {
       return <option>Todavía vacío</option>;
     }
-  
+
     const options = bolsa.map((objeto) => {
       // Obtén el primer dígito de objeto.clave
       const primerDigito = objeto.clave.charAt(0);
-  
+
       // Define un color de fondo basado en el primer dígito
       let backgroundColor;
       switch (primerDigito) {
-        case '1':
-          backgroundColor = 'white';
+        case "1":
+          backgroundColor = "white";
           break;
-        case '2':
-          backgroundColor = 'rgb(12, 162, 243)';
+        case "2":
+          backgroundColor = "rgb(12, 162, 243)";
           break;
-          case '3':
-            backgroundColor= 'rgb(202, 0, 252)';
-            break;
+        case "3":
+          backgroundColor = "rgb(202, 0, 252)";
+          break;
         // Agrega más casos según tus necesidades
         default:
-          backgroundColor = 'grey';
+          backgroundColor = "grey";
       }
-  
+
       // Estilo en línea para la opción
       const optionStyle = { backgroundColor };
-  
+
       return (
-        <option key={objeto.clave} value={objeto.clave} indice={objeto.indice} style={optionStyle}>
+        <option
+          key={objeto.clave}
+          value={objeto.clave}
+          indice={objeto.indice}
+          style={optionStyle}
+        >
           {objeto.nombre}
         </option>
       );
     });
-  
+
     // Agrega la opción "Desequipar" al final del array
-    options.push(
-      <option key="desequipar" value="desequipar">
-        Desequipar
-      </option>
-    );
-  
+    // options.push(
+    //   <option key="0" value="desequipar">
+    //     Desequipar
+    //   </option>
+    // );
+
     return options;
   };
-  
 
   const modificarEquipo = (event, tipo) => {
     let algunNegativo = false;
@@ -367,30 +375,31 @@ export function Heading() {
     dispatch({ type: A.STATS.MODIFICAR_EQUIPO, tipo, indice });
   };
 
-  const backGroundSelect = (slot)=>{
+  const backGroundSelect = (slot) => {
     let primerDigito;
     const objeto = state.equipo.actual?.[slot];
     if (Array.isArray(objeto) && objeto.length > 0) {
-       primerDigito = objeto[0]?.clave.charAt(0);}
-  
+      primerDigito = objeto[0]?.clave.charAt(0);
+    }
+
     // Define un color de fondo basado en el primer dígito
     let backgroundColor;
     switch (primerDigito) {
-      case '1':
-        backgroundColor = 'white';
+      case "1":
+        backgroundColor = "white";
         break;
-      case '2':
-        backgroundColor = 'blue';
+      case "2":
+        backgroundColor = "blue";
         break;
-        case '3':
-          backgroundColor= 'purple';
-          break;
+      case "3":
+        backgroundColor = "purple";
+        break;
       // Agrega más casos según tus necesidades
       default:
-        backgroundColor = 'grey';
+        backgroundColor = "grey";
     }
-    return `select-equipo select-equipo-${backgroundColor}`
-  }
+    return `select-equipo select-equipo-${backgroundColor}`;
+  };
 
   const pintarStats = (stat) => {
     const statActual = state.personaje[stat];

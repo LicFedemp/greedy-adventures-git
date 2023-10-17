@@ -36,7 +36,8 @@ export const EFECTOS_EQUIPO = {
   REGEN_STATS: "+2 Ataque y Maleficio x cada punto de regeneracion",
   CRIT_STUN: "Los impactos criticos hacen perder 1 turno al objetivo",
   DADOS_ATAQUE: "+10 ataque x cada dado en juego",
-  CRIT_CRIT: "Cada ataque critico con la Katana aumenta la probabilidad de critico 1%",
+  CRIT_CRIT:
+    "Cada ataque critico con la Katana aumenta la probabilidad de critico 1%",
   CRIT_VENENO:
     "Colmillo de Basilisco: los impactos criticos infligen veneno 40 x3T ",
   CRIT_HEAL: "Sadismo:los impactos criticos curan el 5% del HpMax",
@@ -45,7 +46,19 @@ export const EFECTOS_EQUIPO = {
 };
 
 export const arrayEquipo = [
-  [],
+  [
+    {
+      nombre: "Desequipar",
+      clave: "0,0",
+      indice: "0",
+    },
+    { nombre: "Desequipar", clave: "0,1", indice: "0" },
+    {
+      nombre: "Desequipar",
+      clave: "0,2",
+      indice: "0",
+    },
+  ],
   [
     [
       //ataque

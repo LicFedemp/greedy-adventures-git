@@ -31,18 +31,18 @@ const estadoInicial = {
   numeroClase: 200,
   numeroSpec: 2,
   muerteContador: 0,
-  estadoTurno: true,
-  casillero: 15,
-  casilleroPrevio: 15,
+  estadoTurno: false,
+  casillero: 0,
+  casilleroPrevio: 0,
   casillerosMovidos: 0,
-  nivelDado: 2,
-  poderDado: 12,
+  nivelDado: 1,
+  poderDado: 6,
   numDado: 5,
   numDadoMaximo: 5,
   dadoExtra: 0,
   dados: {
-    dadosTotales: 5,
-    dadosBase: 5,
+    dadosTotales: 2,
+    dadosBase: 2,
     dadoIra: 0,
     dadosAdd: 0,
     dadosTemporales: 0,
@@ -55,15 +55,17 @@ const estadoInicial = {
   bonus: {
     vida: 0,
     blindado: false,
+    blindadoCargas: 0,
+    defensaBlindado: 0,
     esfumarse: false,
     campoFuerza: false,
     enfurecido: false,
     danzaCuchillas: false,
     poderPsicosis: 5,
     superSanacion: false,
-    resurreccion:false,
-    criticoKatana:0,
-    pielDemonio:0,
+    resurreccion: false,
+    criticoKatana: 0,
+    pielDemonio: 0,
   },
   porcentajeVida: 100,
   regeneracion: 0,
@@ -86,7 +88,11 @@ const estadoInicial = {
   dadosObligados: [2, 10, 13, 17],
   equipo: {
     codigoDrop: [],
-    bolsa: { arma: [], armadura: [], joya: [] },
+    bolsa: {
+      arma: [],
+      armadura: [],
+      joya: [],
+    },
     actual: {
       arma: [],
       armadura: [],
@@ -126,12 +132,18 @@ const reducer = (state, action) => {
     state.dados.dadosTotales > state.numDadoMaximo
       ? state.numDadoMaximo
       : state.dados.dadosTotales;
-      //
-  const nuevoCriticoKatana = ()=>{
-    const dependencia = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_CRIT && randomCritico? true :false;
-    const resultante = dependencia?state.bonus.criticoKatana + 1:state.bonus.criticoKatana;
-    return resultante
-  }
+  //
+  const nuevoCriticoKatana = () => {
+    const dependencia =
+      state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_CRIT &&
+      randomCritico
+        ? true
+        : false;
+    const resultante = dependencia
+      ? state.bonus.criticoKatana + 1
+      : state.bonus.criticoKatana;
+    return resultante;
+  };
   const calcularHealing = (cambio) => {
     const curacionBasica = P.vida + cambio;
     const ohBool = curacionBasica > P.vidaMaxima ? true : false;
@@ -187,20 +199,44 @@ const reducer = (state, action) => {
   };
 
   const calcularDano = (dano, critico, bonusCrit) => {
-    const modLegendarioCritStun = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_STUN && critico? true:false;
-    const modLegendarioCritPoison = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_VENENO && critico? true:false;
-    const modLegendarioCritHemo = state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_HEMO && critico? true:false;
-    const modLegendarioCritHeal = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.CRIT_HEAL && critico? Math.floor(P.vidaMaxima * 0.05):0;
+    const modLegendarioCritStun =
+      state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_STUN &&
+      critico
+        ? true
+        : false;
+    const modLegendarioCritPoison =
+      state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_VENENO &&
+      critico
+        ? true
+        : false;
+    const modLegendarioCritHemo =
+      state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.CRIT_HEMO &&
+      critico
+        ? true
+        : false;
+    const modLegendarioCritHeal =
+      state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.CRIT_HEAL &&
+      critico
+        ? Math.floor(P.vidaMaxima * 0.05)
+        : 0;
 
     const danoBase = critico ? dano * bonusCrit : dano;
     const defensaPrompt = window.prompt(
       `Infliges ${danoBase} puntos de dano ${
         critico ? `con un ataque critico!` : `.`
-      } ${modLegendarioCritStun?`Tu objetivo PIERDE EL SEGUIENTE TURNO.`:``}${modLegendarioCritPoison?`Envenenas a tu objetivo 40 x3 turnos.`:``}${modLegendarioCritHemo?`Haces sangrar a tu objetivo 50 x3 turnos.`:``} Cuanta defensa tiene tu objetivo? Cancela si el ataque fue esquivado o bloqueado.`
+      } ${
+        modLegendarioCritStun ? `Tu objetivo PIERDE EL SEGUIENTE TURNO.` : ``
+      }${
+        modLegendarioCritPoison ? `Envenenas a tu objetivo 40 x3 turnos.` : ``
+      }${
+        modLegendarioCritHemo ? `Haces sangrar a tu objetivo 50 x3 turnos.` : ``
+      } Cuanta defensa tiene tu objetivo? Cancela si el ataque fue esquivado o bloqueado.`
     );
     const defensa = !isNaN(defensaPrompt) ? defensaPrompt : 0;
-    const danoEfectivo = defensa < danoBase ? Math.floor(danoBase - defensa) : 0;
-    const vampirismo = Math.floor(danoEfectivo * P.vampirismo * 0.01)+modLegendarioCritHeal;
+    const danoEfectivo =
+      defensa < danoBase ? Math.floor(danoBase - defensa) : 0;
+    const vampirismo =
+      Math.floor(danoEfectivo * P.vampirismo * 0.01) + modLegendarioCritHeal;
     const arrayRetorno = [danoEfectivo, vampirismo];
 
     return arrayRetorno;
@@ -475,6 +511,8 @@ const reducer = (state, action) => {
           bonus: {
             ...state.bonus,
             blindado: false,
+            blindadoCargas: 0,
+            defensaBlindado: 0,
             esfumarse: false,
             campoFuerza: false,
             danzaCuchillas: false,
@@ -517,7 +555,13 @@ const reducer = (state, action) => {
 
       return {
         ...state,
-        dados: { ...state.dados, dadosTotales: totalCantidadDados>state.numDadoMaximo?state.numDadoMaximo:totalCantidadDados },
+        dados: {
+          ...state.dados,
+          dadosTotales:
+            totalCantidadDados > state.numDadoMaximo
+              ? state.numDadoMaximo
+              : totalCantidadDados,
+        },
       };
 
     case A.DADO.PODER_DADO_CASILLERO:
@@ -702,8 +746,9 @@ const reducer = (state, action) => {
         };
       } else if (action.fase == "golpe") {
         const danoFinalPsicosis = Math.floor(
-          action.retroceso * (state.efectosPorSec.psicosis* P.vidaMaxima * 0.01))
-        ;
+          action.retroceso *
+            (state.efectosPorSec.psicosis * P.vidaMaxima * 0.01)
+        );
         const vidaFinalPsicosis = Math.floor(P.vida - danoFinalPsicosis);
         return {
           ...state,
@@ -807,11 +852,20 @@ const reducer = (state, action) => {
         numeroSpec: state.numeroSpec,
         equipo: { ...state.equipo },
       };
-      if(!state.bonus.resurreccion && state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_RESURRECCION){
-        window.alert("El amuleto de resurreccion ha salvado tu vida! No habra segunda oportunidad")
-        return{...state,bonus:{...state.bonus, resurreccion:true}, personaje: {...state.personaje, vida: P.vidaMaxima}}
+      if (
+        !state.bonus.resurreccion &&
+        state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_RESURRECCION
+      ) {
+        window.alert(
+          "El amuleto de resurreccion ha salvado tu vida! No habra segunda oportunidad"
+        );
+        return {
+          ...state,
+          bonus: { ...state.bonus, resurreccion: true },
+          personaje: { ...state.personaje, vida: P.vidaMaxima },
+        };
       }
-      window.alert("Has muerto, vuelves al casillero 0")
+      window.alert("Has muerto, vuelves al casillero 0");
       return { ...estadoReset };
     case A.STATS.MOD_VIDA:
       if (campoDeFuerza() && action.valor > 0) {
@@ -829,8 +883,13 @@ const reducer = (state, action) => {
           ...nuevoEstado,
         };
       }
-      if(state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.SPINA && randomNumber(100)<=30){
-        window.alert(`Tu escudo espinoso daña al atacante infligiendo ${danoFiltrado} puntos de daño`)
+      if (
+        state.equipo.actual.arma[0]?.efecto === EFECTOS_EQUIPO.SPINA &&
+        randomNumber(100) <= 30
+      ) {
+        window.alert(
+          `Tu escudo espinoso daña al atacante infligiendo ${danoFiltrado} puntos de daño`
+        );
       }
       return {
         ...state,
@@ -880,7 +939,18 @@ const reducer = (state, action) => {
         case 302:
           const valorPielDemonio = state.bonus.pielDemonio;
           const limitePielDemonio = 50;
-          return { ...state, personaje: { ...state.personaje, mana: 0,  }, bonus:{...state.bonus, pielDemonio:valorPielDemonio ==limitePielDemonio || valorPielDemonio + P.mana >=limitePielDemonio?limitePielDemonio:valorPielDemonio + P.mana } };
+          return {
+            ...state,
+            personaje: { ...state.personaje, mana: 0 },
+            bonus: {
+              ...state.bonus,
+              pielDemonio:
+                valorPielDemonio == limitePielDemonio ||
+                valorPielDemonio + P.mana >= limitePielDemonio
+                  ? limitePielDemonio
+                  : valorPielDemonio + P.mana,
+            },
+          };
         case 401:
           return {
             ...state,
@@ -970,24 +1040,45 @@ const reducer = (state, action) => {
         state.numeroSpec == 1 && state.numeroClase == 100
           ? Math.floor((arrayStatsValores[1] + P.ataqueBase) * (P.ira * 0.1))
           : 0;
-// MODIFICADORES DE STATS CON EFECTOS ESPECIALES DE EQUIP LVL3
-const modLegendarioVidaAtaque = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_ATAQUE? Math.floor((P.vidaMaxima - P.vida)/20)*5:0;
-const modLegendarioVidaRegen = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_REGEN? Math.floor((P.vidaMaxima - P.vida)/20)*1:0;
-const modLegendarioDadoAtaque = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.DADOS_ATAQUE? state.dados.dadosTotales * 5:0;
-const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.REGEN_STATS? P.regeneracion * 2:0;
+      // MODIFICADORES DE STATS CON EFECTOS ESPECIALES DE EQUIP LVL3
+      const modLegendarioVidaAtaque =
+        state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_ATAQUE
+          ? Math.floor((P.vidaMaxima - P.vida) / 20) * 5
+          : 0;
+      const modLegendarioVidaRegen =
+        state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_REGEN
+          ? Math.floor((P.vidaMaxima - P.vida) / 20) * 1
+          : 0;
+      const modLegendarioDadoAtaque =
+        state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.DADOS_ATAQUE
+          ? state.dados.dadosTotales * 5
+          : 0;
+      const modLegendarioOfensivoRegen =
+        state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.REGEN_STATS
+          ? P.regeneracion * 2
+          : 0;
 
-//CALCULOS DE TOTALES
+      //CALCULOS DE TOTALES
       const modificadorBlindado = state.bonus.blindado ? 2 : 1;
       const totalDefensa = state.bonus.enfurecido
         ? 0
+        : state.bonus.blindadoCargas > 0
+        ? state.bonus.defensaBlindado
         : Math.floor(
             P.defensaBase +
               iraModDefensa +
               arrayStatsValores[0] +
-              P.defensaBonus + state.bonus.pielDemonio
-          ) * modificadorBlindado;
+              P.defensaBonus +
+              state.bonus.pielDemonio
+          );
       const totalAtaque = Math.floor(
-        P.ataqueBase + iraModAtaque + arrayStatsValores[1] + P.ataqueBonus + modLegendarioVidaAtaque + modLegendarioDadoAtaque +modLegendarioOfensivoRegen
+        P.ataqueBase +
+          iraModAtaque +
+          arrayStatsValores[1] +
+          P.ataqueBonus +
+          modLegendarioVidaAtaque +
+          modLegendarioDadoAtaque +
+          modLegendarioOfensivoRegen
       );
       const modSuperSanacion = state.bonus.superSanacion ? 30 : 0;
       const criticoTotal =
@@ -995,7 +1086,8 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
         arrayStatsValores[2] +
         comboCritico +
         P.criticoBonus +
-        modSuperSanacion + state.bonus.criticoKatana;
+        modSuperSanacion +
+        state.bonus.criticoKatana;
       const modificadorEsfumarse = state.bonus.esfumarse ? 30 : 0;
       const esquivarTotal =
         P.esquivarBase +
@@ -1004,7 +1096,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
         modificadorEsfumarse +
         P.esquivarBonus;
       const maleficioTotal =
-        P.maleficioBase + arrayStatsValores[4] + P.maleficioBonus +modLegendarioOfensivoRegen;
+        P.maleficioBase +
+        arrayStatsValores[4] +
+        P.maleficioBonus +
+        modLegendarioOfensivoRegen;
       const curacionTotal =
         P.curacionBase + arrayStatsValores[5] + P.curacionBonus;
       const vampirismoTotal =
@@ -1016,7 +1111,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
         defMagicaFromDefensa +
         P.defensaMagicaBonus;
       const regeneracionTotal =
-        P.regeneracionBase + arrayStatsValores[8] + P.regeneracionBonus +modLegendarioVidaRegen;
+        P.regeneracionBase +
+        arrayStatsValores[8] +
+        P.regeneracionBonus +
+        modLegendarioVidaRegen;
       const vidaMaximaTotal =
         P.vidaBase + arrayStatsValores[9] + P.vidaMaximaBonus;
 
@@ -1041,7 +1139,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 ? vampirismoTotal + 50
                 : vampirismoTotal
               : 0,
-          defensaMagica: defensaMagicaTotal > 0 && state.efectosPorSec.tickPsicosis === 0 ? defensaMagicaTotal : 0,
+          defensaMagica:
+            defensaMagicaTotal > 0 && state.efectosPorSec.tickPsicosis === 0
+              ? defensaMagicaTotal
+              : 0,
           regeneracion: regeneracionTotal > 0 ? regeneracionTotal : 0,
           vidaMaxima: vidaMaximaTotal,
         },
@@ -1174,7 +1275,8 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                       energia:
                         P.energia < P.energiaMax &&
                         state.numeroClase == 200 &&
-                        randomEsquivar && gastoEnergia< 1
+                        randomEsquivar &&
+                        gastoEnergia < 1
                           ? P.energia + 1
                           : P.energia,
                     },
@@ -1206,9 +1308,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 }
 
               case 3:
-                if (state.dados.dadosTotales >= state.numDadoMaximo){
+                if (state.dados.dadosTotales >= state.numDadoMaximo) {
                   window.alert("Haz alcanzado el numero maximo de dados");
-                  return{...state, }}
+                  return { ...state };
+                }
                 window.alert(`Inversion a futuro.Pierdes un turno`);
                 return {
                   ...state,
@@ -1489,7 +1592,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                       ...state,
                       casillero: state.casillero + 3,
                       [action.dado]: ESTADO_SHORTCOUT,
-                      bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                      bonus: {
+                        ...state.bonus,
+                        criticoKatana: nuevoCriticoKatana(),
+                      },
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
@@ -1497,29 +1603,43 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                       },
                     };
                   case 102:
-                    if (state.bonus.blindado) {
-                      return {
-                        ...state,
-                        [action.dado]: ESTADO_SHORTCOUT,
-                        personaje: {
-                          ...state.personaje,
-                          energia: P.energia - gastoEnergia,
-                        },
-                        dados: {
-                          ...state.dados,
-                          dadosTemporales: state.dados.dadosTemporales + 1,
-                        },
-                      };
-                    }
+                    const nuevoValorDefensa = Math.floor(P.defensa * 1.5);
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
-                      bonus: { ...state.bonus, blindado: true },
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
                       },
+                      bonus: {
+                        ...state.bonus,
+                        blindadoCargas: state.bonus.blindadoCargas + 1,
+                        defensaBlindado: nuevoValorDefensa,
+                      },
                     };
+                  // if (state.bonus.blindado) {
+                  //   return {
+                  //     ...state,
+                  //     [action.dado]: ESTADO_SHORTCOUT,
+                  //     personaje: {
+                  //       ...state.personaje,
+                  //       energia: P.energia - gastoEnergia,
+                  //     },
+                  //     dados: {
+                  //       ...state.dados,
+                  //       dadosTemporales: state.dados.dadosTemporales + 1,
+                  //     },
+                  //   };
+                  // }
+                  // return {
+                  //   ...state,
+                  //   [action.dado]: ESTADO_SHORTCOUT,
+                  //   bonus: { ...state.bonus, blindado: true },
+                  //   personaje: {
+                  //     ...state.personaje,
+                  //     energia: P.energia - gastoEnergia,
+                  //   },
+                  // };
                   case 201:
                     return {
                       ...state,
@@ -1531,16 +1651,16 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                     };
                   case 202:
                     if (state.bonus.esfumarse) {
+                      const [nuevaVida12] = calcularHealing(
+                        Math.floor(P.vidaMaxima * 0.1)
+                      );
                       return {
                         ...state,
                         [action.dado]: ESTADO_SHORTCOUT,
                         personaje: {
                           ...state.personaje,
                           energia: P.energia - gastoEnergia,
-                        },
-                        dados: {
-                          ...state.dados,
-                          dadosTemporales: state.dados.dadosTemporales + 1,
+                          vida: nuevaVida12,
                         },
                       };
                     }
@@ -1615,7 +1735,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                   personaje: {
                     ...state.personaje,
                     energia: P.energia - gastoEnergia,
-                    ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
+                    ira: P.ira >= P.iraMax ? P.iraMax : P.ira + 1,
                     mana:
                       claseSpec < 400 && P.mana < P.manaMax
                         ? P.mana + 1
@@ -1623,9 +1743,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                   },
                 };
               case 14:
-                if (state.dados.dadosTotales >= state.numDadoMaximo){
+                if (state.dados.dadosTotales >= state.numDadoMaximo) {
                   window.alert("Haz alcanzado el numero maximo de dados");
-                  return{...state, }}
+                  return { ...state };
+                }
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
@@ -1654,12 +1775,15 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
-                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                  bonus: {
+                    ...state.bonus,
+                    criticoKatana: nuevoCriticoKatana(),
+                  },
                   personaje: {
                     ...state.personaje,
                     vida: P.vida + vampirismo15 + vampBase,
                     energia: P.energia - gastoEnergia,
-                    combo: P.combo < P.comboMax?P.combo + 1:P.combo
+                    combo: P.combo < P.comboMax ? P.combo + 1 : P.combo,
                   },
                 };
               case 16:
@@ -1680,7 +1804,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                   confusion: true,
                   personaje: {
                     ...state.personaje,
-                    ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
+                    ira: P.ira >= P.iraMax ? P.iraMax : P.ira + 1,
                     mana:
                       claseSpec < 400 && P.mana < P.manaMax
                         ? P.mana + 1
@@ -1705,26 +1829,25 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                   },
                   efectosPorSec: { ...efectosPorsegundo },
                 };
-                
-                  for (let x = 1; x <= state.dados.dadosTotales; x++) {
-                    const dadoActual = `roll${x}`;
-                    if (dadoActual == action.dado) {
-                      nuevoEstado[dadoActual] = {
-                        ...state[dadoActual],
-                        estado: 0,
-                        peste: [false, 0],
-                      };
-                    } else if (
-                      state.dadosObligados.includes(state[dadoActual].numero)
-                    ) {
-                      nuevoEstado[dadoActual] = {
-                        ...state[dadoActual],
-                        estado: 0,
-                        peste: [false, 0],
-                      };
-                    }
+
+                for (let x = 1; x <= state.dados.dadosTotales; x++) {
+                  const dadoActual = `roll${x}`;
+                  if (dadoActual == action.dado) {
+                    nuevoEstado[dadoActual] = {
+                      ...state[dadoActual],
+                      estado: 0,
+                      peste: [false, 0],
+                    };
+                  } else if (
+                    state.dadosObligados.includes(state[dadoActual].numero)
+                  ) {
+                    nuevoEstado[dadoActual] = {
+                      ...state[dadoActual],
+                      estado: 0,
+                      peste: [false, 0],
+                    };
                   }
-                
+                }
 
                 return { ...nuevoEstado };
               case 19:
@@ -1779,7 +1902,11 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
-                      bonus: { ...state.bonus, blindado: false, criticoKatana:nuevoCriticoKatana() },
+                      bonus: {
+                        ...state.bonus,
+                        blindado: false,
+                        criticoKatana: nuevoCriticoKatana(),
+                      },
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
@@ -1801,7 +1928,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
-                      bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                      bonus: {
+                        ...state.bonus,
+                        criticoKatana: nuevoCriticoKatana(),
+                      },
                       personaje: {
                         ...state.personaje,
                         energia:
@@ -1863,7 +1993,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
-                      bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                      bonus: {
+                        ...state.bonus,
+                        criticoKatana: nuevoCriticoKatana(),
+                      },
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
@@ -1871,7 +2004,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                       },
                     };
                   case 302:
-                    const nuevoPoderPsicosis = state.bonus.poderPsicosis + 2;
+                    const nuevoPoderPsicosis = state.bonus.poderPsicosis + 1;
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1885,9 +2018,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                       },
                     };
                   case 401:
-                    window.alert(
-                      `Intercambias la posicion de 2 jugadores.`
-                    );
+                    window.alert(`Intercambias la posicion de 2 jugadores.`);
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1940,7 +2071,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
-                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                  bonus: {
+                    ...state.bonus,
+                    criticoKatana: nuevoCriticoKatana(),
+                  },
                   personaje: {
                     ...state.personaje,
                     energia:
@@ -1999,9 +2133,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 }
 
               case 3:
-                if (state.dados.dadosTotales >= state.numDadoMaximo){
+                if (state.dados.dadosTotales >= state.numDadoMaximo) {
                   window.alert("Haz alcanzado el numero maximo de dados");
-                  return{...state, }}
+                  return { ...state };
+                }
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
@@ -2019,7 +2154,6 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
               case 14:
                 const numeroMaximo = state.cantidadPersonajes * 100;
                 let arrayProbabilidad = [0.65, 0.4, 0.2, 0.1, 0]; //35%, 25%, 20%, 10%, 10%
-                let arrayX = [0, 1, 2, 3, 4];
                 for (let i = 0; i < 4; i++) {
                   let numeroRandom = 0;
                   switch (i) {
@@ -2029,30 +2163,6 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                       break;
                     case 1:
                       numeroRandom = randomNumber(numeroMaximo);
-
-                      switch (claseSpec) {
-                        case 101:
-                          break;
-                        case 102:
-                          arrayX = [1, 0, 2, 3, 4];
-                          break;
-                        case 201:
-                        case 202:
-                          arrayX = [2, 0, 1, 4, 3];
-                          break;
-                        case 301:
-                        case 302:
-                          arrayX = [3, 0, 4, 1];
-                          break;
-                        case 401:
-                          arrayX = [4, 0, 1, 3];
-                          break;
-                        case 402:
-                          arrayX = [4, 1, 3, 0];
-                          break;
-                        default:
-                          break;
-                      }
 
                       bucleSelectorSpec: for (let x = 0; x < 5; x++) {
                         if (
@@ -2192,6 +2302,57 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 window.alert(
                   `Has conseguido un nuevo objeto: ${objeto.nombre}`
                 );
+                const desequipar = (slot) => {
+                  return state.arrayEquipo[slot];
+                };
+                const arraySlot = ["arma", "armadura", "joya"];
+                const slotActual = arraySlot[codigoString[2]];
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  personaje: {
+                    ...state.personaje,
+                    energia: P.energia - gastoEnergia,
+                  },
+                  equipo: {
+                    ...state.equipo,
+                    codigoDrop: arrayCodigos,
+                    bolsa: {
+                      ...state.equipo.bolsa,
+                      [slotActual]:
+                        state.equipo.bolsa[slotActual].length != 0
+                          ? [
+                              ...state.equipo.bolsa[slotActual],
+                              {
+                                ...objeto,
+                                indice: `${state.equipo.bolsa[slotActual].length}`,
+                              },
+                            ]
+                          : [
+                              {
+                                ...objeto,
+                                indice: `0`,
+                              },
+                              {
+                                ...state.arrayEquipo[0][codigoString[2]],
+                                indice: "1",
+                              },
+                            ],
+                    },
+                    actual: {
+                      ...state.equipo.actual,
+                      [slotActual]:
+                        state.equipo.actual[slotActual].length == 0
+                          ? [
+                              {
+                                ...objeto,
+                                indice: `${state.equipo.bolsa[slotActual].length}`,
+                              },
+                            ]
+                          : state.equipo.actual[slotActual],
+                    },
+                  },
+                };
                 switch (parseInt(codigoString[2])) {
                   case 0:
                     return {
@@ -2401,7 +2562,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                         ...state,
                         ataqueAcumulado: 0,
                         [action.dado]: ESTADO_SHORTCOUT,
-                        bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                        bonus: {
+                          ...state.bonus,
+                          criticoKatana: nuevoCriticoKatana(),
+                        },
                         personaje: {
                           ...state.personaje,
                           vida:
@@ -2438,8 +2602,8 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                   };
                 }
               case 7:
-                const ataque7 = Math.floor(P.ataque * 0.5);
-                const maleficio7 = Math.floor(P.maleficio * 1);
+                const ataque7 = Math.floor(P.ataque * 0.35);
+                const maleficio7 = Math.floor(P.maleficio * 0.75);
                 const [atqEfectivo, vampEfectivo] = calcularDano(
                   ataque7 + maleficio7,
                   randomCritico,
@@ -2450,7 +2614,10 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 return {
                   ...state,
                   [action.dado]: ESTADO_SHORTCOUT,
-                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                  bonus: {
+                    ...state.bonus,
+                    criticoKatana: nuevoCriticoKatana(),
+                  },
                   personaje: {
                     ...state.personaje,
                     vida: cambioVida,
@@ -2504,7 +2671,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                   personaje: {
                     ...state.personaje,
                     energia: P.energia - gastoEnergia,
-                    ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
+                    ira: P.ira >= P.iraMax ? P.iraMax : P.ira + 1,
                     mana:
                       claseSpec < 400 && P.mana < P.manaMax
                         ? P.mana + 1
@@ -2526,12 +2693,15 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                     : P.vida + vampEfectivo15;
                 return {
                   ...state,
-                  bonus:{...state.bonus, criticoKatana: nuevoCriticoKatana()},
+                  bonus: {
+                    ...state.bonus,
+                    criticoKatana: nuevoCriticoKatana(),
+                  },
                   personaje: {
                     ...state.personaje,
                     vida: vidaFinal15,
                     energia: P.energia - gastoEnergia,
-                    combo: P.combo < P.comboMax?P.combo + 1:P.combo
+                    combo: P.combo < P.comboMax ? P.combo + 1 : P.combo,
                   },
 
                   [action.dado]: ESTADO_SHORTCOUT,
@@ -2549,7 +2719,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
               case 17:
                 const statsDisminuidos = {
                   ...state.personaje,
-                  ira:P.ira >= P.iraMax?P.iraMax:P.ira + 1,
+                  ira: P.ira >= P.iraMax ? P.iraMax : P.ira + 1,
                   energia: P.energia - gastoEnergia,
                   vidaMaximaBonus: P.vidaMaximaBonus - 5,
                   ataqueBonus: P.ataqueBonus - 3,

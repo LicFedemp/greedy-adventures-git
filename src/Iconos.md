@@ -27,3 +27,5 @@ cobra: GiCobra
 dagger: GiSacrificialDagger
 blindado: GiLayeredArmor
 diamond ring: GiBigDiamondRing
+
+CAMPO DE FUERZA: GiBellShield
