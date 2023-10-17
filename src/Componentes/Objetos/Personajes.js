@@ -13,6 +13,7 @@ const statsBase = {
     maleficioBase: 0,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop: [0, 1, 2, 3, 4]
   },
   warriorProtec: {
     vidaBase: 120,
@@ -28,6 +29,7 @@ const statsBase = {
     maleficioBase: 0,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop:[1, 0, 2, 3, 4]
   },
   rogueSicario: {
     vidaBase: 100,
@@ -43,6 +45,7 @@ const statsBase = {
     maleficioBase: 0,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop:[2, 0, 1, 4, 3]
   },
   rogueMalabarista: {
     vidaBase: 100,
@@ -58,6 +61,8 @@ const statsBase = {
     maleficioBase: 0,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop:[2, 0, 1, 4, 3]
+
   },
   warlockMasas: {
     vidaBase: 140,
@@ -73,6 +78,7 @@ const statsBase = {
     maleficioBase: 15,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop:[3, 0, 4, 1,2]
   },
   warlockDestruccion: {
     vidaBase: 120,
@@ -88,6 +94,8 @@ const statsBase = {
     maleficioBase: 25,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop:[3, 0, 4, 1,2]
+
   },
   mageArcano: {
     vidaBase: 80,
@@ -103,6 +111,7 @@ const statsBase = {
     maleficioBase: 15,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop:[4, 0, 1, 3,2]
   },
 
   mageSanador: {
@@ -119,6 +128,7 @@ const statsBase = {
     maleficioBase: 5,
     defensaMagicaBase: 0,
     vampirismoBase: 0,
+    preferenciaDrop:[4, 1, 3, 0,2],
   },
 };
 export const STATS_AUTOMATICO = {};

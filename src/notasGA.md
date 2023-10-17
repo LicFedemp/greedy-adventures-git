@@ -5,11 +5,20 @@ Paladin: escudo antimagia, hechizos alcance mele
 Vampiro: mucha vida, acciones con costo de vida, burst sacrificado, vampirismo.
 Druida: transformaciones.
 Monje: ying yang, las curaciones progresivas dan unos stats y los danos progresivos dan otros, se puede autinfligir ambos.
----Tareas hasta D20---
+--Mecha ing
 
+----Return to normal after test mode----
+estadoshortcout y bucle de activacion en activacion de dados.
 ---Bugs---
 
 // la descripcion de confusion hhace efecto incluso si la activacion es denegada.
+Cuando murio el warlok se puso con los stats del rogue
+
+error fatal al dropear baculo de obsidiana, linea 2090, cannot read propeties of undefined ( solo sucede con warlock y mage)
+sospecho que sucede cuando sale drop repetido, y salen 2 o mas dialogos (ver codigo en esa zona)
+el error salto con esculo afilado y lucero del alba, no los tenia antes
+
+cuando me quiero equipar desequipar, si el primer objeto dropeado es azul, asume el color azul y tira error/// falla siempre el desequipar
 
 ---INTERFACE---
 Desplegable de equipo.
@@ -21,8 +30,22 @@ Revisar spina con su efecto de bloqueo de dps antes de hacerlo
 ----CORRECCIONES----
 --Revisar alcance de efectos (mele/distancia)
 --Revisar retroceso de habilidad de warlok
+--Cuando sale del D6 dano utilizar la funcion calcular dano.
+--Al alcanzar 5 puntos de mana tiene que haber un efecto adicional, el incremento lineal no tiene gracia
+Explicar que el 7 puede hitear a cualquier enemigo.
+Regeneracion habilidad warrior que sea un floor.
+Dividir ataques entre mele y distancia
+si combina rage con regeneracion iracunda se pone muy op, nerfear curacion.
+Efecto secundario cuando danza de cuchillas esta activo (como rage) (modificar renderizado)
+Efecto sustain Esfumarse (heal 5% max HP por activacion)
 
 ---CAMBIOS PERSONAJES EXISTENTES---
+Necesidad de buff del warlock: opciones
+
+1. Incremento de stat defensivo progresivo: armor (piel de demonio)
+2. 5 puntos de mana hacen algo extra.
+   En endgame se gana mucho antihechizo: solucion
+3. Con psicosis el antiretroceso se va a 0. me guta.
 
 ---AGREGAR---
 logos: campo de fuerza.

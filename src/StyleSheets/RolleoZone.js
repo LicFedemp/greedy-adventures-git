@@ -97,7 +97,7 @@ export function RolleoZone() {
         case 402:
           descripcion = state.bonus.superSanacion
             ? `+3 curacion permanente`
-            : `Durante 1 turno las curaciones pueden ser críticas, +30% critico`;
+            : `Iluminado: Durante 1 turno las curaciones pueden ser críticas, +30% critico`;
           return descripcion;
         default:
           break;

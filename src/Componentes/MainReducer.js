@@ -32,17 +32,17 @@ const estadoInicial = {
   numeroSpec: 2,
   muerteContador: 0,
   estadoTurno: true,
-  casillero: 0,
-  casilleroPrevio: 0,
+  casillero: 15,
+  casilleroPrevio: 15,
   casillerosMovidos: 0,
-  nivelDado: 1,
-  poderDado: 6,
+  nivelDado: 2,
+  poderDado: 12,
   numDado: 5,
   numDadoMaximo: 5,
   dadoExtra: 0,
   dados: {
-    dadosTotales: 2,
-    dadosBase: 2,
+    dadosTotales: 5,
+    dadosBase: 5,
     dadoIra: 0,
     dadosAdd: 0,
     dadosTemporales: 0,
@@ -63,6 +63,7 @@ const estadoInicial = {
     superSanacion: false,
     resurreccion:false,
     criticoKatana:0,
+    pielDemonio:0,
   },
   porcentajeVida: 100,
   regeneracion: 0,
@@ -691,19 +692,19 @@ const reducer = (state, action) => {
       }
       if (action.fase == "carga") {
         //ya se carga con el dano real
-        const danoPsicosis = Math.floor(action.poder * P.vidaMaxima * 0.01);
         return {
           ...state,
           efectosPorSec: {
             ...state.efectosPorSec,
-            psicosis: danoPsicosis,
+            psicosis: action.poder,
             tickPsicosis: 3,
           },
         };
       } else if (action.fase == "golpe") {
-        const [vidaFinalPsicosis] = calcularHealing(
-          -action.retroceso * state.efectosPorSec.psicosis
-        );
+        const danoFinalPsicosis = Math.floor(
+          action.retroceso * (state.efectosPorSec.psicosis* P.vidaMaxima * 0.01))
+        ;
+        const vidaFinalPsicosis = Math.floor(P.vida - danoFinalPsicosis);
         return {
           ...state,
           personaje: { ...state.personaje, vida: vidaFinalPsicosis },
@@ -877,7 +878,9 @@ const reducer = (state, action) => {
           };
         case 301:
         case 302:
-          return { ...state, personaje: { ...state.personaje, mana: 0 } };
+          const valorPielDemonio = state.bonus.pielDemonio;
+          const limitePielDemonio = 50;
+          return { ...state, personaje: { ...state.personaje, mana: 0,  }, bonus:{...state.bonus, pielDemonio:valorPielDemonio ==limitePielDemonio || valorPielDemonio + P.mana >=limitePielDemonio?limitePielDemonio:valorPielDemonio + P.mana } };
         case 401:
           return {
             ...state,
@@ -981,7 +984,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
             P.defensaBase +
               iraModDefensa +
               arrayStatsValores[0] +
-              P.defensaBonus
+              P.defensaBonus + state.bonus.pielDemonio
           ) * modificadorBlindado;
       const totalAtaque = Math.floor(
         P.ataqueBase + iraModAtaque + arrayStatsValores[1] + P.ataqueBonus + modLegendarioVidaAtaque + modLegendarioDadoAtaque +modLegendarioOfensivoRegen
@@ -1038,7 +1041,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                 ? vampirismoTotal + 50
                 : vampirismoTotal
               : 0,
-          defensaMagica: defensaMagicaTotal > 0 ? defensaMagicaTotal : 0,
+          defensaMagica: defensaMagicaTotal > 0 && state.efectosPorSec.tickPsicosis === 0 ? defensaMagicaTotal : 0,
           regeneracion: regeneracionTotal > 0 ? regeneracionTotal : 0,
           vidaMaxima: vidaMaximaTotal,
         },
@@ -1883,7 +1886,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                     };
                   case 401:
                     window.alert(
-                      `Intercambias la posicion de 2 jugadores (vos inclusive).`
+                      `Intercambias la posicion de 2 jugadores.`
                     );
                     return {
                       ...state,
@@ -2056,7 +2059,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                           numeroRandom >=
                           numeroMaximo * arrayProbabilidad[x]
                         ) {
-                          spec = arrayX[x];
+                          spec = P.preferenciaDrop[x];
                           break bucleSelectorSpec;
                         } else {
                           continue;
@@ -2106,7 +2109,7 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                   console.log("objeto repetido");
                   const arrayLongitudes = [
                     lvlRepetido,
-                    arrayX,
+                    P.preferenciaDrop,
                     [0, 1, 2],
                     state.arrayEquipo[lvl][spec][tipo].length,
                   ];
@@ -2158,7 +2161,6 @@ const modLegendarioOfensivoRegen = state.equipo.actual.joya[0]?.efecto === EFECT
                                   typeof objeto.nombre == "undefined"
                                   //and is an object...
                                 ) {
-                                  console.log(`Objeto.nombre=${objeto.nombre}`);
                                   codigoString[3] = 0;
                                   continue;
                                 } else {

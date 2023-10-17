@@ -128,6 +128,7 @@ export function ContextProvider({ children }) {
     state.equipo.actual,
     state.bonus,
     state.dados.dadosTotales,
+    state.efectosPorSec
   ]);
 
   useEffect(() => {

@@ -116,14 +116,25 @@ if(!obligado && obligadoPresente&& !esPurificacion){return}
       dispatch({ type: A.BUFF.CONFUSION, numero: n, modo });
       console.log(`array de confusion = ${state.alertConfusion}`);
     }
-
-    dispatch({
-      type: A.DADO.ACTIVACION_DADO,
-      n,
-      modo,
-      dado: [props.dado],
-      gastoEnergia,
-    });
+// if(n == 4||n ==8){
+//   for(let x = 0; x<3;x++){
+//     dispatch({
+//       type: A.DADO.ACTIVACION_DADO,
+//       n,
+//       modo,
+//       dado: [props.dado],
+//       gastoEnergia: 0,
+//     });
+//   }
+//   return
+// }
+dispatch({
+  type: A.DADO.ACTIVACION_DADO,
+  n,
+  modo,
+  dado: [props.dado],
+  gastoEnergia,
+});
     //perdida de turno
     if (n == 3 && modo) {
       dispatch({ type: A.GRAL.TOGGLE_TURNO });

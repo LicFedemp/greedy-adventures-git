@@ -13,6 +13,10 @@ import {
   GiLayeredArmor,
   GiInvisible,
   GiLeafSwirl,
+  GiAlienBug,
+  GiDisintegrate,
+  GiAngelOutfit,
+  GiBellShield
 } from "react-icons/gi";
 import { FaQuestion } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -26,6 +30,22 @@ export function Buff(params) {
 
   const renderVariables = () => {
     const EPS = {
+      DESCRIPCION: {
+        CORRUPTOS:"CORRUPTOS",
+        HEMO: "HEMO",
+        VENENO: "VENENO",
+        REJU: "REJU",
+        PSICO: "PSICO",
+        CLARI: "CLARI",
+        REGEN: "REGEN",
+        CONFUSION: "CONFUSION",
+        RAGE: "RAGE",
+        CUCHILLAS: "CUCHILLAS",
+        ESFUMARSE: "ESFUMARSE",
+        BLINDADO: "BLINDADO",
+        SUPERHEAL: "SUPERHEAL",
+        CAMPOFUERZA:"CAMPOFUERZA",
+      },
       VARIABLE: {
         HEMO: state.efectosPorSec.hemo,
         VENENO: state.efectosPorSec.veneno,
@@ -44,21 +64,10 @@ export function Buff(params) {
         ESFUMARSE: state.bonus.esfumarse,
         BLINDADO: state.bonus.blindado,
         SUPERHEAL: state.bonus.superSanacion,
+        CORRUPTOS:state.corruptos.length,
+        CAMPOFUERZA: state.bonus.campoFuerza,
       },
-      DESCRIPCION: {
-        HEMO: "HEMO",
-        VENENO: "VENENO",
-        REJU: "REJU",
-        PSICO: "PSICO",
-        CLARI: "CLARI",
-        REGEN: "REGEN",
-        CONFUSION: "CONFUSION",
-        RAGE: "RAGE",
-        CUCHILLAS: "CUCHILLAS",
-        ESFUMARSE: "ESFUMARSE",
-        BLINDADO: "BLINDADO",
-        SUPERHEAL: "SUPERHEAL",
-      },
+      
       CONTENIDO: {
         HEMO: {
           ICONO: <BsFillDropletFill className="reju-icon" />,
@@ -121,13 +130,36 @@ export function Buff(params) {
         },
         SUPERHEAL: {
           //superheal
-          ICONO: <GiLeafSwirl className="confusion-icon" />,
+          ICONO: <GiAngelOutfit className="confusion-icon" />,
           P1: null,
           P2: "CritHeal",
         },
+        CORRUPTOS:{
+          ICONO:<GiDisintegrate className="confusion-icon"/>,
+          P1:null,
+          P2: state.corruptos.length
+
+        },
+        CAMPOFUERZA:{
+          ICONO:<GiBellShield className="confusion-icon"/>,
+          P1:null,
+          P2: null,
+
+        }
       },
     };
+    const nombresEPS = Object.keys(EPS.DESCRIPCION);      
+    // const variablesEficiente = Array.from((EPS), (clave, valor)=>{
+    //   return {icono: ,p1:,p2:,nombre:,valor:}
+    // });
     const variables = [
+      {
+        icono: EPS.CONTENIDO.CORRUPTOS.ICONO,
+        p1: EPS.CONTENIDO.CORRUPTOS.P1,
+        p2: EPS.CONTENIDO.CORRUPTOS.P2,
+        nombre: EPS.DESCRIPCION.CORRUPTOS,
+        valor: EPS.VARIABLE.CORRUPTOS,
+      },
       {
         icono: EPS.CONTENIDO.HEMO.ICONO,
         p1: EPS.CONTENIDO.HEMO.P1,
@@ -211,6 +243,13 @@ export function Buff(params) {
         p2: EPS.CONTENIDO.SUPERHEAL.P2,
         nombre: EPS.DESCRIPCION.SUPERHEAL,
         valor: EPS.VARIABLE.SUPERHEAL,
+      },
+      {
+        icono: EPS.CONTENIDO.CAMPOFUERZA.ICONO,
+        p1: EPS.CONTENIDO.CAMPOFUERZA.P1,
+        p2: EPS.CONTENIDO.CAMPOFUERZA.P2,
+        nombre: EPS.DESCRIPCION.CAMPOFUERZA,
+        valor: EPS.VARIABLE.CAMPOFUERZA,
       },
     ];
 
@@ -308,7 +347,7 @@ export function Buff(params) {
       "vidaMaxima",
     ];
     if (typeof objeto !== "undefined" && indice !== null) {
-      console.log(`El objeto del tipo ${slot} se llama asi ${objeto.nombre}`);
+      
 
       const statsMayoresCero = arrayStats.filter(
         (stat) => objeto[stat] && objeto[stat] > 0
@@ -336,16 +375,9 @@ export function Buff(params) {
   };
   useEffect(() => {
     const bolsa = { ...state.equipo.bolsa };
-    console.log(`Bolsa en useeffect = ${bolsa[`arma`]}`);
-    console.log(
-      `Longituds = ${bolsa[`arma`].length},${bolsa[`armadura`].length},${
-        bolsa[`joya`].length
-      }`
-    );
 
     if (bolsa[`arma`].length == 1 && indexArma === null) {
       setIndiceArma(0);
-      console.log(`entra al efect arma y el indice es ${indexArma}`);
     } else if (bolsa[`armadura`].length == 1 && indexArmadura === null) {
       setIndiceArmadura(0);
     } else if (bolsa[`joya`].length == 1 && indexJoya === null) {

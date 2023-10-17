@@ -242,6 +242,20 @@ justify-content: space-around;}
   border-radius: 5px;
   text-align:center ;
 }
+
+.select-equipo-white{
+  background-color: white;
+}
+.select-equipo-blue{
+  background-color: rgb(12, 162, 243);
+}
+.select-equipo-purple{
+  background-color: rgb(202, 0, 252);
+}
+.select-equipo-grey{
+  background-color: grey;
+}
+
 .stat-potenciado{
   color: rgb(0, 201, 0);
   font-weight: 500;

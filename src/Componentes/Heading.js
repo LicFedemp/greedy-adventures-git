@@ -54,7 +54,7 @@ export function Heading() {
     const personaje = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
     if (personaje == 101 || personaje == 102) {
       const totalRejuIra =
-        state.personaje.ira * 0.1 * state.personaje.vidaMaxima;
+        state.personaje.ira * 0.05 * state.personaje.vidaMaxima;
 
       dispatch({
         type: A.BUFF.EFECTOS_PS,
@@ -233,8 +233,8 @@ export function Heading() {
             Haz retroceder a todos los jugadores{" "}
             {Math.floor(
               state.personaje.mana / 2 +
-                (state.personaje.mana / 2) *
-                  Math.floor(state.personaje.maleficio / 100)
+                state.personaje.mana  *
+                  Math.floor(state.personaje.maleficio / 300)
             )}{" "}
             casilleros.
           </button>
@@ -249,8 +249,8 @@ export function Heading() {
             Haz retroceder a cualquier jugador{" "}
             {Math.floor(
               state.personaje.mana / 2 +
-                (state.personaje.mana / 2) *
-                  Math.floor(state.personaje.maleficio / 50)
+                
+                  Math.floor(state.personaje.mana  *(state.personaje.maleficio / 130))
             )}{" "}
             casilleros.
           </button>
@@ -264,7 +264,7 @@ export function Heading() {
             style={{ boxShadow: `${buttonStyles.warrior.boxShadow}` }}
           >
             Consumes toda tu ira y regeneras{" "}
-            {Math.floor(state.personaje.ira * 10)} % del maxHP en 3 turnos.
+            {Math.floor(state.personaje.ira * 5)} % del maxHP en 3 turnos.
           </button>
         );
       case 201:
@@ -301,18 +301,54 @@ export function Heading() {
     console.log(state.porcentajeVida);
   };
 
+
   const generateOptions = (tipo) => {
     const bolsa = [...state.equipo.bolsa[tipo]];
     if (bolsa.length === 0) {
       return <option>Todavía vacío</option>;
     }
-    const options = bolsa.map((objeto) => (
-      <option key={objeto.clave} value={objeto.clave} indice={objeto.indice}>
-        {objeto.nombre}
+  
+    const options = bolsa.map((objeto) => {
+      // Obtén el primer dígito de objeto.clave
+      const primerDigito = objeto.clave.charAt(0);
+  
+      // Define un color de fondo basado en el primer dígito
+      let backgroundColor;
+      switch (primerDigito) {
+        case '1':
+          backgroundColor = 'white';
+          break;
+        case '2':
+          backgroundColor = 'rgb(12, 162, 243)';
+          break;
+          case '3':
+            backgroundColor= 'rgb(202, 0, 252)';
+            break;
+        // Agrega más casos según tus necesidades
+        default:
+          backgroundColor = 'grey';
+      }
+  
+      // Estilo en línea para la opción
+      const optionStyle = { backgroundColor };
+  
+      return (
+        <option key={objeto.clave} value={objeto.clave} indice={objeto.indice} style={optionStyle}>
+          {objeto.nombre}
+        </option>
+      );
+    });
+  
+    // Agrega la opción "Desequipar" al final del array
+    options.push(
+      <option key="desequipar" value="desequipar">
+        Desequipar
       </option>
-    ));
+    );
+  
     return options;
   };
+  
 
   const modificarEquipo = (event, tipo) => {
     let algunNegativo = false;
@@ -330,6 +366,31 @@ export function Heading() {
     console.log("Valor del parámetro 'indice':", indice);
     dispatch({ type: A.STATS.MODIFICAR_EQUIPO, tipo, indice });
   };
+
+  const backGroundSelect = (slot)=>{
+    let primerDigito;
+    const objeto = state.equipo.actual?.[slot];
+    if (Array.isArray(objeto) && objeto.length > 0) {
+       primerDigito = objeto[0]?.clave.charAt(0);}
+  
+    // Define un color de fondo basado en el primer dígito
+    let backgroundColor;
+    switch (primerDigito) {
+      case '1':
+        backgroundColor = 'white';
+        break;
+      case '2':
+        backgroundColor = 'blue';
+        break;
+        case '3':
+          backgroundColor= 'purple';
+          break;
+      // Agrega más casos según tus necesidades
+      default:
+        backgroundColor = 'grey';
+    }
+    return `select-equipo select-equipo-${backgroundColor}`
+  }
 
   const pintarStats = (stat) => {
     const statActual = state.personaje[stat];
@@ -471,19 +532,19 @@ export function Heading() {
       <div className={`div-equipo div-columna`}>
         <select
           onChange={(event) => modificarEquipo(event, "arma")}
-          className={`select-equipo`}
+          className={backGroundSelect(`arma`)}
         >
           {generateOptions("arma")}
         </select>
         <select
           onChange={(event) => modificarEquipo(event, "armadura")}
-          className={`select-equipo`}
+          className={backGroundSelect(`armadura`)}
         >
           {generateOptions("armadura")}
         </select>
         <select
           onChange={(event) => modificarEquipo(event, "joya")}
-          className={`select-equipo`}
+          className={backGroundSelect(`joya`)}
         >
           {generateOptions("joya")}
         </select>
