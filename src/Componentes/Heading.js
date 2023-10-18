@@ -2,7 +2,7 @@ import { useGeneralContext } from "./Provider";
 import { ACCIONES, A } from "./Objetos/Acciones";
 import { useRef, useState, useEffect } from "react";
 import "../StyleSheets/Heading.css";
-import { atmosphereSounds, sounds } from "./Objetos/Audios";
+import { atmosphereSounds, playAudio, sounds } from "./Objetos/Audios";
 
 export function Heading() {
   const { state, dispatch } = useGeneralContext();
@@ -13,6 +13,7 @@ export function Heading() {
 
   const handleRoll = () => {
     if (state.personaje.energia > 0 && state.estadoTurno) {
+      playAudio(sounds.simpleClick);
       dispatch({ type: A.DADO.ROLL_ALL });
     }
   };
@@ -53,9 +54,9 @@ export function Heading() {
   const activarHabilidad = () => {
     const personaje = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
     if (personaje == 101 || personaje == 102) {
-      const totalRejuIra =
-        state.personaje.ira * 0.05 * state.personaje.vidaMaxima;
-
+      const totalRejuIra = Math.floor(
+        state.personaje.ira * 0.05 * state.personaje.vidaMaxima
+      );
       dispatch({
         type: A.BUFF.EFECTOS_PS,
         tipo: 3,
@@ -372,7 +373,10 @@ export function Heading() {
     const selectedOption = event.target.options[event.target.selectedIndex];
     const indice = selectedOption.getAttribute("indice");
     console.log("Valor del parámetro 'indice':", indice);
-    dispatch({ type: A.STATS.MODIFICAR_EQUIPO, tipo, indice });
+    new Audio(sounds.equipoSound).play();
+    setTimeout(() => {
+      dispatch({ type: A.STATS.MODIFICAR_EQUIPO, tipo, indice });
+    }, 300);
   };
 
   const backGroundSelect = (slot) => {

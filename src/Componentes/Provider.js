@@ -1,6 +1,7 @@
 import { useGeneralReducer } from "./MainReducer";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { ACCIONES, A } from "./Objetos/Acciones";
+import { sounds } from "./Objetos/Audios";
 const generalContext = React.createContext();
 
 export function useGeneralContext() {
@@ -9,9 +10,13 @@ export function useGeneralContext() {
 export function ContextProvider({ children }) {
   const [state, dispatch] = useGeneralReducer();
   const [firstRender, setFirstRender] = useState(true);
+  const [firstLvlUp, setFirstLvlUp] = useState(true);
+
   const prevCasillero = useRef(state.casillero);
   const prevVida = useRef(state.personaje.vidaBase);
-  const prevDados = useRef(state.dados.dadosTotales);
+  const prevSecundario = useRef(0);
+  const prevEnergia = useRef(state.personaje.energiaMax);
+  const secundarioArray = ["", "ira", "combo", "mana", "mana"];
 
   useEffect(() => {
     if (firstRender) {
@@ -19,6 +24,29 @@ export function ContextProvider({ children }) {
       dispatch({ type: A.DADO.HANDLE_NUMERO_DADOS });
     }
   }, [firstRender]);
+  useEffect(() => {
+    const recursoSecundario = secundarioArray[state.numeroClase / 100];
+    if (state.personaje[recursoSecundario] > prevSecundario.current) {
+      new Audio(sounds.secundarioSound).play();
+    }
+
+    prevSecundario.current = state.personaje[recursoSecundario];
+  }, [
+    state.personaje.ira,
+    state.personaje.combo,
+    state.personaje.mana,
+    state.numeroClase,
+  ]);
+
+  useEffect(() => {
+    if (
+      state.personaje.energia < prevEnergia.current &&
+      state.efectosPorSec.tickHemo > 0
+    ) {
+      dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "hemoAccion" });
+    }
+    prevEnergia.current = state.personaje.energia;
+  }, [state.personaje.energia]);
 
   useEffect(() => {
     dispatch({ type: A.DADO.HANDLE_NUMERO_DADOS, tipo: "normal" });
@@ -128,7 +156,7 @@ export function ContextProvider({ children }) {
     state.equipo.actual,
     state.bonus,
     state.dados.dadosTotales,
-    state.efectosPorSec
+    state.efectosPorSec,
   ]);
 
   useEffect(() => {
@@ -164,11 +192,21 @@ export function ContextProvider({ children }) {
     state.casillero,
     state.personaje.vidaMaxima,
   ]);
+
   useEffect(() => {
     dispatch({
       type: A.STATS.HANDLE_IRA,
     });
   }, [state.bonus.enfurecido]);
+
+  //Lvlup sonido
+  useEffect(() => {
+    if (firstLvlUp && state.casillero >= 20) {
+      //play sound
+      setFirstLvlUp(false);
+      new Audio(sounds.lvlUp).play();
+    }
+  }, [state.casillero]);
 
   return (
     <div className="div-columna">

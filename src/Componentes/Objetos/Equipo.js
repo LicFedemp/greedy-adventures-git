@@ -437,7 +437,7 @@ export const arrayEquipo = [
           vampirismo: 0,
         },
         {
-          nombre: "Abosrbealmas",
+          nombre: "Absorbealmas",
           ataque: 10,
           defensa: 0,
           critico: 0,

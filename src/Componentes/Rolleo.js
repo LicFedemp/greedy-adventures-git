@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { GiBrokenSkull, GiPlagueDoctorProfile } from "react-icons/gi";
 import { sounds } from "./Objetos/Audios";
 
-
 //descripcion aca.
 export function Rolleo(props) {
   const { state, dispatch } = useGeneralContext();
@@ -64,24 +63,28 @@ export function Rolleo(props) {
     const arrayRetorno = [numero, modo, gastoEnergia];
     return arrayRetorno;
   };
-  
+
   const ejecutarAccion = () => {
     new Audio(sounds.simpleClick).play();
 
     const estadoActual = parseInt(state[props.dado].estado);
     //colador 1
-if(estadoActual === 0){return}
+    if (estadoActual === 0) {
+      return;
+    }
     //colador 2
     const numero = parseInt(state[props.dado].numero);
     const obligado = state.dadosObligados.includes(numero);
     const obligadoPresente = comprobacionNegativos();
     const esPurificacion =
-    state[props.dado].numero == 18 && state[props.dado].modo == true
-      ? true
-      : false;
+      state[props.dado].numero == 18 && state[props.dado].modo == true
+        ? true
+        : false;
 
-if(!obligado && obligadoPresente&& !esPurificacion){return}
-// Supera coladores
+    if (!obligado && obligadoPresente && !esPurificacion) {
+      return;
+    }
+    // Supera coladores
     const [n, modo, gastoEnergia] = calculoConfusion(estadoActual);
     if (
       !state.estadoTurno ||
@@ -116,37 +119,40 @@ if(!obligado && obligadoPresente&& !esPurificacion){return}
       dispatch({ type: A.BUFF.CONFUSION, numero: n, modo });
       console.log(`array de confusion = ${state.alertConfusion}`);
     }
-// if(n == 4||n ==8){
-//   for(let x = 0; x<3;x++){
-//     dispatch({
-//       type: A.DADO.ACTIVACION_DADO,
-//       n,
-//       modo,
-//       dado: [props.dado],
-//       gastoEnergia: 0,
-//     });
-//   }
-//   return
-// }
-dispatch({
-  type: A.DADO.ACTIVACION_DADO,
-  n,
-  modo,
-  dado: [props.dado],
-  gastoEnergia,
-});
+    // if(n == 4||n ==8){
+    //   for(let x = 0; x<3;x++){
+    //     dispatch({
+    //       type: A.DADO.ACTIVACION_DADO,
+    //       n,
+    //       modo,
+    //       dado: [props.dado],
+    //       gastoEnergia: 0,
+    //     });
+    //   }
+    //   return
+    // }
+    dispatch({
+      type: A.DADO.ACTIVACION_DADO,
+      n,
+      modo,
+      dado: [props.dado],
+      gastoEnergia,
+    });
     //perdida de turno
     if (n == 3 && modo) {
       dispatch({ type: A.GRAL.TOGGLE_TURNO });
     }
     //tick hemo
-    if (state.efectosPorSec.tickHemo > 0 && !obligado) {
-      dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "hemoAccion" });
-    }
+    // if (state.efectosPorSec.tickHemo > 0 && !obligado) {
+    //   dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "hemoAccion" });
+    // }
   };
-  
+
   const toggleDado = () => {
-    dispatch({ type: A.DADO.MODO_DADO, dado: [props.dado] });
+    new Audio(sounds.flipCard).play();
+    setTimeout(() => {
+      dispatch({ type: A.DADO.MODO_DADO, dado: [props.dado] });
+    }, 300);
   };
 
   const colorDado = () => {

@@ -4,7 +4,7 @@ import { efectosPSec } from "./Objetos/EfectosPS";
 import { EQUIPO, arrayEquipo, EFECTOS_EQUIPO } from "./Objetos/Equipo";
 import { ACCIONES, A } from "./Objetos/Acciones";
 import { DADOS } from "./Objetos/Dados";
-import { sounds } from "./Objetos/Audios";
+import { playAudio, sounds } from "./Objetos/Audios";
 const estadoRoll = {
   numero: 0,
   modo: true,
@@ -360,7 +360,7 @@ const reducer = (state, action) => {
           veneno: state.efectosPorSec.veneno + danoPeste,
           tickVeneno:
             state.efectosPorSec.tickVeneno > 0
-              ? Math.floor(state.efectosPorSec.tickVeneno + 3 / 2)
+              ? Math.floor(state.efectosPorSec.tickVeneno + 1)
               : 3,
         },
       };
@@ -735,6 +735,10 @@ const reducer = (state, action) => {
         return { ...state };
       }
       if (action.fase == "carga") {
+        if (randomNumber(100) > 70) {
+          playAudio(sounds.psicosis);
+        }
+
         //ya se carga con el dano real
         return {
           ...state,
@@ -865,6 +869,7 @@ const reducer = (state, action) => {
           personaje: { ...state.personaje, vida: P.vidaMaxima },
         };
       }
+      console.log(`El numero de clase es: ${estadoReset.numeroClase}`);
       window.alert("Has muerto, vuelves al casillero 0");
       return { ...estadoReset };
     case A.STATS.MOD_VIDA:

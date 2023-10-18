@@ -101,9 +101,6 @@ export function SeleccionPersonaje() {
       >
         {generarSpec()}
       </select>
-      <button onClick={toggleAutomatico} className={`btn-100w`}>
-        {state.automatico ? `Sin dados` : `Con dados`}
-      </button>
       {/* <div className={`div-efectosps-general`}>{renderVariables()} </div> */}
     </div>
   );

@@ -25,6 +25,7 @@ Desplegable de equipo.
 Personaje con slots de equipo? mm
 ---EQUIPAMIENTO---
 Revisar spina con su efecto de bloqueo de dps antes de hacerlo
+
 --AGREGAR BUFFS---
 
 ----CORRECCIONES----
@@ -43,6 +44,10 @@ Masas: same pero incrementa con 100maleficio
 
 ---formula poder avance--- +1 casillero \*mana con 200p habilidad
 mana
+
+---SONIDOS---
+dados especiales: D12 y D20
+buffs
 
 ---Algoritmo construccion dado---
 -Descripcion-
