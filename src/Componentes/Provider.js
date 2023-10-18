@@ -39,6 +39,12 @@ export function ContextProvider({ children }) {
   ]);
 
   useEffect(() => {
+    if (!state.estadoTurno) {
+      dispatch({ type: A.DADO.DADOS_FUTUROS });
+    }
+  }, [state.estadoTurno]);
+
+  useEffect(() => {
     if (
       state.personaje.energia < prevEnergia.current &&
       state.efectosPorSec.tickHemo > 0

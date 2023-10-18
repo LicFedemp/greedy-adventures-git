@@ -9,6 +9,21 @@ import psicosis from "../../sounds/soundEffects/psicosis-1.mp3";
 import discharge from "../../sounds/sonidosUi/discharge.mp3";
 import recharge from "../../sounds/sonidosUi/recharche.mp3";
 import simpleClick from "../../sounds/sonidosUi/simple-click.mp3";
+//habilidades
+import cargar from "../../sounds/habilidades/cargar-1.mp3";
+import rage from "../../sounds/habilidades/rage-1.mp3";
+import siniestro from "../../sounds/habilidades/ataque-siniestro.mp3";
+import golpeKidney from "../../sounds/habilidades/golpe-rinones.mp3";
+import blindado from "../../sounds/habilidades/blindado-1.mp3";
+import iluminado from "../../sounds/habilidades/iluminado.wav";
+import heal12 from "../../sounds/habilidades/heal-12.mp3";
+import teleport20 from "../../sounds/habilidades/teleport-20.mp3";
+import teleportSimple from "../../sounds/habilidades/teleport-simple.mp3";
+import clarividencia from "../../sounds/habilidades/clarividencia-1.wav";
+import esfumarse from "../../sounds/habilidades/esfumarse.ogg";
+import warlockSimple from "../../sounds/habilidades/warlock-skill-simple.wav";
+import warlockMass from "../../sounds/habilidades/warlok-mass-D20.mp3";
+
 //atmosfericos
 import dark1 from "../../sounds/atmospheric and thunder/atmosphere-dark-1.mp3";
 import dark2 from "../../sounds/atmospheric and thunder/atmosphere-dark-2.mp3";
@@ -39,6 +54,19 @@ export const sounds = {
   equipoSound,
   flipCard,
   psicosis,
+  rage,
+  cargar,
+  siniestro,
+  golpeKidney,
+  blindado,
+  iluminado,
+  heal12,
+  teleport20,
+  teleportSimple,
+  clarividencia,
+  esfumarse,
+  warlockMass,
+  warlockSimple,
 };
 export const atmosphereSounds = [
   0,

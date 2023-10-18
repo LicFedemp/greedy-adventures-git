@@ -3,6 +3,7 @@ export const A = {
     PODER_DADO: "poder-dado",
     NUM_DADO: "num-dado",
     HANDLE_NUMERO_DADOS: "handle-numero-dados",
+    DADOS_FUTUROS: "dados-futuros",
     PODER_DADO_CASILLERO: "poder-dado-casillero",
     ROLL_ALL: " roll-all",
     ESPECIAL: "especial",

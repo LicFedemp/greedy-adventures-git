@@ -41,8 +41,8 @@ const estadoInicial = {
   numDadoMaximo: 5,
   dadoExtra: 0,
   dados: {
-    dadosTotales: 2,
-    dadosBase: 2,
+    dadosTotales: 3,
+    dadosBase: 3,
     dadoIra: 0,
     dadosAdd: 0,
     dadosTemporales: 0,
@@ -421,17 +421,13 @@ const reducer = (state, action) => {
               : state.corruptos,
           corrupcionFlag: !state.corrupcionFlag,
           estadoTurno: false,
-          dados: {
-            ...state.dados,
-            dadosTemporales: state.dados.dadosFuturos,
-            dadosFuturos: 0,
-          },
           personaje: {
             ...state.personaje,
             combo: 0,
             ira: 0,
             vida: cambioVidaFinalTurno,
           },
+          dados: { ...state.dados, dadosTemporales: 0 },
           efectosPorSec: {
             ...state.efectosPorSec,
             hemo:
@@ -563,7 +559,15 @@ const reducer = (state, action) => {
               : totalCantidadDados,
         },
       };
-
+    case A.DADO.DADOS_FUTUROS:
+      return {
+        ...state,
+        dados: {
+          ...state.dados,
+          dadosTemporales: state.dados.dadosFuturos,
+          dadosFuturos: 0,
+        },
+      };
     case A.DADO.PODER_DADO_CASILLERO:
       //regula nivel, poder
       const casillero = state.casillero;
@@ -571,7 +575,7 @@ const reducer = (state, action) => {
         ...state,
         poderDado: casillero > 19 ? state.poderDado : casillero > 9 ? 12 : 6,
         nivelDado: casillero > 19 ? state.nivelDado : casillero > 9 ? 2 : 1,
-        numDadoMaximo: casillero > 19 ? 10 : 5,
+        numDadoMaximo: casillero > 19 || state.numeroClase == 100 ? 10 : 5,
       };
 
     case ACCIONES.LOCK:
@@ -957,6 +961,7 @@ const reducer = (state, action) => {
             },
           };
         case 401:
+          playAudio(sounds.teleportSimple);
           return {
             ...state,
             casillero:
@@ -965,6 +970,7 @@ const reducer = (state, action) => {
             personaje: { ...state.personaje, mana: 0 },
           };
         case 402:
+          playAudio(sounds.heal12);
           const [healing, overhealingBool, ohValor] = calcularHealing(
             Math.floor(P.mana * (P.curacion / 3)) * modCritSanacion
           );
@@ -1313,10 +1319,10 @@ const reducer = (state, action) => {
                 }
 
               case 3:
-                if (state.dados.dadosTotales >= state.numDadoMaximo) {
-                  window.alert("Haz alcanzado el numero maximo de dados");
-                  return { ...state };
-                }
+                // if (state.dados.dadosTotales - state.dados.dadosTemporales >= state.numDadoMaximo) {
+                //   window.alert("Haz alcanzado el numero maximo de dados");
+                //   return { ...state };
+                // }
                 window.alert(`Inversion a futuro.Pierdes un turno`);
                 return {
                   ...state,
@@ -1570,6 +1576,7 @@ const reducer = (state, action) => {
                   case 101:
                     let cantidadJugadores;
                     let contador = 0;
+                    playAudio(sounds.cargar);
                     while (isNaN(cantidadJugadores) || contador == 10) {
                       cantidadJugadores = parseInt(
                         window.prompt(
@@ -1608,6 +1615,7 @@ const reducer = (state, action) => {
                       },
                     };
                   case 102:
+                    playAudio(sounds.blindado);
                     const nuevoValorDefensa = Math.floor(P.defensa * 1.5);
                     return {
                       ...state,
@@ -1622,30 +1630,8 @@ const reducer = (state, action) => {
                         defensaBlindado: nuevoValorDefensa,
                       },
                     };
-                  // if (state.bonus.blindado) {
-                  //   return {
-                  //     ...state,
-                  //     [action.dado]: ESTADO_SHORTCOUT,
-                  //     personaje: {
-                  //       ...state.personaje,
-                  //       energia: P.energia - gastoEnergia,
-                  //     },
-                  //     dados: {
-                  //       ...state.dados,
-                  //       dadosTemporales: state.dados.dadosTemporales + 1,
-                  //     },
-                  //   };
-                  // }
-                  // return {
-                  //   ...state,
-                  //   [action.dado]: ESTADO_SHORTCOUT,
-                  //   bonus: { ...state.bonus, blindado: true },
-                  //   personaje: {
-                  //     ...state.personaje,
-                  //     energia: P.energia - gastoEnergia,
-                  //   },
-                  // };
                   case 201:
+                    playAudio(sounds.golpeKidney);
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1669,7 +1655,7 @@ const reducer = (state, action) => {
                         },
                       };
                     }
-
+                    playAudio(sounds.esfumarse);
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1681,6 +1667,7 @@ const reducer = (state, action) => {
                     };
                   case 301:
                   case 302:
+                    playAudio(sounds.warlockSimple);
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -1691,6 +1678,7 @@ const reducer = (state, action) => {
                     };
                   case 401:
                   case 402:
+                    playAudio(sounds.clarividencia);
                     const chanceClari = state.efectosPorSec.chanceClari;
                     const clarividencia = state.efectosPorSec.clarividencia;
                     let nuevaChanceClari;
@@ -1883,7 +1871,7 @@ const reducer = (state, action) => {
                         },
                       };
                     }
-
+                    playAudio(sounds.rage);
                     return {
                       ...state,
 
@@ -1898,6 +1886,7 @@ const reducer = (state, action) => {
                       },
                     };
                   case 102:
+                    playAudio(sounds.bigImpact1);
                     const [, vampEf20] = calcularDano(
                       state.personaje.defensa,
                       randomCritico,
@@ -1919,6 +1908,7 @@ const reducer = (state, action) => {
                       },
                     };
                   case 201:
+                    playAudio(sounds.siniestro);
                     const ataqueSiniestro =
                       state.personaje.ataque * 2 +
                       state.personaje.maleficio * 1;
@@ -1968,6 +1958,7 @@ const reducer = (state, action) => {
                       bonus: { ...state.bonus, danzaCuchillas: true },
                     };
                   case 301:
+                    playAudio(sounds.warlockMass);
                     let cantidadJugadores;
                     while (isNaN(cantidadJugadores)) {
                       let contador = 0;
@@ -2005,6 +1996,7 @@ const reducer = (state, action) => {
                       personaje: {
                         ...state.personaje,
                         energia: P.energia - gastoEnergia,
+                        mana: P.mana + 1 > P.manaMax ? P.manaMax : P.mana + 1,
                         vida: vidaFinal,
                       },
                     };
@@ -2024,6 +2016,7 @@ const reducer = (state, action) => {
                     };
                   case 401:
                     window.alert(`Intercambias la posicion de 2 jugadores.`);
+                    playAudio(sounds.teleport20);
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
@@ -2045,6 +2038,7 @@ const reducer = (state, action) => {
                         },
                       };
                     }
+                    playAudio(sounds.iluminado);
                     return {
                       ...state,
                       [action.dado]: ESTADO_SHORTCOUT,
