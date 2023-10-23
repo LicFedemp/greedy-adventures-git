@@ -17,6 +17,7 @@ import {
   GiDisintegrate,
   GiAngelOutfit,
   GiBellShield,
+  GiFireSilhouette,
 } from "react-icons/gi";
 import { FaQuestion } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -45,6 +46,7 @@ export function Buff(params) {
         BLINDADO: "BLINDADO",
         SUPERHEAL: "SUPERHEAL",
         CAMPOFUERZA: "CAMPOFUERZA",
+        QUEMADURA: "QUEMADURA",
       },
       VARIABLE: {
         CLARI: state.efectosPorSec.clarividencia,
@@ -62,6 +64,7 @@ export function Buff(params) {
         SUPERHEAL: state.bonus.superSanacion,
         CORRUPTOS: state.corruptos.length,
         CAMPOFUERZA: state.bonus.campoFuerza,
+        QUEMADURA: state.efectosPorSec.tickQuemadura,
       },
 
       CONTENIDO: {
@@ -139,6 +142,11 @@ export function Buff(params) {
           ICONO: <GiBellShield className="confusion-icon" />,
           P1: null,
           P2: null,
+        },
+        QUEMADURA: {
+          ICONO: <GiFireSilhouette className="reju-icon" />,
+          P1: `G ${state.efectosPorSec.quemadura}`,
+          P2: `${state.efectosPorSec.tickQuemadura}T`,
         },
       },
     };

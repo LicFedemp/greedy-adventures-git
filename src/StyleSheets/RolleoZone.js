@@ -193,10 +193,18 @@ export function RolleoZone() {
               : `a cualquier jugador`
           }`;
         case 2:
-          const danoRecibido = 10 - state.personaje.defensa;
-          return `Recibes ${
-            danoRecibido <= 0 ? `0 ` : danoRecibido
-          } puntos de dano`;
+          const danoMinimo =
+            Math.floor(
+              state.personaje.vidaMaxima * 0.05 + state.personaje.defensa * 0.5
+            ) - state.personaje.defensa;
+          const danoMaximo =
+            Math.floor(
+              state.personaje.vidaMaxima * 0.15 + state.personaje.defensa * 1
+            ) - state.personaje.defensa;
+
+          return `Recibes entre ${
+            danoMinimo <= 0 ? `0 ` : danoMinimo
+          } y ${danoMaximo} puntos de dano`;
         case 3:
           return DADOS.D3.B.DECRIPCION;
         case 4:

@@ -78,6 +78,9 @@ box-shadow: 0px 0px 5px 3px black;
 
   animation: box-shadow-poisonAnimation 4s infinite;
 }
+.life-bar-burnAnimation{
+  animation: flicker 1s infinite alternate
+}
 
 @keyframes box-shadow-animation {
   0% {
@@ -99,6 +102,14 @@ box-shadow: 0px 0px 5px 3px black;
   }
   100% {
     box-shadow: 0px 0px 30px 2px #95b600;
+  }
+}
+@keyframes flicker {
+  0% {
+    box-shadow: 0 0 5px 2px #f00, 0 0 10px 5px #f00, 0 0 20px 10px #f00;
+  }
+  100% {
+    box-shadow: 0 0 5px 2px #f00, 0 0 15px 5px #f00, 0 0 30px 10px #f00;
   }
 }
 

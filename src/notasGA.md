@@ -27,6 +27,7 @@ Personaje con slots de equipo? mm
 Revisar spina con su efecto de bloqueo de dps antes de hacerlo
 
 --AGREGAR BUFFS---
+quemadura: establecer un mecanismo para que no se queme el primer
 
 ----CORRECCIONES----
 --Revisar alcance de efectos (mele/distancia)

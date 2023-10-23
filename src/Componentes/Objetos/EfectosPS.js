@@ -4,9 +4,12 @@ export const efectosPSec = {
   reju: 0,
   psicosis: 0,
   clarividencia: 0,
+  quemadura: 0,
   tickHemo: 0,
   tickVeneno: 0,
   tickReju: 0,
   tickPsicosis: 0,
   chanceClari: 0,
+  tickQuemadura: 0,
+  flagQuemadura: false,
 };

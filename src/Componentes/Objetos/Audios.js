@@ -5,6 +5,9 @@ import secundarioSound from "../../sounds/soundEffects/secundario-1.mp3";
 import equipoSound from "../../sounds/soundEffects/item-equip-1.mp3";
 import flipCard from "../../sounds/soundEffects/flipcard-1.mp3";
 import psicosis from "../../sounds/soundEffects/psicosis-1.mp3";
+import fire1 from "../../sounds/soundEffects/fire-1.mp3";
+import fire2 from "../../sounds/soundEffects/fire-2.mp3";
+import fire3 from "../../sounds/soundEffects/fire-3.mp3";
 
 import discharge from "../../sounds/sonidosUi/discharge.mp3";
 import recharge from "../../sounds/sonidosUi/recharche.mp3";
@@ -68,6 +71,7 @@ export const sounds = {
   warlockMass,
   warlockSimple,
 };
+export const burnSounds = [fire1, fire2, fire3];
 export const atmosphereSounds = [
   0,
   [rainThunder, villageTheme, fairyTheme, celtic1, celtic2, celtic3],

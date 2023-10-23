@@ -1,7 +1,7 @@
 import { useGeneralReducer } from "./MainReducer";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { ACCIONES, A } from "./Objetos/Acciones";
-import { sounds } from "./Objetos/Audios";
+import { sounds, burnSounds, playAudio } from "./Objetos/Audios";
 const generalContext = React.createContext();
 
 export function useGeneralContext() {
@@ -17,6 +17,7 @@ export function ContextProvider({ children }) {
   const prevSecundario = useRef(0);
   const prevEnergia = useRef(state.personaje.energiaMax);
   const secundarioArray = ["", "ira", "combo", "mana", "mana"];
+  const intervaloRef = useRef(null);
 
   useEffect(() => {
     if (firstRender) {
@@ -43,6 +44,23 @@ export function ContextProvider({ children }) {
       dispatch({ type: A.DADO.DADOS_FUTUROS });
     }
   }, [state.estadoTurno]);
+  useEffect(() => {
+    if (state.estadoTurno && state.efectosPorSec.tickQuemadura > 0) {
+      const randomSound = Math.floor(Math.random() * 3);
+      playAudio(burnSounds[randomSound]);
+
+      const frecuencia =
+        state.efectosPorSec.quemadura <= 6
+          ? 1150 - state.efectosPorSec.quemadura * 150
+          : 150;
+      intervaloRef.current = setInterval(() => {
+        console.log("quema");
+        dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "burnAccion" });
+      }, frecuencia);
+    } else {
+      clearInterval(intervaloRef.current);
+    }
+  }, [state.estadoTurno, state.efectosPorSec.tickQuemadura]);
 
   useEffect(() => {
     if (

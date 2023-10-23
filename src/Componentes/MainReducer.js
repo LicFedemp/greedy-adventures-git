@@ -4,7 +4,7 @@ import { efectosPSec } from "./Objetos/EfectosPS";
 import { EQUIPO, arrayEquipo, EFECTOS_EQUIPO } from "./Objetos/Equipo";
 import { ACCIONES, A } from "./Objetos/Acciones";
 import { DADOS } from "./Objetos/Dados";
-import { playAudio, sounds } from "./Objetos/Audios";
+import { burnSounds, playAudio, sounds } from "./Objetos/Audios";
 const estadoRoll = {
   numero: 0,
   modo: true,
@@ -66,6 +66,7 @@ const estadoInicial = {
     resurreccion: false,
     criticoKatana: 0,
     pielDemonio: 0,
+    burnArmadura: 0,
   },
   porcentajeVida: 100,
   regeneracion: 0,
@@ -503,6 +504,17 @@ const reducer = (state, action) => {
               state.efectosPorSec.tickReju > 0
                 ? state.efectosPorSec.tickReju - 1
                 : 0,
+            quemdaura:
+              state.efectosPorSec.tickQuemadura == 1
+                ? 0
+                : state.efectosPorSec.quemdaura,
+            tickQuemadura:
+              state.efectosPorSec.tickQuemadura > 0
+                ? state.efectosPorSec.flagQuemadura
+                  ? state.efectosPorSec.tickQuemadura
+                  : state.efectosPorSec.tickQuemadura - 1
+                : 0,
+            flagQuemadura: false,
           },
           bonus: {
             ...state.bonus,
@@ -512,6 +524,10 @@ const reducer = (state, action) => {
             esfumarse: false,
             campoFuerza: false,
             danzaCuchillas: false,
+            burnArmadura:
+              state.efectosPorSec.tickQuemadura > 1
+                ? state.bonus.burnArmadura
+                : 0,
           },
         };
       }
@@ -837,7 +853,37 @@ const reducer = (state, action) => {
                   : action.ticks,
             },
           };
-
+        case 4:
+          //quemdaura
+          const grado = action.valor;
+          const duracionQuemadura = Math.floor(grado / 2) + 1;
+          console.log("el grado de quemadura es" + grado);
+          return {
+            ...state,
+            efectosPorSec: {
+              ...state.efectosPorSec,
+              quemadura: grado,
+              tickQuemadura: duracionQuemadura,
+              flagQuemadura: true,
+            },
+          };
+        case "burnAccion":
+          const tickBurnArmor = 10;
+          const tickBurnVida = Math.floor(P.vidaMaxima * 0.01);
+          return {
+            ...state,
+            personaje: {
+              ...state.personaje,
+              vida: P.defensa == 0 ? P.vida - tickBurnVida : P.vida,
+            },
+            bonus: {
+              ...state.bonus,
+              burnArmadura:
+                P.defensa > 0
+                  ? state.bonus.burnArmadura + tickBurnArmor
+                  : state.bonus.burnArmadura,
+            },
+          };
         default:
           break;
       }
@@ -1128,6 +1174,7 @@ const reducer = (state, action) => {
         modLegendarioVidaRegen;
       const vidaMaximaTotal =
         P.vidaBase + arrayStatsValores[9] + P.vidaMaximaBonus;
+      const armorBurn = state.bonus.burnArmadura;
 
       return {
         ...state,
@@ -1141,7 +1188,7 @@ const reducer = (state, action) => {
                 ? Math.floor(totalAtaque + totalAtaque * 0.5)
                 : totalAtaque
               : 0,
-          defensa: totalDefensa > 0 ? totalDefensa : 0,
+          defensa: totalDefensa - armorBurn > 0 ? totalDefensa : 0,
           maleficio: maleficioTotal > 0 ? maleficioTotal : 0,
           curacion: curacionTotal > 0 ? curacionTotal : 0,
           vampirismo:
@@ -2115,13 +2162,20 @@ const reducer = (state, action) => {
                     };
                   }
                 } else {
+                  // entre el 5-10% de max hp + 50-100% defensa.
+                  const dano2 =
+                    Math.floor(randomNumber(11) + 4) * P.vidaMaxima * 0.01 +
+                    (randomNumber(51) + 49) * P.defensa * 0.01;
                   return {
                     ...state,
                     [action.dado]: ESTADO_SHORTCOUT,
 
                     personaje: {
                       ...state.personaje,
-                      vida: P.defensa > 10 ? P.vida : P.vida + (P.defensa - 10),
+                      vida:
+                        P.defensa > dano2
+                          ? P.vida
+                          : P.vida + Math.floor(P.defensa - dano2),
                       energia: P.energia - gastoEnergia,
                       mana:
                         state.numeroClase == 300 && P.mana < P.manaMax

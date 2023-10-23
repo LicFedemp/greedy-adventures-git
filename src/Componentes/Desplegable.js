@@ -14,11 +14,13 @@ const estadoLocal = {
   defensaEnemigo: 0,
   esquivarEnemigo: 0,
   psicosis: 5,
+  quemadura: 1,
   ataque: false,
   ataqueResultado: [false, 0, 0],
 };
 const ACCIONES_LOCALES = {
   MODIFICAR_VARIABLES: "modificar-variables",
+  RESET_VARIABLES: "reset-variables",
   CALCULAR_ATAQUE: "calcular-ataque",
 };
 const localReducer = (state, action) => {
@@ -26,8 +28,10 @@ const localReducer = (state, action) => {
     case ACCIONES_LOCALES.MODIFICAR_VARIABLES:
       return {
         ...state,
-        [action.variable]: state[action.variable] + action.valor,
+        [action.variable]: state[action.variable] + parseInt(action.valor),
       };
+    case ACCIONES_LOCALES.RESET_VARIABLES:
+      return { ...state, vidaMod: 0, ticks: 0 };
     case ACCIONES_LOCALES.CALCULAR_ATAQUE:
       if (!state.ataque) {
         let resultadoArray = state.ataqueResultado;
@@ -65,118 +69,52 @@ export function Desplegable() {
   const ataqueRef = useRef(null);
   const defensaRef = useRef(null);
   const psicosisRef = useRef(null);
+  const quemaduraRef = useRef(null);
 
   const intervalRef = useRef(null);
-  const handleClick = (event, ref, variable) => {
+  const handleClick = (event, ref, variable, valor, frecuencia) => {
     const { top, height } = ref.current.getBoundingClientRect();
     const y = event.clientY - top;
     let intervalId;
     setIsMouseDown(true);
 
     if (y <= height / 2) {
-      switch (ref) {
-        case casilleroModRef:
-        case psicosisRef:
-          localDispatch({
-            type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-            variable,
-            valor: 1,
-          });
+      localDispatch({
+        type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
+        variable,
+        valor,
+      });
 
-          intervalRef.current = setInterval(() => {
-            localDispatch({
-              type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-              variable,
-              valor: 1,
-            });
-          }, 200);
-
-          break;
-        case vidaModRef:
-        case defensaRef:
-          localDispatch({
-            type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-            variable,
-            valor: 1,
-          });
-
-          intervalRef.current = setInterval(() => {
-            localDispatch({
-              type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-              variable,
-              valor: 1,
-            });
-          }, 50);
-
-          break;
-        case ataqueRef:
-          localDispatch({
-            type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-            variable,
-            valor: 0.25,
-          });
-
-          intervalRef.current = setInterval(() => {
-            localDispatch({
-              type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-              variable,
-              valor: 0.25,
-            });
-          }, 200);
-      }
+      intervalRef.current = setInterval(() => {
+        localDispatch({
+          type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
+          variable,
+          valor,
+        });
+      }, frecuencia);
     } else {
-      switch (ref) {
-        case casilleroModRef:
-        case psicosisRef:
-          if (ref == psicosisRef && localState.psicosis < 6) return;
-          localDispatch({
-            type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-            variable,
-            valor: -1,
-          });
-
-          intervalRef.current = setInterval(() => {
-            localDispatch({
-              type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-              variable,
-              valor: -1,
-            });
-          }, 200);
-
-          break;
-        case vidaModRef:
-        case defensaRef:
-          localDispatch({
-            type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-            variable,
-            valor: -1,
-          });
-
-          intervalRef.current = setInterval(() => {
-            localDispatch({
-              type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-              variable,
-              valor: -1,
-            });
-          }, 50);
-
-          break;
-        case ataqueRef:
-          if (localState.ataqueMult > 0) {
-            localDispatch({
-              type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-              variable,
-              valor: -0.25,
-            });
-            intervalRef.current = setInterval(() => {
-              localDispatch({
-                type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-                variable,
-                valor: -0.25,
-              });
-            }, 200);
-          }
+      const valorNegativo = parseInt(-valor);
+      if (
+        (ref == psicosisRef && localState.psicosis < 6) ||
+        (ref == ataqueRef && localState.ataqueMult <= 0) ||
+        (ref == quemaduraRef && localState.quemadura <= 1)
+      ) {
+        return;
       }
+
+      localDispatch({
+        type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
+        variable,
+        valor: valorNegativo,
+      });
+
+      intervalRef.current = setInterval(() => {
+        localDispatch({
+          type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
+          variable,
+          valor: valorNegativo,
+        });
+      }, frecuencia);
     }
   };
   const handleMouseUp = () => {
@@ -218,7 +156,7 @@ export function Desplegable() {
         localDispatch({
           type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
           variable: "dpsMod",
-          valor: localState.dpsMod < 3 ? 1 : -2,
+          valor: localState.dpsMod < 4 ? 1 : -3,
         });
         if (localState.dpsMod == 2) {
           localDispatch({
@@ -242,6 +180,8 @@ export function Desplegable() {
             return "Veneno";
           case 3:
             return "Rejuvenecimiento";
+          case 4:
+            return "Quemadura";
         }
         break;
       default:
@@ -331,20 +271,16 @@ export function Desplegable() {
   };
 
   const activarDPS = () => {
+    console.log(localState.quemadura);
     dispatch({
       type: A.BUFF.EFECTOS_PS,
       tipo: localState.dpsMod,
-      valor: localState.vidaMod,
+      valor: localState.dpsMod == 4 ? localState.quemadura : localState.vidaMod,
       ticks: localState.ticks,
     });
-    for (let x = 0; x < 2; x++) {
-      const variable = x == 0 ? "vidaMod" : "ticks";
-      localDispatch({
-        type: ACCIONES_LOCALES.MODIFICAR_VARIABLES,
-        variable,
-        valor: -localState[variable],
-      });
-    }
+    localDispatch({
+      type: ACCIONES_LOCALES.RESET_VARIABLES,
+    });
   };
 
   const changeBackground = (target) => {
@@ -440,7 +376,7 @@ export function Desplegable() {
                   ref={ataqueRef}
                   //onClick={(event) => handleClick(event, ataqueRef, ataqueMult)}
                   onMouseDown={(event) =>
-                    handleClick(event, ataqueRef, "ataqueMult")
+                    handleClick(event, ataqueRef, "ataqueMult", 0.25, 300)
                   }
                   onMouseUp={handleMouseUp}
                   className={`btn-mod-desplegable ${changeBackground(
@@ -460,7 +396,7 @@ export function Desplegable() {
                   ref={defensaRef}
                   onMouseUp={handleMouseUp}
                   onMouseDown={(event) =>
-                    handleClick(event, defensaRef, "defensaEnemigo")
+                    handleClick(event, defensaRef, "defensaEnemigo", 1, 100)
                   }
                   className={`btn-mod-desplegable ${changeBackground(
                     "button"
@@ -522,6 +458,55 @@ export function Desplegable() {
       });
     }
   }, [localState.vidaMod]);
+  const generateDPS = () => {
+    if (localState.dpsMod === 4) {
+      return (
+        <div className={`div-columna div-stats`}>
+          <button
+            ref={quemaduraRef}
+            onMouseUp={handleMouseUp}
+            onMouseDown={(event) =>
+              handleClick(event, quemaduraRef, "quemadura", 1, 300)
+            }
+            className={`btn-mod-desplegable ${changeBackground("button")}`}
+          >{`Nivel de quemadura = ${localState.quemadura}`}</button>
+        </div>
+      );
+    } else {
+      return (
+        <div className={`div-columna div-stats`}>
+          <button
+            ref={vidaModRef}
+            onMouseUp={handleMouseUp}
+            onMouseDown={(event) =>
+              handleClick(event, vidaModRef, "vidaMod", 1, 100)
+            }
+            className={`btn-mod-desplegable ${changeBackground("button")}`}
+          >{`${localState.vidaMod >= 0 ? "Recibo" : "Te curas"} ${
+            localState.vidaMod < 0
+              ? localState.vidaMod * -1
+              : localState.vidaMod
+          } ${localState.vidaMod >= 0 ? "puntos de daño" : "de vida"}`}</button>
+          <div className={`div-ticks  `}>
+            <p className={`p-ticks`}>Ticks</p>
+            <button
+              onClick={() => handleTicks("-")}
+              className={`${changeBackground("button")} btn-ticks`}
+            >
+              -
+            </button>
+            {localState.ticks}
+            <button
+              onClick={() => handleTicks("+")}
+              className={`${changeBackground("button")} btn-ticks`}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      );
+    }
+  };
   const buttonMods = () => {
     const modDesplegable = parseInt(state.modDesplegable);
     switch (modDesplegable) {
@@ -532,7 +517,7 @@ export function Desplegable() {
               ref={casilleroModRef}
               onMouseUp={handleMouseUp}
               onMouseDown={(event) =>
-                handleClick(event, casilleroModRef, "casilleroMod")
+                handleClick(event, casilleroModRef, "casilleroMod", 1, 300)
               }
               className={`btn-mod-desplegable ${changeBackground("button")}`}
             >{`${localState.casilleroMod >= 0 ? "Avanzo" : "Retrocedo"} ${
@@ -559,7 +544,9 @@ export function Desplegable() {
             <button
               ref={vidaModRef}
               onMouseUp={handleMouseUp}
-              onMouseDown={(event) => handleClick(event, vidaModRef, "vidaMod")}
+              onMouseDown={(event) =>
+                handleClick(event, vidaModRef, "vidaMod", 1, 100)
+              }
               className={`btn-mod-desplegable ${changeBackground("button")}`}
             >{`${localState.vidaMod >= 0 ? "Recibo" : "Te curas"} ${
               localState.vidaMod < 0
@@ -587,35 +574,8 @@ export function Desplegable() {
             >
               {changeEffect("descripcion")}
             </button>
+            {generateDPS()}
 
-            <button
-              ref={vidaModRef}
-              onMouseUp={handleMouseUp}
-              onMouseDown={(event) => handleClick(event, vidaModRef, "vidaMod")}
-              className={`btn-mod-desplegable ${changeBackground("button")}`}
-            >{`${localState.vidaMod >= 0 ? "Recibo" : "Te curas"} ${
-              localState.vidaMod < 0
-                ? localState.vidaMod * -1
-                : localState.vidaMod
-            } ${
-              localState.vidaMod >= 0 ? "puntos de daño" : "de vida"
-            }`}</button>
-            <div className={`div-ticks  `}>
-              <p className={`p-ticks`}>Ticks</p>
-              <button
-                onClick={() => handleTicks("-")}
-                className={`${changeBackground("button")} btn-ticks`}
-              >
-                -
-              </button>
-              {localState.ticks}
-              <button
-                onClick={() => handleTicks("+")}
-                className={`${changeBackground("button")} btn-ticks`}
-              >
-                +
-              </button>
-            </div>
             <button
               className={`${changeBackground("button")} btn-dpsMod`}
               onClick={activarDPS}
@@ -659,7 +619,7 @@ export function Desplegable() {
               ref={psicosisRef}
               onMouseUp={handleMouseUp}
               onMouseDown={(event) =>
-                handleClick(event, psicosisRef, "psicosis")
+                handleClick(event, psicosisRef, "psicosis", 1, 300)
               }
               className={`btn-mod-desplegable ${changeBackground("button")}`}
             >{`Poder de Psicosis = ${localState.psicosis}%`}</button>

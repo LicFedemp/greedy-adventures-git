@@ -2,6 +2,7 @@ import { useGeneralContext } from "./Provider";
 import { ACCIONES, A } from "./Objetos/Acciones";
 import { useRef, useState, useEffect } from "react";
 import "../StyleSheets/Heading.css";
+import "../StyleSheets/fireEfect.css";
 import { atmosphereSounds, playAudio, sounds } from "./Objetos/Audios";
 
 export function Heading() {
@@ -482,7 +483,14 @@ export function Heading() {
             state.porcentajeVida <= 25 ? "life-bar-animation" : ""
           } ${
             state.efectosPorSec.tickVeneno > 0 ? "life-bar-poisonAnimation" : ""
-          }`}
+          } 
+          
+          `}
+          // ${
+          //   state.efectosPorSec.tickQuemadura > 0
+          //     ? "life-bar-burnAnimation"
+          //     : ""
+          // }
         >
           <p className={`p-life-bar `}>
             {" "}

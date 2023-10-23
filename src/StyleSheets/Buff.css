@@ -69,6 +69,9 @@
 .efecto-RAGE p{
     color: rgba(255, 0, 0, 0.89);
 }
+.efecto-QUEMADURA p{
+    color: rgba(255, 157, 0, 0.89);
+}
 
 .efecto-VENENO p{
     color: rgba(47, 252, 20, 0.89);
@@ -181,3 +184,13 @@ top:40px;
     text-overflow:ellipsis;
 
 }
+
+
+@keyframes flicker {
+    0% {
+      box-shadow: 0 0 5px 2px #f00, 0 0 10px 3px rgb(255, 213, 0), 0 0 15px 7px rgb(255, 140, 0);
+    }
+    100% {
+      box-shadow: 0 0 5px 2px rgb(255, 136, 0), 0 0 15px 5px #f00, 0 0 30px 10px rgb(255, 204, 0);
+    }
+  }
