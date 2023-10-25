@@ -1,10 +1,9 @@
 import { useReducer } from "react";
 import { STATS_AUTOMATICO } from "./Objetos/Personajes";
 import { efectosPSec } from "./Objetos/EfectosPS";
-import { EQUIPO, arrayEquipo, EFECTOS_EQUIPO } from "./Objetos/Equipo";
+import { arrayEquipo, EFECTOS_EQUIPO } from "./Objetos/Equipo";
 import { ACCIONES, A } from "./Objetos/Acciones";
-import { DADOS } from "./Objetos/Dados";
-import { burnSounds, playAudio, sounds } from "./Objetos/Audios";
+import { playAudio, sounds } from "./Objetos/Audios";
 const estadoRoll = {
   numero: 0,
   modo: true,
@@ -13,10 +12,6 @@ const estadoRoll = {
   especial: false,
   estado: 1,
   peste: [false, 0],
-};
-const FUNCIONES = {
-  OVERHEALING: "overhealing",
-  CURACION: "curacion",
 };
 const convertirObjetoEnArray = (objeto) => {
   return Object.keys(objeto).map((clave) => {
@@ -29,7 +24,7 @@ const convertirObjetoEnArray = (objeto) => {
 };
 const estadoInicial = {
   numeroClase: 200,
-  numeroSpec: 2,
+  numeroSpec: 1,
   muerteContador: 0,
   estadoTurno: false,
   casillero: 0,
@@ -67,6 +62,9 @@ const estadoInicial = {
     criticoKatana: 0,
     pielDemonio: 0,
     burnArmadura: 0,
+    ascendencia: 0,
+    llamaInterior: 0,
+    cenizas: false,
   },
   porcentajeVida: 100,
   regeneracion: 0,
@@ -250,7 +248,6 @@ const reducer = (state, action) => {
       arrayFaltantes.push(x);
     }
     const cantidadFaltantes = arrayFaltantes.length;
-    console.log(arrayFaltantes);
     if (cantidadFaltantes < 6 && cantidadFaltantes > 1) {
       window.alert(
         `Tienes ${
@@ -317,6 +314,12 @@ const reducer = (state, action) => {
             return { ...state, personaje: { ...STATS_AUTOMATICO.mageArcano } };
           case 402:
             return { ...state, personaje: { ...STATS_AUTOMATICO.mageSanador } };
+          case 501:
+            return {
+              ...state,
+              personaje: { ...STATS_AUTOMATICO.paladinFenix },
+            };
+
           default:
             return {
               ...state,
@@ -366,6 +369,7 @@ const reducer = (state, action) => {
         },
       };
     case A.GRAL.TOGGLE_TURNO:
+      // console.log(`mana max = ${P.manaMax}`)
       const venenoTickTurno =
         state.efectosPorSec.veneno > 0 && state.efectosPorSec.tickVeneno > 0
           ? parseInt(
@@ -528,6 +532,7 @@ const reducer = (state, action) => {
               state.efectosPorSec.tickQuemadura > 1
                 ? state.bonus.burnArmadura
                 : 0,
+                cenizas:false,
           },
         };
       }
@@ -869,7 +874,7 @@ const reducer = (state, action) => {
           };
         case "burnAccion":
           const tickBurnArmor = 10;
-          const tickBurnVida = Math.floor(P.vidaMaxima * 0.01);
+          const tickBurnVida = Math.ceil(P.vidaMaxima * 0.01);
           return {
             ...state,
             personaje: {
@@ -908,8 +913,34 @@ const reducer = (state, action) => {
       };
       if (
         !state.bonus.resurreccion &&
-        state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_RESURRECCION
+        state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_RESURRECCION || claseSpec === 501 && state.bonus.cenizas
       ) {
+        if(claseSpec === 501 && state.bonus.cenizas){
+            const ascendenciaActual = state.bonus.ascendencia;
+            const llamaActual = state.bonus.llamaInterior;
+            const manaMaxActual = P.manaMax;
+            const gananciaNeta = Math.floor(
+              ((ascendenciaActual % 5) + llamaActual) / 5
+            );
+            const addManaFinal =
+              gananciaNeta + manaMaxActual > 5
+                ? 5 - manaMaxActual
+                : gananciaNeta;
+                const manaTotal = P.manaMax + addManaFinal
+
+          window.alert(
+            "Ahora eres solo un montón de ceniza en el suelo. Pierdes un turno y esperas tu epic resurrecicon"
+          );
+          return {
+            ...state,
+            muerteContador:state.muerteContador  + 1,
+            bonus: { ...state.bonus,llamaInterior: 0,
+              ascendencia: ascendenciaActual + llamaActual,  },
+            personaje: { ...state.personaje, vida: P.vidaMaxima, 
+              // manaMax: manaTotal ,
+             },
+          };
+        }
         window.alert(
           "El amuleto de resurreccion ha salvado tu vida! No habra segunda oportunidad"
         );
@@ -919,7 +950,6 @@ const reducer = (state, action) => {
           personaje: { ...state.personaje, vida: P.vidaMaxima },
         };
       }
-      console.log(`El numero de clase es: ${estadoReset.numeroClase}`);
       window.alert("Has muerto, vuelves al casillero 0");
       return { ...estadoReset };
     case A.STATS.MOD_VIDA:
@@ -1032,6 +1062,8 @@ const reducer = (state, action) => {
               vidaMaximaBonus: P.vidaMaximaBonus + bonusVidaMaxima,
             },
           };
+          case 501:
+            return {...state, personaje:{...state.personaje, mana:0}}
 
         default:
           return { ...state };
@@ -1117,6 +1149,8 @@ const reducer = (state, action) => {
 
       //CALCULOS DE TOTALES
       const modificadorBlindado = state.bonus.blindado ? 2 : 1;
+      const defensaAscendencia = state.bonus.ascendencia ;
+      const vidaAscendencia = state.bonus.ascendencia * 2;
       const totalDefensa = state.bonus.enfurecido
         ? 0
         : state.bonus.blindadoCargas > 0
@@ -1126,7 +1160,8 @@ const reducer = (state, action) => {
               iraModDefensa +
               arrayStatsValores[0] +
               P.defensaBonus +
-              state.bonus.pielDemonio
+              state.bonus.pielDemonio +
+              defensaAscendencia
           );
       const totalAtaque = Math.floor(
         P.ataqueBase +
@@ -1173,7 +1208,7 @@ const reducer = (state, action) => {
         P.regeneracionBonus +
         modLegendarioVidaRegen;
       const vidaMaximaTotal =
-        P.vidaBase + arrayStatsValores[9] + P.vidaMaximaBonus;
+        P.vidaBase + arrayStatsValores[9] + P.vidaMaximaBonus + vidaAscendencia;
       const armorBurn = state.bonus.burnArmadura;
 
       return {
@@ -1203,6 +1238,7 @@ const reducer = (state, action) => {
               : 0,
           regeneracion: regeneracionTotal > 0 ? regeneracionTotal : 0,
           vidaMaxima: vidaMaximaTotal,
+          manaMax: P.manaBase + Math.floor(state.bonus.ascendencia / 5) > 5? 5: P.manaBase + Math.floor(state.bonus.ascendencia / 5)
         },
       };
 
@@ -1280,6 +1316,9 @@ const reducer = (state, action) => {
         default:
           return { ...state };
       }
+
+      case A.STATS.HEAL_ASCENSO:
+        return {...state, personaje:{...state.personaje, vida: P.vidaMaxima}}
     case A.DADO.ACTIVACION_DADO:
       const ESTADO_SHORTCOUT = {
         ...state[action.dado],
@@ -1307,7 +1346,7 @@ const reducer = (state, action) => {
           let numero = action.n;
           console.log(`numero activado= ${numero}/${modo}`);
 
-          if (modo || (!modo && uniModPresente)) {
+          if (modo || (!modo && uniModPresente && claseSpec != 501)) {
             switch (numero) {
               case 1:
                 const avanzarCasillero = 1 + Math.floor(P.ataque / 50);
@@ -1760,6 +1799,43 @@ const reducer = (state, action) => {
                         chanceClari: nuevaChanceClari,
                       },
                     };
+                  case 501:
+                    const danoBase =
+                      P.ataque +
+                      Math.floor(
+                        state.bonus.llamaInterior * 0.3 +
+                          state.bonus.ascendencia * 0.7
+                      );
+                    const [, vampirismo] = calcularDano(
+                      danoBase,
+                      randomCritico,
+                      2
+                    );
+                    const nuevasLlamas =
+                      state.bonus.llamaInterior +
+                      Math.floor(Math.random() * 3) +
+                      1;
+                    const addMana =
+                      Math.floor(
+                        Math.random(Math.floor(state.bonus.ascendencia / 10))
+                      ) + 1;
+                    const nuevoMana =
+                      P.mana + addMana > P.manaMax
+                        ? P.manaMax
+                        : P.mana + addMana;
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      bonus: { ...state.bonus, llamaInterior: nuevasLlamas },
+                      personaje: {
+                        ...state.personaje,
+                        vida:
+                          P.vida + vampirismo > P.vidaMaxima
+                            ? P.vidaMaxima
+                            : P.vida + vampirismo,
+                        mana: nuevoMana,
+                      },
+                    };
                   default:
                     return { ...state };
                 }
@@ -2095,6 +2171,24 @@ const reducer = (state, action) => {
                       },
                       bonus: { ...state.bonus, superSanacion: true },
                     };
+                  case 501:
+if(!window.confirm('Seguro que deseas ascender?')){
+  return{...state}
+}
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+                      bonus: {
+                        ...state.bonus,
+                        
+                        cenizas: true,
+                      },
+                      efectosPorSec: {
+                        ...state.efectosPorSec,
+                        quemadura: 7,
+                        tickQuemadura: 1,
+                        flagQuemadura: false,
+                      },                    };
                 }
 
               default:
@@ -2691,6 +2785,37 @@ const reducer = (state, action) => {
                     energia: P.energia - gastoEnergia,
                   },
                 };
+              case 10:
+                const randomMovimiento = randomNumber(100) >= 50 ? 2 : -2;
+                const movimiento =
+                  randomMovimiento < 0
+                    ? randomMovimiento < -P.defensaMagica
+                      ? randomMovimiento + P.defensaMagica
+                      : 0
+                    : 2;
+                const overRetroceso =
+                  state.casillero + movimiento < 0 ? true : false;
+                const casilleroResultante = overRetroceso
+                  ? 0
+                  : state.casillero + movimiento;
+                const vidaResultante = overRetroceso
+                  ? P.vida + Math.floor(10 * (state.casillero + movimiento))
+                  : P.vida;
+
+                return {
+                  ...state,
+                  [action.dado]: ESTADO_SHORTCOUT,
+                  casillero: casilleroResultante,
+                  personaje: {
+                    ...state.personaje,
+                    vida: vidaResultante,
+                    energia: P.energia - gastoEnergia,
+                    mana:
+                      claseSpec < 400 && P.mana < P.manaMax
+                        ? P.mana + 1
+                        : P.mana,
+                  },
+                };
 
               case 11:
                 const curacion =
@@ -2707,6 +2832,37 @@ const reducer = (state, action) => {
                     vida: healing,
                   },
                 };
+              case 12:
+                switch (claseSpec) {
+                  case 501:
+                    const curacionBase = P.curacion + state.bonus.ascendencia;
+                    const [vidaFinal] = calcularHealing(curacionBase);
+                    const nuevasLlamas =
+                      state.bonus.llamaInterior +
+                      Math.floor(Math.random() * 3) +
+                      1;
+                    const addMana =
+                      Math.floor(
+                        Math.random(Math.floor(state.bonus.ascendencia / 10))
+                      ) + 1;
+                    const nuevoMana =
+                      P.mana + addMana > P.manaMax
+                        ? P.manaMax
+                        : P.mana + addMana;
+                    return {
+                      ...state,
+                      [action.dado]: ESTADO_SHORTCOUT,
+
+                      bonus: { ...state.bonus, llamaInterior: nuevasLlamas },
+                      personaje: {
+                        ...state.personaje,
+                        vida: vidaFinal,
+                        mana: nuevoMana,
+                      },
+                    };
+                }
+                break;
+
               case 13:
                 const nuevosCorruptos = nuevoArrayCorrupcion();
                 console.log(`corruptos actualizado${nuevosCorruptos}`);

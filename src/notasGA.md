@@ -63,6 +63,11 @@ buffs
 --Realizar Dano:critico (combo), potenciador ataque, vampirismo.
 \
 
+---CREACION DE PERSONAJE---
+-Stats en objeto de personajes/Select/ reducer/
+-heading recurso secundario y activo
+-Dados especiales
+
 ---Stats items---
 -LVL1-
 -LVL2-

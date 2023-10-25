@@ -210,6 +210,8 @@ export function Rolleo(props) {
             return `estado-violeta`;
           case 400:
             return `estado-celeste`;
+          case 500:
+            return `estado-amarillo`;
         }
 
       default:

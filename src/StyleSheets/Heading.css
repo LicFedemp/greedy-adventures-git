@@ -57,6 +57,9 @@ box-shadow: 0px 0px 5px 3px black;
 .habilidad-rogue{
   background-color: rgb(76, 253, 32);
 }
+.habilidad-pala{
+  background-color: rgb(253, 227, 32);
+}
 .life-bar {
   position: relative;
   left: 5%;

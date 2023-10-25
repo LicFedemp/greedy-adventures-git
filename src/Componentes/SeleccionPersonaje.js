@@ -49,6 +49,12 @@ export function SeleccionPersonaje() {
           { value: 2, label: "Sanador" },
         ];
         break;
+      case 500:
+        options = [
+          { value: 1, label: "Pluma de Fenix" },
+          // { value: 2, label: "Proteccion" },
+        ];
+        break;
       default:
         options = [
           { value: 1, label: "Bersek" },
@@ -92,6 +98,9 @@ export function SeleccionPersonaje() {
         </option>
         <option className={`option-personaje`} value={400}>
           Mage
+        </option>
+        <option className={`option-personaje`} value={500}>
+          Paladin
         </option>
       </select>
       <select

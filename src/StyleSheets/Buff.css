@@ -63,6 +63,14 @@
     color: coral;
 
 }
+.efecto-LLAMA p{
+    color: rgb(255, 238, 0);
+}
+
+.efecto-ASCENSO p{
+    color: rgb(255, 238, 0);
+}
+
 .efecto-HEMO  p{
     color: rgba(255, 0, 0, 0.89);
 }
