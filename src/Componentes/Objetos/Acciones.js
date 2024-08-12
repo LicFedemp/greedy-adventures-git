@@ -23,6 +23,7 @@ export const A = {
     MODIFICAR_EQUIPO: "modificar-equipo",
     ACTIVAR_SKILL: "activar-skill",
     MUERTE: "muerte",
+    HEAL_ASCENSO:"HEAL_ASCENSO",
   },
   BUFF: {
     EFECTOS_PS: "efectos-ps",

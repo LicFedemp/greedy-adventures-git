@@ -36,7 +36,7 @@ export function RolleoZone() {
     }
   };
 
-  const cartaSkill = (tier) => {
+  const cartaSkill = (tier, modo) => {
     const personaje = parseInt(state.numeroClase) + parseInt(state.numeroSpec);
     let descripcion = "";
     if (tier == 1) {
@@ -61,6 +61,22 @@ export function RolleoZone() {
           return `Clarividencia: ${calcularNuevoClari(
             "chance"
           )}% +${calcularNuevoClari("clari")} Mana x turno`;
+        case 501:
+          if (modo) {
+            return `Mele ${
+              state.personaje.ataque +
+                      Math.floor(
+                        state.bonus.llamaInterior * 0.5 +
+                          state.bonus.ascendencia *
+                          0.7
+                      )
+            }/ + x llama interior / + 1 Mana`;
+          } else if (!modo) {
+            return `Heal ${
+              state.personaje.curacion + state.bonus.ascendencia
+            }/ + x llama interior / + 1 Mana`;
+          }
+
         default:
           break;
       }
@@ -97,6 +113,16 @@ export function RolleoZone() {
             ? `+3 curacion permanente`
             : `Iluminado: Durante 1 turno las curaciones pueden ser críticas, +30% critico`;
           return descripcion;
+        case 501:
+          const ascendenciaActual = state.bonus.ascendencia;
+          const llamaActual = state.bonus.llamaInterior;
+          const manaMaxActual = state.personaje.manaMax;
+          const gananciaNeta = Math.floor(((ascendenciaActual%5)+llamaActual) / 5)
+          const addManaFinal =gananciaNeta+manaMaxActual >5?5 - manaMaxActual:gananciaNeta ;
+
+          return `Ascenso: + ${addManaFinal} manaMax, + ${
+            llamaActual 
+          } defensa , + ${llamaActual * 2} HP max `;
         default:
           break;
       }
@@ -159,7 +185,7 @@ export function RolleoZone() {
               : `mana`
           }`;
         case 12:
-          return cartaSkill(1);
+          return cartaSkill(1, modo);
         case 13:
           return DADOS.D13.A.DECRIPCION;
         case 14:

@@ -6,25 +6,12 @@ import "../StyleSheets/SeleccionPersonaje.css";
 export function SeleccionPersonaje() {
   const { state, dispatch } = useGeneralContext();
   const [clase, setClase] = useState(200);
+  const [spec, setSpec] = useState(2);
   const claseRef = useRef(null);
   const specRef = useRef(null);
 
-  const handleChange = (event, ref) => {
-    if (ref === claseRef) {
-      setClase(ref.current.value);
-      dispatch({
-        type: A.GRAL.SELECCION_PERSONAJE,
-        caso: "clase",
-        valor: ref.current.value,
-      });
-      //generarSpec(ref.current.value);
-    } else if (ref === specRef) {
-      dispatch({
-        type: A.GRAL.SELECCION_PERSONAJE,
-        caso: "spec",
-        valor: ref.current.value,
-      });
-    }
+  const handleChange = (e, ref, setState) => {
+    setState(ref.current.value);
   };
 
   const generarSpec = () => {
@@ -49,6 +36,12 @@ export function SeleccionPersonaje() {
           { value: 2, label: "Sanador" },
         ];
         break;
+      case 500:
+        options = [
+          { value: 1, label: "Pluma de Fenix" },
+          // { value: 2, label: "Proteccion" },
+        ];
+        break;
       default:
         options = [
           { value: 1, label: "Bersek" },
@@ -66,18 +59,22 @@ export function SeleccionPersonaje() {
       </option>
     ));
   };
-  const toggleAutomatico = () => {
-    dispatch({ type: A.GRAL.AUTOMATICO });
-  };
 
   useEffect(() => {
-    generarSpec(clase);
+    generarSpec();
   }, [clase]);
+  useEffect(() => {
+    dispatch({
+      type: A.GRAL.SELECCION_PERSONAJE,
+      clase,
+      spec,
+    });
+  }, [clase, spec]);
   return (
     <div className="div-bajo div-seleccion-personaje">
       <select
         ref={claseRef}
-        onChange={(event) => handleChange(event, claseRef)}
+        onChange={(event) => handleChange(event, claseRef, setClase)}
         value={state.numeroClase}
         className={`select-personaje`}
       >
@@ -93,11 +90,14 @@ export function SeleccionPersonaje() {
         <option className={`option-personaje`} value={400}>
           Mage
         </option>
+        <option className={`option-personaje`} value={500}>
+          Paladin
+        </option>
       </select>
       <select
         ref={specRef}
         className={`select-personaje`}
-        onChange={(event) => handleChange(event, specRef)}
+        onChange={(event) => handleChange(event, specRef, setSpec)}
       >
         {generarSpec()}
       </select>

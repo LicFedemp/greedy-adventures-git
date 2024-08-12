@@ -1,6 +1,4 @@
 import { useGeneralContext } from "./Provider";
-import { arrayEquipo } from "./Objetos/Equipo";
-import { A } from "./Objetos/Acciones";
 import "../StyleSheets/Buff.css";
 import { BsFillDropletFill } from "react-icons/bs";
 import {
@@ -18,6 +16,8 @@ import {
   GiAngelOutfit,
   GiBellShield,
   GiFireSilhouette,
+  GiFireGem,
+  GiMightyForce,
 } from "react-icons/gi";
 import { FaQuestion } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -47,6 +47,8 @@ export function Buff(params) {
         SUPERHEAL: "SUPERHEAL",
         CAMPOFUERZA: "CAMPOFUERZA",
         QUEMADURA: "QUEMADURA",
+        LLAMA: "LLAMA",
+        ASCENSO: "ASCENSO",
       },
       VARIABLE: {
         CLARI: state.efectosPorSec.clarividencia,
@@ -65,6 +67,8 @@ export function Buff(params) {
         CORRUPTOS: state.corruptos.length,
         CAMPOFUERZA: state.bonus.campoFuerza,
         QUEMADURA: state.efectosPorSec.tickQuemadura,
+        LLAMA: state.bonus.llamaInterior,
+        ASCENSO: state.bonus.ascendencia,
       },
 
       CONTENIDO: {
@@ -147,6 +151,16 @@ export function Buff(params) {
           ICONO: <GiFireSilhouette className="reju-icon" />,
           P1: `G ${state.efectosPorSec.quemadura}`,
           P2: `${state.efectosPorSec.tickQuemadura}T`,
+        },
+        LLAMA: {
+          ICONO: <GiFireGem className="confusion-icon" />,
+          P1: null,
+          P2: `${state.bonus.llamaInterior}`,
+        },
+        ASCENSO: {
+          ICONO: <GiMightyForce className="confusion-icon" />,
+          P1: null,
+          P2: `${state.bonus.ascendencia}`,
         },
       },
     };

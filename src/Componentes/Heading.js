@@ -123,6 +123,7 @@ export function Heading() {
 
         case 300:
         case 400:
+        case 500:
           recursoSec = state.personaje.manaMax;
           const recursoSecMana = Array.from(
             { length: recursoSec },
@@ -180,6 +181,11 @@ export function Heading() {
       boxShadow: `0px 0px 10px ${
         state.personaje.mana * 2
       }px rgba(38, 202, 243,  ${0.685 + state.personaje.mana * 100})`,
+    },
+    pala: {
+      boxShadow: `0px 0px 10px ${
+        state.personaje.mana * 2
+      }px rgba(253, 227, 32,  ${0.685 + state.personaje.mana * 100})`,
     },
     rogue: {
       boxShadow: `0px 0px 10px 10px${
@@ -283,6 +289,18 @@ export function Heading() {
             {Math.floor(state.personaje.combo / 2) > 1 ? "s" : ""} de energia.
           </button>
         );
+
+      case 501:
+        const bonusAscendencia = state.bonus.cenizas &&  state.personaje.mana>0?1:0
+        return (
+          <button
+            onClick={activarHabilidad}
+            className={`btn-habilidad habilidad-pala`}
+            style={{ boxShadow: `${buttonStyles.pala.boxShadow}` }}
+          >
+            Infliges quemadura grado {state.personaje.mana + bonusAscendencia} a otro jugador.
+          </button>
+        );
       default:
         return <p>Sin mana no hay habilidad</p>;
     }
@@ -302,10 +320,11 @@ export function Heading() {
     }
     dispatch({ type: A.GRAL.TOGGLE_TURNO });
   };
+
+  
   const updateLifeBar = () => {
     const lifeBar = document.querySelector(".life-bar-fill");
     lifeBar.style.width = `${state.porcentajeVida}%`;
-    console.log(state.porcentajeVida);
   };
 
   const generateOptions = (tipo) => {

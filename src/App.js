@@ -18,6 +18,8 @@ function App() {
         return `purple`;
       case 400:
         return `blue`;
+        case 500:
+          return `amarillo`
       default:
         return `red`;
     }
