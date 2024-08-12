@@ -1,12 +1,13 @@
 import { useGeneralReducer } from "./MainReducer";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import {  A } from "./Objetos/Acciones";
+import { A } from "./Objetos/Acciones";
 import { sounds, burnSounds, playAudio } from "./Objetos/Audios";
 const generalContext = React.createContext();
 
 export function useGeneralContext() {
   return useContext(generalContext);
 }
+
 export function ContextProvider({ children }) {
   const [state, dispatch] = useGeneralReducer();
   const [firstRender, setFirstRender] = useState(true);
@@ -91,39 +92,45 @@ export function ContextProvider({ children }) {
   useEffect(() => {
     dispatch({
       type: A.GRAL.SELECCION_PERSONAJE,
-      caso: "personaje",
-      valor: state.numeroClase + state.numeroSpec,
+      clase: state.numeroClase,
+      spec: state.numeroSpec,
     });
     prevVida.current = state.personaje.vidaMaxima;
-  }, [state.numeroClase, state.numeroSpec, state.muerteContador]);
+  }, [state.muerteContador]);
 
   // muerte
   useEffect(() => {
     if (state.personaje.vida <= 0 || state.corruptosContador >= 19) {
       dispatch({ type: A.STATS.MUERTE });
     }
-
   }, [state.personaje.vida, state.corruptosContador]);
 
-  useEffect(()=>{
+  useEffect(() => {
     //1 se ejecuta por el cambio en ceniza, pero aun tiene que esperar a morir (ultimo condicional)
     //cuando muere se ejecuta por segunda vez al modificar el contador de muerte
     // aca entra porque cumple el segundo condicional
     // se ejecuta el primer toggle turno
     // cuando quieras arrancar el siguiente turno se modifica cenizas y entra al segundo toggle con el mensaje
     // condicional eliminado state.casillero == 0 && !state.bonus.cenizas ||
-    if(state.numeroClase != 500 || state.bonus.cenizas && prevMuerte.current == state.muerteContador ){
+    if (
+      state.numeroClase != 500 ||
+      (state.bonus.cenizas && prevMuerte.current == state.muerteContador)
+    ) {
       // tiene que ser pala
       // tiene que haber disonancia de muerte con cenizas true
-      return}
-    if(state.bonus.cenizas){dispatch({type:A.GRAL.TOGGLE_TURNO})
-    prevMuerte.current = state.muerteContador
-
-  }else{ window.alert(`Las cenizas COMIENZAN a encenderse nuevamente con la llama de la vida...`)
-  dispatch({type:A.GRAL.TOGGLE_TURNO});
-  dispatch({type:A.STATS.HEAL_ASCENSO});
-}
-  },[state.muerteContador, state.bonus.cenizas])
+      return;
+    }
+    if (state.bonus.cenizas) {
+      dispatch({ type: A.GRAL.TOGGLE_TURNO });
+      prevMuerte.current = state.muerteContador;
+    } else {
+      window.alert(
+        `Las cenizas COMIENZAN a encenderse nuevamente con la llama de la vida...`
+      );
+      dispatch({ type: A.GRAL.TOGGLE_TURNO });
+      dispatch({ type: A.STATS.HEAL_ASCENSO });
+    }
+  }, [state.muerteContador, state.bonus.cenizas]);
 
   //control exceso de energia
   useEffect(() => {

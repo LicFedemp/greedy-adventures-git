@@ -9,9 +9,10 @@ import { sounds } from "./Objetos/Audios";
 //descripcion aca.
 export function Rolleo(props) {
   const { state, dispatch } = useGeneralContext();
+  const dadoActual = state[props.dado];
 
   const estadosActivar = () => {
-    const n = parseInt(state[props.dado].estado);
+    const n = parseInt(dadoActual.estado);
     switch (n) {
       case 2:
         return "estado-amarillo";
@@ -37,8 +38,8 @@ export function Rolleo(props) {
     return false;
   };
   const calculoConfusion = (estadoActual) => {
-    let numero = parseInt(state[props.dado].numero);
-    let modo = state[props.dado].modo;
+    let numero = parseInt(dadoActual.numero);
+    let modo = dadoActual.modo;
     let gastoEnergia;
     switch (estadoActual) {
       case 1:
@@ -46,6 +47,7 @@ export function Rolleo(props) {
         break;
       case 2:
       case 3:
+      case 4:
         gastoEnergia = 0;
         break;
     }
@@ -67,35 +69,28 @@ export function Rolleo(props) {
   const ejecutarAccion = () => {
     new Audio(sounds.simpleClick).play();
 
-    const estadoActual = parseInt(state[props.dado].estado);
+    const estadoActual = parseInt(dadoActual.estado);
     //colador 1
     if (estadoActual === 0) {
       return;
     }
     //colador 2
-    const numero = parseInt(state[props.dado].numero);
+    const numero = parseInt(dadoActual.numero);
     const obligado = state.dadosObligados.includes(numero);
     const obligadoPresente = comprobacionNegativos();
     const esPurificacion =
-      state[props.dado].numero == 18 && state[props.dado].modo == true
-        ? true
-        : false;
+      dadoActual.numero == 18 && dadoActual.modo == true ? true : false;
 
-    if (!obligado && obligadoPresente && !esPurificacion) {
+    if (!obligado && obligadoPresente && !esPurificacion && !state.confusion) {
       return;
     }
     // Supera coladores
     const [n, modo, gastoEnergia] = calculoConfusion(estadoActual);
-    if (
-      !state.estadoTurno ||
-      gastoEnergia > state.personaje.energia ||
-      (!obligado && obligadoPresente && !state.confusion && !esPurificacion)
-    ) {
+    if (!state.estadoTurno || gastoEnergia > state.personaje.energia) {
       return;
     }
     //peste
-    if (state[props.dado].peste[1] > 0) {
-      console.log(`entra a peste aunque el estado sea ${estadoActual}`);
+    if (dadoActual.peste[1] > 0) {
       dispatch({ type: A.BUFF.CONTAGIO_PESTE, dado: [props.dado] });
     }
     //corrupcion
@@ -119,18 +114,7 @@ export function Rolleo(props) {
       dispatch({ type: A.BUFF.CONFUSION, numero: n, modo });
       console.log(`array de confusion = ${state.alertConfusion}`);
     }
-    // if(n == 4||n ==8){
-    //   for(let x = 0; x<3;x++){
-    //     dispatch({
-    //       type: A.DADO.ACTIVACION_DADO,
-    //       n,
-    //       modo,
-    //       dado: [props.dado],
-    //       gastoEnergia: 0,
-    //     });
-    //   }
-    //   return
-    // }
+
     dispatch({
       type: A.DADO.ACTIVACION_DADO,
       n,
@@ -142,10 +126,6 @@ export function Rolleo(props) {
     if (n == 3 && modo) {
       dispatch({ type: A.GRAL.TOGGLE_TURNO });
     }
-    //tick hemo
-    // if (state.efectosPorSec.tickHemo > 0 && !obligado) {
-    //   dispatch({ type: A.BUFF.EFECTOS_PS, tipo: "hemoAccion" });
-    // }
   };
 
   const toggleDado = () => {
@@ -154,10 +134,24 @@ export function Rolleo(props) {
       dispatch({ type: A.DADO.MODO_DADO, dado: [props.dado] });
     }, 300);
   };
-
+  const colorPersonaje = () => {
+    const clase = parseInt(state.numeroClase);
+    switch (clase) {
+      case 100:
+        return `estado-rojo`;
+      case 200:
+        return `estado-verde`;
+      case 300:
+        return `estado-violeta`;
+      case 400:
+        return `estado-celeste`;
+      case 500:
+        return `estado-amarillo`;
+    }
+  };
   const colorDado = () => {
-    const numeroDado = parseInt(state[props.dado].numero);
-    const modo = state[props.dado].modo;
+    const numeroDado = parseInt(dadoActual.numero);
+    const modo = dadoActual.modo;
     let retorno = ``;
     switch (numeroDado) {
       // ROJO
@@ -183,8 +177,11 @@ export function Rolleo(props) {
         retorno = modo ? `estado-verde` : `estado-heal`;
         return retorno;
       case 8:
-      case 11:
         retorno = modo ? `estado-verde` : `estado-naranja`;
+        return retorno;
+
+      case 11:
+        retorno = modo ? colorPersonaje() : `estado-heal`;
         return retorno;
 
       //NARANJA
@@ -200,20 +197,7 @@ export function Rolleo(props) {
 
       case 12:
       case 20:
-        const clase = parseInt(state.numeroClase);
-        switch (clase) {
-          case 100:
-            return `estado-rojo`;
-          case 200:
-            return `estado-verde`;
-          case 300:
-            return `estado-violeta`;
-          case 400:
-            return `estado-celeste`;
-          case 500:
-            return `estado-amarillo`;
-        }
-
+        return colorPersonaje();
       default:
         return `estado-gris`;
     }
@@ -222,14 +206,14 @@ export function Rolleo(props) {
   return (
     <div
       className={`div-columna div-roll ${
-        state[props.dado].peste[0] ? `roll-poisonAnimation` : ``
+        dadoActual.peste[0] ? `roll-poisonAnimation` : ``
       }`}
     >
       <div className={`div-dado-superior`}>
         <p className={`p-dado-superior`}>
           {" "}
-          {state[props.dado].peste[1] > 0 ? (
-            state[props.dado].peste[1]
+          {dadoActual.peste[1] > 0 ? (
+            dadoActual.peste[1]
           ) : (
             <GiPlagueDoctorProfile className={`plaga-inactiva`} />
           )}
@@ -243,7 +227,7 @@ export function Rolleo(props) {
         </button>
         <p className={`p-dado-superior`}>
           {" "}
-          {state.corruptos.includes(state[props.dado].numero) &&
+          {state.corruptos.includes(dadoActual.numero) &&
           state.poderDado == 20 ? (
             <GiBrokenSkull className={`corrupcion-activa`} />
           ) : (
@@ -252,7 +236,7 @@ export function Rolleo(props) {
         </p>
       </div>
       <button className={`btn-dado ${colorDado()}`} onClick={toggleDado}>
-        {state[props.dado].numero}
+        {dadoActual.numero}
       </button>
       <div className="div-descripcion">
         <p>{props.descripcion}</p>
