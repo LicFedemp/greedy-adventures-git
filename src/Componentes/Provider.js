@@ -57,37 +57,6 @@ export function ContextProvider({ children }) {
     prevEnergia.current = state.personaje.energia;
   }, [state.personaje.energia]);
 
-  // coloreo dados post roll
-  useEffect(() => {
-    if (!firstRender) {
-      const array = [];
-      for (let i = 0; i < state.dados.dadosTotales; i++) {
-        array.push(state[`roll${i + 1}`].numero);
-      }
-
-      let tempArray = [...array];
-      let valorCoincidente = [];
-      for (let i = 0; i < state.dados.dadosTotales; i++) {
-        let coincidencias = 0;
-        for (let j = 0; j < state.dados.dadosTotales; j++) {
-          if (array[i] === tempArray[j]) {
-            coincidencias++;
-
-            tempArray[j] = null;
-          }
-        }
-        if (coincidencias > 1) {
-          for (let k = 1; k < coincidencias; k++) {
-            valorCoincidente.push(array[i]);
-          }
-        }
-      }
-      console.log("El valor coincidente es: " + valorCoincidente);
-      dispatch({ type: A.DADO.ESPECIAL, arrayBase: array, valorCoincidente });
-      dispatch({ type: A.DADO.NEGATIVO });
-    }
-  }, [state.rollFlag]);
-
   // ajuste cambio pj
   useEffect(() => {
     dispatch({
@@ -172,11 +141,11 @@ export function ContextProvider({ children }) {
     state.casillero,
   ]);
 
-  useEffect(() => {
-    if (!state.estadoTurno) {
-      dispatch({ type: A.DADO.DADOS_FUTUROS });
-    }
-  }, [state.estadoTurno]);
+  // useEffect(() => {
+  //   if (!state.estadoTurno) {
+  //     dispatch({ type: A.DADO.DADOS_FUTUROS });
+  //   }
+  // }, [state.estadoTurno]);
 
   useEffect(() => {
     dispatch({

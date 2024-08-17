@@ -1,0 +1,57 @@
+Funcionamiento DPS:
+
+- Dispatch: A.BUFF.EFECTOS_PS, a.tipo(numero que indica el efecto).
+- Hemorragia:
+  Suma de ticks: (ya presentes + nuevos) / 2
+  Dano: total / (ticks \*4). Se ejecuta en cada accion.
+  -Veneno: misma acumulacion de ticks que hemo. Dania al comienzo y al final del turno.
+  Puede infligir danio critico.
+  Las probabilidades de critico deberan determinarse segun el critico de quien lo inflige.
+  -Rejuvnenecimiento: el valor es negativo (dano negativo = curacion).
+  Acumulacion de ticks igual.
+  -Quemadura: el grado de quemadura determina la duracion en turnos y el tick rate.
+  Primero quema la armadura (10 puntos "burnArmadura") y luego la vida (1%).
+
+Muerte:
+-Casillero 0, conserva el equipo (ver si se puede eliminar algun elemento aleatorio).
+-Formas de resuscitar:
+
+1. Joya con resurreccion (1 uso).
+2. Paladin con buff de cenizas.
+
+Skills de personaje:
+
+- Warrior: consume su ira, se desenfurece y recupera vida en forma de rejuvenecimiento segun la ira consumida.
+- Roge: Recupera energia segun puntos de combo.
+- Mage:
+  Teleport (1 casillero p/mana + 1 casillero cada 1 de mana _ cada 200 de p de habilidad.)
+  SuperSanacion curacion con +maxHP por overhealing (0.3 poder de sanacion _ p de mana).
+
+  if (statsObject && typeof statsObject === "object") {
+  const nuevoEstadoPersonaje = Object.keys(statsObject).reduce(
+  (acc, stat) => {
+  const arrayStat = statsObject[stat] || []; // Valor por defecto
+  const totalStatEquipo = Object.keys(
+  state.equipo.bolsa.actual
+  ).reduce((accEquipo, slot) => {
+  const valorStatEquipo =
+  state.equipo.actual[slot][0]?.[stat] || 0;
+  if (typeof valorStatEquipo === "number") {
+  return accEquipo + valorStatEquipo;
+  }
+  return accEquipo; // El valor se devuelve correctamente
+  }, 0);
+
+if (statsObject && typeof statsObject === "object") {
+const nuevoEstadoPersonaje = Object.keys(statsObject).reduce(
+(acc, stat) => {
+const arrayStat = statsObject[stat] || []; // Valor por defecto
+const totalStatEquipo = Object.keys(
+state.equipo.bolsa.actual
+).reduce((accEquipo, slot) => {
+const valorStatEquipo = state.equipo.actual[slot][0]?.[stat] || 0;
+if (typeof valorStatEquipo === "number") {
+return accEquipo + valorStatEquipo;
+}
+return accEquipo; // El valor se devuelve correctamente
+}, 0);

@@ -71,6 +71,7 @@ export function Rolleo(props) {
 
     const estadoActual = parseInt(dadoActual.estado);
     //colador 1
+    dispatch({ type: A.DADO.NEGATIVO });
     if (estadoActual === 0) {
       return;
     }

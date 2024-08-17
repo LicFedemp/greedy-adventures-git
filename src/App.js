@@ -7,26 +7,20 @@ import { Desplegable } from "./Componentes/Desplegable";
 import { Buff } from "./Componentes/Buff";
 function App() {
   const { state, dispatch } = useGeneralContext();
-  const background = () => {
-    const clase = parseInt(state.numeroClase);
-    switch (clase) {
-      case 100:
-        return `red`;
-      case 200:
-        return `green`;
-      case 300:
-        return `purple`;
-      case 400:
-        return `blue`;
-        case 500:
-          return `amarillo`
-      default:
-        return `red`;
-    }
+  const colorBackground = {
+    100: `red`,
+    200: `green`,
+    300: `purple`,
+    400: `blue`,
+    500: `amarillo`,
   };
 
   return (
-    <div className={`App background-${background()}`}>
+    <div
+      className={`App background-${
+        colorBackground[parseInt(state.numeroClase)]
+      }`}
+    >
       <SeleccionPersonaje />
       <Buff />
       <Heading />

@@ -83,7 +83,6 @@ const estadoInicial = {
   roll8: { ...estadoRoll },
   roll9: { ...estadoRoll },
   roll10: { ...estadoRoll },
-  rollFlag: false,
   dadosObligados: [2, 10, 13, 17],
   equipo: {
     codigoDrop: [],
@@ -383,7 +382,11 @@ const reducer = (state, action) => {
             ira: 0,
             vida: cambioVidaFinalTurno,
           },
-          dados: { ...state.dados, dadosTemporales: 0 },
+          dados: {
+            ...state.dados,
+            dadosTemporales: state.dados.dadosFuturos,
+            dadosFuturos: 0,
+          },
           efectosPorSec: {
             ...eps,
             hemo:
@@ -467,21 +470,17 @@ const reducer = (state, action) => {
     case A.DADO.PODER_DADO:
       if (state.casillero < 20) return { ...state };
       const nivel = state.nivelDado < 3 ? state.nivelDado + 1 : 1;
-      let poder = 6;
-      switch (nivel) {
-        case 1:
-          poder = 6;
-          break;
-        case 2:
-          poder = 12;
-          break;
-        case 3:
-          poder = 20;
-          break;
-        default:
-          break;
-      }
+      const poder = nivel == 1 ? 6 : nivel == 2 ? 12 : 20;
       return { ...state, nivelDado: nivel, poderDado: poder };
+    case A.DADO.PODER_DADO_CASILLERO:
+      //regula nivel, poder
+      const casillero = state.casillero;
+      return {
+        ...state,
+        poderDado: casillero > 19 ? state.poderDado : casillero > 9 ? 12 : 6,
+        nivelDado: casillero > 19 ? state.nivelDado : casillero > 9 ? 2 : 1,
+        numDadoMaximo: casillero > 19 || state.numeroClase == 100 ? 10 : 5,
+      };
     case A.DADO.HANDLE_NUMERO_DADOS:
       const totalCantidadDados =
         state.dados.dadosBase +
@@ -489,9 +488,6 @@ const reducer = (state, action) => {
         state.dados.dadosAdd +
         state.dados.dadosTemporales +
         state.dados.dadosPermanentes;
-
-      console.log(`se mete en el calculo de dados`);
-
       return {
         ...state,
         dados: {
@@ -502,33 +498,12 @@ const reducer = (state, action) => {
               : totalCantidadDados,
         },
       };
-    case A.DADO.DADOS_FUTUROS:
-      return {
-        ...state,
-        dados: {
-          ...state.dados,
-          dadosTemporales: state.dados.dadosFuturos,
-          dadosFuturos: 0,
-        },
-      };
-    case A.DADO.PODER_DADO_CASILLERO:
-      //regula nivel, poder
-      const casillero = state.casillero;
-      return {
-        ...state,
-        poderDado: casillero > 19 ? state.poderDado : casillero > 9 ? 12 : 6,
-        nivelDado: casillero > 19 ? state.nivelDado : casillero > 9 ? 2 : 1,
-        numDadoMaximo: casillero > 19 || state.numeroClase == 100 ? 10 : 5,
-      };
 
-    case ACCIONES.LOCK:
-      return { ...state };
     case A.DADO.NEGATIVO:
       return { ...state, algunNegativo: algunNegativo };
     case A.DADO.ROLL_ALL:
       const nuevoEstado = {
         ...state,
-        rollFlag: !state.rollFlag,
         accion: true,
         personaje: {
           ...P,
@@ -536,23 +511,28 @@ const reducer = (state, action) => {
         },
       };
 
-      const arrayPrimera = [0, 1, 3, 7];
-      let numModificadorFinal = 1;
-      const numDado = numDadosValido;
-
-      for (let i = 0; i < numDado; i++) {
-        const aleatorioPrimero = randomNumber(arrayPrimera[state.nivelDado]);
-        if (aleatorioPrimero > arrayPrimera[2]) {
-          numModificadorFinal = 13;
-        } else if (aleatorioPrimero > 1) {
-          numModificadorFinal = 7;
-        } else {
-          numModificadorFinal = 1;
+      const arrayChances = [[1], [0.3, 1], [0.14, 0.29 + 0.14, 1]];
+      const arrayRangosNumeros = [
+        [1, 6],
+        [7, 12],
+        [13, 20],
+      ];
+      const arrayActual = arrayChances[state.nivelDado - 1];
+      //rolleo dados del ultimo al primer para definir estado especial
+      let arrayDados = [];
+      for (let x = numDadosValido; x >= 1; x--) {
+        let minimo;
+        let maximo;
+        for (let i = 0; i < arrayActual.length; i++) {
+          const chanceAleatoria = Math.random();
+          if (chanceAleatoria <= arrayActual[i]) {
+            minimo = arrayRangosNumeros[i][0];
+            maximo = arrayRangosNumeros[i][1];
+            break;
+          }
         }
-
-        const primerModificador = aleatorioPrimero > 3 ? 8 : 6;
         let aleatorio =
-          Math.floor(Math.random() * primerModificador) + numModificadorFinal;
+          Math.floor(Math.random() * (maximo - minimo + 1)) + minimo;
 
         const numerosChanceReducida = [13, 17];
         if (numerosChanceReducida.includes(aleatorio)) {
@@ -561,82 +541,35 @@ const reducer = (state, action) => {
             aleatorio = randomNumber(20);
           }
         }
-        const nombreDado = `roll${i + 1}`;
-        const cargas = state[nombreDado].peste[1];
-        const nuevaPeste = cargas > 1 ? true : false;
-        const nuevaCarga = cargas > 0 ? cargas - 1 : 0;
-        const arrayPeste = [nuevaPeste, nuevaCarga];
+        const nombreDado = `roll${x}`;
+        const nuevaCarga = Math.max(state[nombreDado].peste[1] - 1, 0);
+        const nuevaPeste = nuevaCarga === 0 ? false : true;
+
+        const estadoDado = state.dadosObligados.includes(aleatorio)
+          ? 3
+          : arrayDados.includes(aleatorio)
+          ? 2
+          : 1;
+        arrayDados.push(aleatorio);
+
         nuevoEstado[nombreDado] = {
           ...state[nombreDado],
           numero: aleatorio,
-          peste: arrayPeste,
+          estado: estadoDado,
+          peste: [nuevaPeste, nuevaCarga],
         };
+        console.log(
+          `Numero de dado = ${x}, numero = ${aleatorio},maximo = ${maximo}, minimo=${minimo} estado = ${estadoDado}`
+        );
       }
-      for (let x = numDado + 1; x <= 10; x++) {
+
+      for (let x = numDadosValido + 1; x <= 10; x++) {
         const nombreDado = `roll${x}`;
         nuevoEstado[nombreDado] = estadoRoll;
       }
 
       return { ...nuevoEstado };
-    case A.DADO.ESPECIAL:
-      let arrayBase = a.arrayBase;
-      const arrayCoincidente = a.valorCoincidente;
-      let arrayEspecial = Array(arrayBase.length).fill(1);
-      let arrayOcupados = [];
-      let iteraciones = 0;
-      let puntoInicio = 0;
 
-      outerLoop: for (const valorCoincidente of arrayCoincidente) {
-        iteraciones++;
-        //condicional regulador de iterador externo.
-        if (iteraciones > arrayCoincidente.length) {
-          break outerLoop;
-        } else {
-          let iteracionesAnidadas = -1;
-          innerLoop: for (const elemento of arrayBase) {
-            iteracionesAnidadas++;
-            if (arrayOcupados.includes(iteracionesAnidadas)) {
-              continue innerLoop;
-            }
-
-            if (valorCoincidente === elemento) {
-              //definir punto de inicio
-              if (arrayOcupados.length > 0) {
-                if (arrayOcupados.length === 1) {
-                  puntoInicio = parseInt(arrayOcupados[0] + 1);
-                } else {
-                  puntoInicio = parseInt(
-                    arrayOcupados[arrayOcupados.length - 1] + 1
-                  );
-                }
-              }
-              /*Definir indice que se ignorara luego en la comparacion y 
-              punto de inicio para buscar el indice para modificar el array 
-              especial*/
-              const indice = arrayBase.indexOf(elemento, puntoInicio);
-              arrayEspecial[indice] = 2;
-              arrayOcupados.push(indice);
-              continue outerLoop;
-            }
-          }
-        }
-      }
-      for (let x = 0; x < arrayEspecial.length; x++) {
-        if (state.dadosObligados.includes(state[`roll${x + 1}`].numero)) {
-          arrayEspecial[x] = 3;
-        }
-      }
-      const estadoNuevo = { ...state };
-      for (let x = 0; x < 10; x++) {
-        const dadoActual = `roll${x + 1}`;
-        estadoNuevo[dadoActual] = {
-          ...state[dadoActual],
-          estado: arrayEspecial[x],
-        };
-      }
-      return {
-        ...estadoNuevo,
-      };
     case A.DADO.MODO_DADO:
       return {
         ...state,
@@ -897,88 +830,85 @@ const reducer = (state, action) => {
               : P.vida - danoFiltrado,
         },
       };
-    case A.STATS.EXCESO_ENERGIA:
-      switch (a.caso) {
-        case "exceso":
-          return {
-            ...state,
-            personaje: {
-              ...P,
-              energia: P.energiaMax,
-              reservaEnergia: a.valor,
-            },
-          };
-      }
-    case A.STATS.ACTIVAR_SKILL:
-      switch (a.personaje) {
-        case 101:
-        case 102:
-          return {
-            ...state,
-            personaje: { ...P, ira: 0 },
-            bonus: { ...state.bonus, enfurecido: false },
-          };
-        case 201:
-        case 202:
-          const energiaCombo = P.energia + Math.floor(P.combo / 2);
-          const energiaComboFinal =
-            energiaCombo < P.energiaMax ? energiaCombo : P.energiaMax;
-          return {
-            ...state,
-            personaje: {
-              ...P,
-              combo: 0,
-              energia: energiaComboFinal,
-            },
-          };
-        case 301:
-        case 302:
-          const valorPielDemonio = state.bonus.pielDemonio;
-          const limitePielDemonio = 50;
-          return {
-            ...state,
-            personaje: { ...P, mana: 0 },
-            bonus: {
-              ...state.bonus,
-              pielDemonio:
-                valorPielDemonio == limitePielDemonio ||
-                valorPielDemonio + P.mana >= limitePielDemonio
-                  ? limitePielDemonio
-                  : valorPielDemonio + P.mana,
-            },
-          };
-        case 401:
-          playAudio(sounds.teleportSimple);
-          return {
-            ...state,
-            casillero:
-              state.casillero +
-              Math.floor(P.mana + Math.floor(P.mana * (P.maleficio / 200))),
-            personaje: { ...P, mana: 0 },
-          };
-        case 402:
-          playAudio(sounds.heal12);
-          const [healing, overhealingBool, ohValor] = calcularHealing(
-            Math.floor(P.mana * (P.curacion / 3)) * modCritSanacion
-          );
-          const bonusVidaMaxima = overhealingBool
-            ? Math.floor(ohValor / 10)
-            : 0;
-          return {
-            ...state,
-            personaje: {
-              ...P,
-              mana: 0,
-              vida: healing,
-              vidaMaximaBonus: P.vidaMaximaBonus + bonusVidaMaxima,
-            },
-          };
-        case 501:
-          return { ...state, personaje: { ...P, mana: 0 } };
 
-        default:
-          return { ...state };
-      }
+    case A.STATS.ACTIVAR_SKILL:
+      const skillWarrior = () => {
+        return {
+          ...state,
+          personaje: { ...P, ira: 0 },
+          bonus: { ...state.bonus, enfurecido: false },
+        };
+      };
+      const skillRoge = () => {
+        const energiaCombo = P.energia + Math.floor(P.combo / 2);
+        const energiaComboFinal = Math.min(energiaCombo, P.energiaMax);
+        return {
+          ...state,
+          personaje: {
+            ...P,
+            combo: 0,
+            energia: energiaComboFinal,
+          },
+        };
+      };
+      const skillWarlock = () => {
+        const valorPielDemonio = state.bonus.pielDemonio;
+        const limitePielDemonio = 50;
+        return {
+          ...state,
+          personaje: { ...P, mana: 0 },
+          bonus: {
+            ...state.bonus,
+            pielDemonio: Math.min(valorPielDemonio + P.mana, limitePielDemonio),
+          },
+        };
+      };
+      const skillMagoTeleport = () => {
+        return {
+          ...state,
+          casillero:
+            state.casillero +
+            Math.floor(P.mana + Math.floor(P.mana * (P.maleficio / 200))),
+          personaje: { ...P, mana: 0 },
+        };
+      };
+      const skillMagoHeal = () => {
+        const [healing, overhealingBool, ohValor] = calcularHealing(
+          Math.floor(P.mana * (P.curacion / 3)) * modCritSanacion
+        );
+        const bonusVidaMaxima = overhealingBool ? Math.floor(ohValor / 10) : 0;
+        return {
+          ...state,
+          personaje: {
+            ...P,
+            mana: 0,
+            vida: healing,
+            vidaMaximaBonus: P.vidaMaximaBonus + bonusVidaMaxima,
+          },
+        };
+      };
+      const skillsObject = {
+        101: skillWarrior(),
+        102: skillWarrior(),
+        201: skillRoge(),
+        202: skillRoge(),
+        301: skillWarlock(),
+        302: skillWarlock(),
+        401: skillMagoTeleport(),
+        402: skillMagoHeal(),
+      };
+      const audioObject = {
+        102: sounds.heal12,
+        101: sounds.heal12,
+        201: sounds.discharge,
+        202: sounds.discharge,
+        301: sounds.discharge,
+        302: sounds.discharge,
+        401: sounds.teleportSimple,
+        402: sounds.heal12,
+      };
+      playAudio(audioObject[a.personaje]);
+      return skillsObject[a.personaje];
     case A.STATS.HANDLE_IRA:
       console.log(
         `Entra a ira y ${
@@ -1002,44 +932,8 @@ const reducer = (state, action) => {
       };
     case A.STATS.CALCULAR_STATS:
       //DEFENSA
-      const comboCritico =
-        state.numeroClase == 200 && state.numeroSpec == 1 ? P.combo * 3 : 0;
-      const comboEsquivar =
-        state.numeroClase == 200 && state.numeroSpec == 2 ? P.combo * 3 : 0;
-
-      const arrayStats = [
-        "defensa",
-        "ataque",
-        "critico",
-        "esquivar",
-        "maleficio",
-        "curacion",
-        "vampirismo",
-        "defensaMagica",
-        "regeneracion",
-        "vidaMaxima",
-      ];
-      let arrayStatsValores = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      for (let i = 0; i < arrayStats.length; i++) {
-        const arrayEquipoActual = [
-          state.equipo.actual.arma[0]?.[arrayStats[i]],
-          state.equipo.actual.armadura[0]?.[arrayStats[i]],
-          state.equipo.actual.joya[0]?.[arrayStats[i]],
-        ];
-        arrayEquipoActual.forEach((element) => {
-          if (typeof element === "number") {
-            arrayStatsValores[i] = arrayStatsValores[i] + element;
-          }
-        });
-      }
-      const iraModDefensa =
-        state.numeroSpec == 2 && state.numeroClase == 100
-          ? Math.floor((arrayStatsValores[0] + P.defensaBase) * (P.ira * 0.1))
-          : 0;
-      const iraModAtaque =
-        state.numeroSpec == 1 && state.numeroClase == 100
-          ? Math.floor((arrayStatsValores[1] + P.ataqueBase) * (P.ira * 0.1))
-          : 0;
+      const comboCritico = claseSpec === 201 ? P.combo * 3 : 0;
+      const comboEsquivar = claseSpec === 202 ? P.combo * 3 : 0;
       // MODIFICADORES DE STATS CON EFECTOS ESPECIALES DE EQUIP LVL3
       const modLegendarioVidaAtaque =
         state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.VIDA_ATAQUE
@@ -1057,104 +951,127 @@ const reducer = (state, action) => {
         state.equipo.actual.joya[0]?.efecto === EFECTOS_EQUIPO.REGEN_STATS
           ? P.regeneracion * 2
           : 0;
-
-      //CALCULOS DE TOTALES
-      const modificadorBlindado = state.bonus.blindado ? 2 : 1;
-      const defensaAscendencia = state.bonus.ascendencia;
       const vidaAscendencia = state.bonus.ascendencia * 2;
-      const totalDefensa = state.bonus.enfurecido
-        ? 0
-        : state.bonus.blindadoCargas > 0
-        ? state.bonus.defensaBlindado
-        : Math.floor(
-            P.defensaBase +
-              iraModDefensa +
-              arrayStatsValores[0] +
-              P.defensaBonus +
-              state.bonus.pielDemonio +
-              defensaAscendencia
-          );
-      const totalAtaque = Math.floor(
-        P.ataqueBase +
-          iraModAtaque +
-          arrayStatsValores[1] +
-          P.ataqueBonus +
-          modLegendarioVidaAtaque +
-          modLegendarioDadoAtaque +
-          modLegendarioOfensivoRegen
-      );
       const modSuperSanacion = state.bonus.superSanacion ? 30 : 0;
-      const criticoTotal =
-        P.criticoBase +
-        arrayStatsValores[2] +
-        comboCritico +
-        P.criticoBonus +
-        modSuperSanacion +
-        state.bonus.criticoKatana;
       const modificadorEsfumarse = state.bonus.esfumarse ? 30 : 0;
-      const esquivarTotal =
-        P.esquivarBase +
-        arrayStatsValores[3] +
-        comboEsquivar +
-        modificadorEsfumarse +
-        P.esquivarBonus;
-      const maleficioTotal =
-        P.maleficioBase +
-        arrayStatsValores[4] +
-        P.maleficioBonus +
-        modLegendarioOfensivoRegen;
-      const curacionTotal =
-        P.curacionBase + arrayStatsValores[5] + P.curacionBonus;
-      const vampirismoTotal =
-        P.vampirismoBase + arrayStatsValores[6] + P.vampirismoBonus;
-      const defMagicaFromDefensa = Math.floor(totalDefensa / 50);
-      const defensaMagicaTotal =
-        P.defensaMagicaBase +
-        arrayStatsValores[7] +
-        defMagicaFromDefensa +
-        P.defensaMagicaBonus;
-      const regeneracionTotal =
-        P.regeneracionBase +
-        arrayStatsValores[8] +
-        P.regeneracionBonus +
-        modLegendarioVidaRegen;
-      const vidaMaximaTotal =
-        P.vidaBase + arrayStatsValores[9] + P.vidaMaximaBonus + vidaAscendencia;
       const armorBurn = state.bonus.burnArmadura;
 
-      return {
-        ...state,
-        personaje: {
-          ...P,
-          esquivar: esquivarTotal > 0 ? esquivarTotal : 0,
-          critico: criticoTotal > 0 ? criticoTotal : 0,
-          ataque:
-            totalAtaque > 0
-              ? state.bonus.enfurecido
-                ? Math.floor(totalAtaque + totalAtaque * 0.5)
-                : totalAtaque
-              : 0,
-          defensa: totalDefensa - armorBurn > 0 ? totalDefensa : 0,
-          maleficio: maleficioTotal > 0 ? maleficioTotal : 0,
-          curacion: curacionTotal > 0 ? curacionTotal : 0,
-          vampirismo:
-            vampirismoTotal > 0
-              ? state.bonus.enfurecido
-                ? vampirismoTotal + 50
-                : vampirismoTotal
-              : 0,
-          defensaMagica:
-            defensaMagicaTotal > 0 && eps.tickPsicosis === 0
-              ? defensaMagicaTotal
-              : Math.floor(defensaMagicaTotal / 2),
-          regeneracion: regeneracionTotal > 0 ? regeneracionTotal : 0,
-          vidaMaxima: vidaMaximaTotal,
-          manaMax:
-            P.manaBase + Math.floor(state.bonus.ascendencia / 5) > 5
-              ? 5
-              : P.manaBase + Math.floor(state.bonus.ascendencia / 5),
-        },
+      const statsObject = {
+        defensa: [
+          P.defensaBase,
+          P.defensaBonus,
+          state.bonus.pielDemonio,
+          state.bonus.ascendencia,
+        ],
+        ataque: [
+          P.ataqueBase,
+          P.ataqueBonus,
+          modLegendarioVidaAtaque,
+          modLegendarioDadoAtaque,
+          modLegendarioOfensivoRegen,
+        ],
+        critico: [
+          P.criticoBase,
+          P.criticoBonus,
+          state.bonus.criticoKatana,
+          comboCritico,
+          modSuperSanacion,
+        ],
+        esquivar: [
+          P.esquivarBase,
+          P.esquivarBonus,
+          comboEsquivar,
+          modificadorEsfumarse,
+        ],
+        maleficio: [
+          P.maleficioBase,
+          P.maleficioBonus,
+          modLegendarioOfensivoRegen,
+        ],
+        curacion: [P.curacionBase, P.curacionBonus],
+        vampirismo: [
+          P.vampirismoBase,
+          P.vampirismoBonus,
+          state.bonus.enfurecido ? 50 : 0,
+        ],
+        defensaMagica: [P.defensaMagicaBase, P.defensaMagicaBonus],
+        regeneracion: [
+          P.regeneracionBase,
+          P.regeneracionBonus,
+          modLegendarioVidaRegen,
+        ],
+        vidaMaxima: [P.vidaBase, P.vidaMaximaBonus, vidaAscendencia],
       };
+
+      if (statsObject && typeof statsObject === "object") {
+        console.log("hola?");
+
+        const nuevoEstadoPersonaje = Object.keys(statsObject).reduce(
+          (acc, stat) => {
+            const arrayStat = statsObject[stat] || []; // Valor por defecto
+            const totalStatEquipo = Object.keys(state.equipo.actual).reduce(
+              (accEquipo, slot) => {
+                const valorStatEquipo =
+                  state.equipo.actual[slot][0]?.[stat] || 0;
+                if (typeof valorStatEquipo === "number") {
+                  return accEquipo + valorStatEquipo;
+                }
+                return accEquipo; // El valor se devuelve correctamente
+              },
+              0
+            );
+
+            const totalStat = Math.floor(
+              Math.max(
+                arrayStat.reduce(
+                  (accStat, statValue) => accStat + statValue,
+                  0
+                ) + totalStatEquipo,
+                0
+              )
+            );
+
+            let statPostModificaciones = totalStat;
+
+            if (stat === "defensa") {
+              statPostModificaciones -= armorBurn;
+              if (state.bonus.enfurecido) {
+                statPostModificaciones = 0;
+              } else if (state.bonus.blindadoCargas > 0) {
+                statPostModificaciones = state.bonus.defensaBlindado;
+              }
+              if (claseSpec === 102) {
+                statPostModificaciones =
+                  statPostModificaciones * (1 + P.ira * 0.1);
+              }
+            } else if (stat === "ataque") {
+              if (claseSpec === 101) {
+                statPostModificaciones =
+                  statPostModificaciones * (1 + P.ira * 0.1);
+              }
+            } else if (stat === "defensaMagica") {
+              const divisorPsicosis = eps.tickPsicosis === 0 ? 2 : 1;
+              statPostModificaciones = Math.floor(
+                (totalStat + Math.floor(totalStat / 2)) / divisorPsicosis
+              );
+            }
+
+            return { ...acc, [stat]: statPostModificaciones };
+          },
+          { ...P }
+        );
+
+        return {
+          ...state,
+          personaje: {
+            ...nuevoEstadoPersonaje,
+            manaMax: Math.min(
+              P.manaBase + Math.floor(state.bonus.ascendencia / 5),
+              5
+            ),
+          },
+        };
+      }
 
     case A.STATS.MODIFICAR_EQUIPO:
       console.log(`Entra al reducer de modificacion de equipo`);
@@ -1241,7 +1158,7 @@ const reducer = (state, action) => {
         lock: false,
       };
       if (
-        !algunNegativo ||
+        !state.algunNegativo ||
         state[a.dado].estado == 3 ||
         (a.n == 18 && a.modo === true)
       ) {
@@ -1310,9 +1227,7 @@ const reducer = (state, action) => {
                       vida: vidaFinal,
                       energia: P.energia - gastoEnergia,
                       mana:
-                        state.numeroClase == 300 &&
-                        P.mana < P.manaMax &&
-                        casilleroFinal < state.casillero
+                        state.numeroClase == 300 && P.mana < P.manaMax
                           ? P.mana + 1
                           : P.mana,
                     },
