@@ -65,11 +65,9 @@ export function RolleoZone() {
           if (modo) {
             return `Mele ${
               state.personaje.ataque +
-                      Math.floor(
-                        state.bonus.llamaInterior * 0.5 +
-                          state.bonus.ascendencia *
-                          0.7
-                      )
+              Math.floor(
+                state.bonus.llamaInterior * 0.5 + state.bonus.ascendencia * 0.7
+              )
             }/ + x llama interior / + 1 Mana`;
           } else if (!modo) {
             return `Heal ${
@@ -117,12 +115,15 @@ export function RolleoZone() {
           const ascendenciaActual = state.bonus.ascendencia;
           const llamaActual = state.bonus.llamaInterior;
           const manaMaxActual = state.personaje.manaMax;
-          const gananciaNeta = Math.floor(((ascendenciaActual%5)+llamaActual) / 5)
-          const addManaFinal =gananciaNeta+manaMaxActual >5?5 - manaMaxActual:gananciaNeta ;
+          const gananciaNeta = Math.floor(
+            ((ascendenciaActual % 5) + llamaActual) / 5
+          );
+          const addManaFinal =
+            gananciaNeta + manaMaxActual > 5 ? 5 - manaMaxActual : gananciaNeta;
 
-          return `Ascenso: + ${addManaFinal} manaMax, + ${
-            llamaActual 
-          } defensa , + ${llamaActual * 2} HP max `;
+          return `Ascenso: + ${addManaFinal} manaMax, + ${llamaActual} defensa , + ${
+            llamaActual * 2
+          } HP max `;
         default:
           break;
       }
@@ -147,9 +148,11 @@ export function RolleoZone() {
           }`;
         case 2:
           return `${
-            state.personaje.defensaMagica > 0
+            state.personaje.defensaMagica > state.nivelDado
               ? `No pasa na. Antirretroceso OP?`
-              : `Retrocedes 1 casillero`
+              : `Retrocedes ${state.nivelDado} ${
+                  state.nivelDado > 1 ? `casilleros` : `casillero`
+                }`
           }`;
         case 3:
           return DADOS.D3.A.DECRIPCION;
